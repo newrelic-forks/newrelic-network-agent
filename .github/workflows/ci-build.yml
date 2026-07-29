@@ -1,0 +1,38 @@
+name: CI Build (no push)
+
+# Validation-only build for the investigation playground: builds the Docker image
+# end-to-end (which also compiles the Go binary via `make`) but never pushes it anywhere.
+
+on:
+  push:
+    branches: [ investigation ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set version
+        run: echo "KENTIK_KTRANSLATE_VERSION=ci-$(date +%Y-%m-%d)-${GITHUB_RUN_ID}" >> "$GITHUB_ENV"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          platforms: linux/amd64
+          tags: ktranslate:ci
+          build-args: |
+            MAXMIND_LICENSE_KEY=${{ secrets.MM_DOWNLOAD_KEY }}
+            YOUR_ACCOUNT_ID=${{ secrets.MM_ACCOUNT_ID }}
+            KENTIK_KTRANSLATE_VERSION=${{ env.KENTIK_KTRANSLATE_VERSION }}
+            KENTIK_SNMP_PROFILE_REPO=https://github.com/DavSanchez/snmp-profiles
+          secrets: |
+            github_token=${{ secrets.SNMP_PROFILES_TOKEN }}

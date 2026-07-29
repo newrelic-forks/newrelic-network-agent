@@ -24,6 +24,15 @@ FROM alpine:latest as snmp
 ARG KENTIK_SNMP_PROFILE_REPO
 RUN apk add -U git
 
+# Opt-in auth: when a `github_token` BuildKit secret is provided (a GitHub token with read
+# access to the repo), transparently authenticate GitHub HTTPS clones. This is a complete
+# no-op when the secret is absent, so the override/clone logic below is unchanged from
+# upstream. The token lives only in this throwaway stage (only /snmp/profiles is copied on).
+RUN --mount=type=secret,id=github_token \
+    if [ -s /run/secrets/github_token ]; then \
+        git config --global url."https://x-access-token:$(cat /run/secrets/github_token)@github.com/".insteadOf "https://github.com/"; \
+    fi
+
 # If there is a branch of snmp-profiles to use, switch over here now.
 RUN if [ -z "${KENTIK_SNMP_PROFILE_REPO}" ]; then \
     git clone https://github.com/kentik/snmp-profiles /snmp; \
