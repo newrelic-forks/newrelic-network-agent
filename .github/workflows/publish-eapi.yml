@@ -1,9 +1,7 @@
 name: Publish EAPI
 
 on:
-  push:
-    branches:
-      - eapi
+  workflow_dispatch:  # auto-triggers disabled for playground; run manually
 
 jobs:
   deploy:

@@ -2,14 +2,7 @@ name: Publish Kentik
 run-name: ${{ inputs.message }}
 
 on:
-  push:
-    branches:
-      - kentik
-
-  workflow_dispatch:
-    inputs:
-      message:
-        type: string
+  workflow_dispatch:  # auto-triggers disabled for playground; run manually
 
 jobs:
   deploy:

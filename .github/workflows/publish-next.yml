@@ -1,12 +1,7 @@
 name: Publish Next
 
 on:
-  repository_dispatch:
-    types: [new-snmp-profiles]
-
-  push:
-    branches:
-      - next
+  workflow_dispatch:  # auto-triggers disabled for playground; run manually
 
 jobs:
   deploy:

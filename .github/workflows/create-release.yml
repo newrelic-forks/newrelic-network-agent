@@ -1,6 +1,5 @@
 on:
-  release:
-    types: [edited, created]
+  workflow_dispatch:  # auto-triggers disabled for playground; run manually
 
 name: Upload Release
 
