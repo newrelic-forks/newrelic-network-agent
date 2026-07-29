@@ -73,6 +73,6 @@ jobs:
             echo '```bash'
             echo "docker load -i ntranslate-image.tar"
             echo "docker image ls | grep ntranslate       # now visible"
-            echo "docker run --rm --entrypoint ktranslate ntranslate:ci -version"
+            echo "docker run --rm --entrypoint ktranslate ntranslate:ci -h    # prints usage"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

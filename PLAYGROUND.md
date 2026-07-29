@@ -82,7 +82,7 @@ A `push`/PR run defaults to `linux/amd64`.
 ```bash
 docker load -i ntranslate-image.tar
 docker image ls | grep ntranslate                 # now visible locally
-docker run --rm --entrypoint ktranslate ntranslate:ci -version   # smoke test
+docker run --rm --entrypoint ktranslate ntranslate:ci -h          # smoke test (prints usage)
 # inspect baked-in assets:
 docker run --rm --entrypoint sh ntranslate:ci -c \
   'ls /etc/ktranslate/profiles | head; ls -la /etc/ktranslate/GeoLite2-*.mmdb'
