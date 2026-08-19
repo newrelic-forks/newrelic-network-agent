@@ -1,5 +1,5 @@
 # build ktranslate
-FROM golang:1.25-alpine as build
+FROM golang:1.25-alpine AS build
 RUN apk add -U libpcap-dev alpine-sdk bash libcap
 COPY . /src
 WORKDIR /src
@@ -7,7 +7,7 @@ ARG KENTIK_KTRANSLATE_VERSION
 RUN make
 
 # maxmind dbs
-FROM alpine:latest as maxmind
+FROM alpine:latest AS maxmind
 RUN apk add -U curl tar
 ENV GEOLITE2_COUNTRY_FILE=GeoLite2-Country.mmdb
 ENV GEOLITE2_ASN_FILE=GeoLite2-ASN.mmdb
@@ -25,7 +25,7 @@ RUN --mount=type=secret,id=mm_account_id --mount=type=secret,id=mm_license_key \
     tar zxf /tmp/asn.tar.gz --strip-components 1 -C /
 
 # snmp profiles
-FROM alpine:latest as snmp
+FROM alpine:latest AS snmp
 ARG KENTIK_SNMP_PROFILE_REPO
 RUN apk add -U git
 
