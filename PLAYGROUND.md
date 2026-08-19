@@ -8,7 +8,7 @@ internal investigation playground. **Not** wired up to publish anywhere. (The re
 
 - **`DavSanchez/ntranslate`** (this repo, private)
   - `main` — faithful copy of `kentik/ktranslate@main`. Keep it pristine; do not add work here.
-  - `investigation` — the working branch (CI build, snmp auth, disabled upstream workflows).
+  - `develop` — the working branch (CI build, snmp auth, disabled upstream workflows).
 - **`DavSanchez/snmp-profiles`** (private) — point-in-time mirror of `kentik/snmp-profiles`.
   The Docker image bakes these SNMP profiles into `/etc/ktranslate/profiles`.
 
@@ -24,10 +24,10 @@ Remotes:
 ```bash
 git fetch upstream
 git checkout main && git merge --ff-only upstream/main && git push origin main
-git checkout investigation && git rebase main   # replay playground changes on top
+git checkout develop && git rebase main   # replay playground changes on top
 ```
 
-## What changed on `investigation`
+## What changed on `develop`
 
 - **`Dockerfile`**
   - The snmp-profiles clone gained *opt-in* auth. The upstream override logic
@@ -39,7 +39,7 @@ git checkout investigation && git rebase main   # replay playground changes on t
     in build logs, image layers, or `docker history` — even if a step fails.
 - **`.github/workflows/ci-build.yml`** — builds the image and exports it as a
   `docker load`-compatible tarball **artifact** (never pushed to a registry). Triggers on push
-  to `investigation`, on PRs, and via manual dispatch (with a platform choice).
+  to `develop`, on PRs, and via manual dispatch (with a platform choice).
 - **Inherited kentik workflows** (`publish-*`, `create-release`, `test-on-pr`,
   `clean-stale-issues`) — auto-triggers disabled by reducing each `on:` block to
   `workflow_dispatch:` only. Restore the original `on:` blocks (intact on `main` / in history)
@@ -64,7 +64,7 @@ For the local snmp clone we reuse your `gh` token (`gh auth token`) rather than 
 
 ## CI build → downloadable image (recommended path)
 
-Push to `investigation`, or run **"CI Build (no push)"** manually from the Actions tab.
+Push to `develop`, or run **"CI Build (no push)"** manually from the Actions tab.
 It compiles the Go binary (`make`), downloads the MaxMind DBs, clones the private snmp mirror
 via the PAT, and assembles the image — **without pushing to any registry**. Instead it exports
 the image as a `docker load`-compatible tarball and uploads it as a **build artifact**.
