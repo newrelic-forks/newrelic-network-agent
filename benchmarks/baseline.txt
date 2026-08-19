@@ -1,0 +1,155 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/kentik/ktranslate/pkg/inputs/snmp/mibs
+cpu: Apple M1 Max
+BenchmarkFindProfile_MatchesList/patterns=0-10         	 2861600	       406.5 ns/op	     232 B/op	       3 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=0-10         	 2987104	       398.6 ns/op	     232 B/op	       3 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=0-10         	 3049466	       394.8 ns/op	     232 B/op	       3 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=0-10         	 3010371	       404.7 ns/op	     232 B/op	       3 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=0-10         	 2938876	       403.5 ns/op	     232 B/op	       3 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=5-10         	   53181	     22825 ns/op	   37168 B/op	     428 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=5-10         	   56168	     21738 ns/op	   37168 B/op	     428 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=5-10         	   54630	     21796 ns/op	   37168 B/op	     428 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=5-10         	   55876	     23434 ns/op	   37168 B/op	     428 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=5-10         	   52933	     22256 ns/op	   37168 B/op	     428 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=20-10        	   13660	     86606 ns/op	  150779 B/op	    1723 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=20-10        	   12903	     87970 ns/op	  150779 B/op	    1723 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=20-10        	   13599	     89908 ns/op	  150779 B/op	    1723 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=20-10        	   12561	     88141 ns/op	  150780 B/op	    1723 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=20-10        	   13698	     92935 ns/op	  150779 B/op	    1723 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=50-10        	    5382	    221706 ns/op	  380800 B/op	    4333 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=50-10        	    5466	    217953 ns/op	  380801 B/op	    4333 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=50-10        	    5474	    220229 ns/op	  380800 B/op	    4333 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=50-10        	    5539	    220052 ns/op	  380802 B/op	    4333 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=50-10        	    5572	    215528 ns/op	  380800 B/op	    4333 allocs/op
+BenchmarkFindProfile_FleetParse/devices=100-10         	     274	   4320047 ns/op	 7410543 B/op	   85308 allocs/op
+BenchmarkFindProfile_FleetParse/devices=100-10         	     267	   4334455 ns/op	 7410531 B/op	   85307 allocs/op
+BenchmarkFindProfile_FleetParse/devices=100-10         	     282	   4339496 ns/op	 7410515 B/op	   85307 allocs/op
+BenchmarkFindProfile_FleetParse/devices=100-10         	     278	   4323203 ns/op	 7410531 B/op	   85308 allocs/op
+BenchmarkFindProfile_FleetParse/devices=100-10         	     276	   4333517 ns/op	 7410521 B/op	   85307 allocs/op
+BenchmarkFindProfile_FleetParse/devices=1000-10        	      27	  43159877 ns/op	74105541 B/op	  853081 allocs/op
+BenchmarkFindProfile_FleetParse/devices=1000-10        	      27	  43415739 ns/op	74105254 B/op	  853079 allocs/op
+BenchmarkFindProfile_FleetParse/devices=1000-10        	      27	  43303458 ns/op	74105345 B/op	  853080 allocs/op
+BenchmarkFindProfile_FleetParse/devices=1000-10        	      27	  43147957 ns/op	74105364 B/op	  853080 allocs/op
+BenchmarkFindProfile_FleetParse/devices=1000-10        	      27	  43072914 ns/op	74105178 B/op	  853078 allocs/op
+BenchmarkFindProfile_FleetParse/devices=5000-10        	       5	 216679075 ns/op	370527244 B/op	 4265402 allocs/op
+BenchmarkFindProfile_FleetParse/devices=5000-10        	       5	 215563608 ns/op	370526241 B/op	 4265394 allocs/op
+BenchmarkFindProfile_FleetParse/devices=5000-10        	       5	 216393733 ns/op	370526889 B/op	 4265399 allocs/op
+BenchmarkFindProfile_FleetParse/devices=5000-10        	       5	 216960367 ns/op	370527096 B/op	 4265398 allocs/op
+BenchmarkFindProfile_FleetParse/devices=5000-10        	       5	 215551350 ns/op	370524288 B/op	 4265389 allocs/op
+PASS
+ok  	github.com/kentik/ktranslate/pkg/inputs/snmp/mibs	57.946s
+?   	github.com/kentik/ktranslate/pkg/inputs/snmp/mibs/apc	[no test files]
+goos: darwin
+goarch: arm64
+pkg: github.com/kentik/ktranslate/pkg/inputs/snmp
+cpu: Apple M1 Max
+BenchmarkPreScanFanOut/unbounded-10         	       6	 194082944 ns/op	10405661 B/op	  138586 allocs/op
+BenchmarkPreScanFanOut/unbounded-10         	       6	 194201924 ns/op	10416197 B/op	  138160 allocs/op
+BenchmarkPreScanFanOut/unbounded-10         	       6	 194783125 ns/op	10193402 B/op	  136652 allocs/op
+BenchmarkPreScanFanOut/unbounded-10         	       6	 194796188 ns/op	10034234 B/op	  135693 allocs/op
+BenchmarkPreScanFanOut/unbounded-10         	       6	 195272153 ns/op	10066533 B/op	  135957 allocs/op
+BenchmarkPreScanFanOut/pool=256-10          	       2	 837271229 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=256-10          	       2	 810874083 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=256-10          	       2	 807169542 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=256-10          	       2	 809652230 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=256-10          	       2	 809542812 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=1024-10         	       6	 200927056 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=1024-10         	       5	 200663450 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=1024-10         	       5	 201268725 ns/op	 8960382 B/op	  126105 allocs/op
+BenchmarkPreScanFanOut/pool=1024-10         	       5	 202373725 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=1024-10         	       5	 202103050 ns/op	 8959396 B/op	  126096 allocs/op
+BenchmarkVerificationLoop/threads=4-10      	       1	1569016041 ns/op	  431024 B/op	    7256 allocs/op
+BenchmarkVerificationLoop/threads=4-10      	       1	1594838916 ns/op	  457792 B/op	    7495 allocs/op
+BenchmarkVerificationLoop/threads=4-10      	       1	1563791375 ns/op	  444240 B/op	    7374 allocs/op
+BenchmarkVerificationLoop/threads=4-10      	       1	1585424292 ns/op	  454432 B/op	    7465 allocs/op
+BenchmarkVerificationLoop/threads=4-10      	       1	1614918041 ns/op	  451184 B/op	    7436 allocs/op
+BenchmarkVerificationLoop/threads=64-10     	      12	 101679365 ns/op	  289905 B/op	    5995 allocs/op
+BenchmarkVerificationLoop/threads=64-10     	      12	 100203823 ns/op	  288906 B/op	    5986 allocs/op
+BenchmarkVerificationLoop/threads=64-10     	      12	 101245139 ns/op	  289606 B/op	    5992 allocs/op
+BenchmarkVerificationLoop/threads=64-10     	      12	  97880854 ns/op	  288533 B/op	    5983 allocs/op
+BenchmarkVerificationLoop/threads=64-10     	      12	  99908194 ns/op	  291968 B/op	    6014 allocs/op
+BenchmarkVerificationLoop/threads=256-10    	      43	  27025783 ns/op	  278108 B/op	    5888 allocs/op
+BenchmarkVerificationLoop/threads=256-10    	      44	  26990235 ns/op	  276979 B/op	    5878 allocs/op
+BenchmarkVerificationLoop/threads=256-10    	      43	  27194245 ns/op	  277595 B/op	    5883 allocs/op
+BenchmarkVerificationLoop/threads=256-10    	      44	  27056388 ns/op	  277330 B/op	    5881 allocs/op
+BenchmarkVerificationLoop/threads=256-10    	      44	  26979683 ns/op	  276941 B/op	    5877 allocs/op
+BenchmarkCIDRSerialization/serial-10        	       1	1599053666 ns/op	  275664 B/op	    5871 allocs/op
+BenchmarkCIDRSerialization/serial-10        	       1	1580295750 ns/op	  290896 B/op	    6007 allocs/op
+BenchmarkCIDRSerialization/serial-10        	       1	1597465042 ns/op	  298176 B/op	    6072 allocs/op
+BenchmarkCIDRSerialization/serial-10        	       1	1568866000 ns/op	  314304 B/op	    6216 allocs/op
+BenchmarkCIDRSerialization/serial-10        	       1	1595501417 ns/op	  305792 B/op	    6140 allocs/op
+BenchmarkCIDRSerialization/parallel-10      	       3	 410365458 ns/op	  339392 B/op	    6444 allocs/op
+BenchmarkCIDRSerialization/parallel-10      	       3	 391353555 ns/op	  334949 B/op	    6404 allocs/op
+BenchmarkCIDRSerialization/parallel-10      	       3	 400622764 ns/op	  333418 B/op	    6390 allocs/op
+BenchmarkCIDRSerialization/parallel-10      	       3	 392791917 ns/op	  333941 B/op	    6395 allocs/op
+BenchmarkCIDRSerialization/parallel-10      	       3	 395989833 ns/op	  341669 B/op	    6464 allocs/op
+BenchmarkDeviceInitLoop/devices=100-10      	      76	  19899343 ns/op	13676639 B/op	    8602 allocs/op
+BenchmarkDeviceInitLoop/devices=100-10      	      72	  17430626 ns/op	13677704 B/op	    8602 allocs/op
+BenchmarkDeviceInitLoop/devices=100-10      	      74	  19051427 ns/op	13660101 B/op	    8602 allocs/op
+BenchmarkDeviceInitLoop/devices=100-10      	      50	  25754754 ns/op	13691852 B/op	    8602 allocs/op
+BenchmarkDeviceInitLoop/devices=100-10      	      55	  22348055 ns/op	13701365 B/op	    8602 allocs/op
+BenchmarkDeviceInitLoop/devices=1000-10     	       6	 317459812 ns/op	136229204 B/op	   86022 allocs/op
+BenchmarkDeviceInitLoop/devices=1000-10     	       6	 187815597 ns/op	136229236 B/op	   86021 allocs/op
+BenchmarkDeviceInitLoop/devices=1000-10     	       6	 182754889 ns/op	136229108 B/op	   86021 allocs/op
+BenchmarkDeviceInitLoop/devices=1000-10     	       6	 251135076 ns/op	136228424 B/op	   86016 allocs/op
+BenchmarkDeviceInitLoop/devices=1000-10     	       6	 249660944 ns/op	137988668 B/op	   86020 allocs/op
+BenchmarkDeviceInitLoop/devices=5000-10     	       1	1114683209 ns/op	681146280 B/op	  430113 allocs/op
+BenchmarkDeviceInitLoop/devices=5000-10     	       1	1194453750 ns/op	681144032 B/op	  430102 allocs/op
+BenchmarkDeviceInitLoop/devices=5000-10     	       2	 862036396 ns/op	687746872 B/op	  430090 allocs/op
+BenchmarkDeviceInitLoop/devices=5000-10     	       2	 875338458 ns/op	681143548 B/op	  430090 allocs/op
+BenchmarkDeviceInitLoop/devices=5000-10     	       2	1005729416 ns/op	681142888 B/op	  430089 allocs/op
+PASS
+ok  	github.com/kentik/ktranslate/pkg/inputs/snmp	101.462s
+goos: darwin
+goarch: arm64
+pkg: github.com/kentik/ktranslate/pkg/cat
+cpu: Apple M1 Max
+BenchmarkConsumerThroughput/producers=100/consumers=1-10         	      99	  12084758 ns/op	  201198 B/op	     109 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=1-10         	      98	  11998639 ns/op	  199278 B/op	     106 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=1-10         	      99	  11986369 ns/op	  199384 B/op	     106 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=1-10         	      99	  11998948 ns/op	  199442 B/op	     106 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=1-10         	     100	  11960536 ns/op	  199274 B/op	     106 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=4-10         	     398	   3007926 ns/op	  199713 B/op	     112 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=4-10         	     396	   3023751 ns/op	  199636 B/op	     112 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=4-10         	     397	   3028293 ns/op	  199632 B/op	     112 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=4-10         	     394	   3029881 ns/op	  199634 B/op	     112 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=4-10         	     394	   3014639 ns/op	  199634 B/op	     112 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=16-10        	    1387	    859544 ns/op	  201106 B/op	     136 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=16-10        	    1390	    857405 ns/op	  201086 B/op	     136 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=16-10        	    1398	    859332 ns/op	  201078 B/op	     136 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=16-10        	    1392	    865586 ns/op	  201087 B/op	     136 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=16-10        	    1389	    859049 ns/op	  201074 B/op	     136 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=1-10        	       9	 119456671 ns/op	  225778 B/op	    1016 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=1-10        	       9	 119477556 ns/op	  220872 B/op	    1006 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=1-10        	       9	 119107806 ns/op	  220872 B/op	    1006 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=1-10        	       9	 119355148 ns/op	  220872 B/op	    1006 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=1-10        	       9	 119412069 ns/op	  220872 B/op	    1006 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=4-10        	      39	  29856687 ns/op	  221872 B/op	    1013 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=4-10        	      39	  29912233 ns/op	  221232 B/op	    1012 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=4-10        	      39	  29949403 ns/op	  221232 B/op	    1012 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=4-10        	      38	  29816095 ns/op	  221232 B/op	    1012 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=4-10        	      40	  29359495 ns/op	  221232 B/op	    1012 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=16-10       	     158	   7547660 ns/op	  222675 B/op	    1036 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=16-10       	     158	   7567530 ns/op	  222678 B/op	    1036 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=16-10       	     158	   7587479 ns/op	  222675 B/op	    1036 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=16-10       	     160	   7437339 ns/op	  222707 B/op	    1036 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=16-10       	     160	   7498426 ns/op	  222674 B/op	    1036 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=1-10        	       2	 603316771 ns/op	  316872 B/op	    5006 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=1-10        	       2	 616516708 ns/op	  316872 B/op	    5006 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=1-10        	       2	 602394062 ns/op	  316872 B/op	    5006 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=1-10        	       2	 603199834 ns/op	  316872 B/op	    5006 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=1-10        	       2	 603496916 ns/op	  316872 B/op	    5006 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=4-10        	       7	 150133619 ns/op	  317232 B/op	    5012 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=4-10        	       7	 146999012 ns/op	  317232 B/op	    5012 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=4-10        	       7	 151709185 ns/op	  317232 B/op	    5012 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=4-10        	       7	 151096816 ns/op	  317232 B/op	    5012 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=4-10        	       7	 150578714 ns/op	  317232 B/op	    5012 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=16-10       	      30	  38075428 ns/op	  318698 B/op	    5036 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=16-10       	      31	  38207270 ns/op	  324913 B/op	    5047 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=16-10       	      32	  38076474 ns/op	  318672 B/op	    5036 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=16-10       	      31	  38175112 ns/op	  318952 B/op	    5036 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=16-10       	      31	  38130410 ns/op	  318672 B/op	    5036 allocs/op
+PASS
+ok  	github.com/kentik/ktranslate/pkg/cat	64.060s
+?   	github.com/kentik/ktranslate/pkg/cat/auth	[no test files]
