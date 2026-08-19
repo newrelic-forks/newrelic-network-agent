@@ -43,10 +43,10 @@ jobs:
         with:
           context: .
           platforms: ${{ env.PLATFORM }}
-          tags: ktranslate:ci
+          tags: ntranslate:ci
           # Export a `docker load`-compatible archive instead of pushing to a registry.
           # type=docker is single-platform, which is why the platform is fixed per run.
-          outputs: type=docker,dest=/tmp/ktranslate-image.tar
+          outputs: type=docker,dest=/tmp/ntranslate-image.tar
           build-args: |
             KENTIK_KTRANSLATE_VERSION=${{ env.KENTIK_KTRANSLATE_VERSION }}
             KENTIK_SNMP_PROFILE_REPO=https://github.com/DavSanchez/snmp-profiles
@@ -60,19 +60,19 @@ jobs:
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ktranslate-image-${{ env.PLATFORM_TAG }}-${{ env.KENTIK_KTRANSLATE_VERSION }}
-          path: /tmp/ktranslate-image.tar
+          name: ntranslate-image-${{ env.PLATFORM_TAG }}-${{ env.KENTIK_KTRANSLATE_VERSION }}
+          path: /tmp/ntranslate-image.tar
           retention-days: 7
           if-no-files-found: error
 
       - name: How to load it
         run: |
           {
-            echo "## ktranslate image artifact"
-            echo "Built \`ktranslate:ci\` for **$PLATFORM**. Download the artifact, unzip, then:"
+            echo "## ntranslate image artifact"
+            echo "Built \`ntranslate:ci\` for **$PLATFORM**. Download the artifact, unzip, then:"
             echo '```bash'
-            echo "docker load -i ktranslate-image.tar"
-            echo "docker image ls | grep ktranslate       # now visible"
-            echo "docker run --rm --entrypoint ktranslate ktranslate:ci -version"
+            echo "docker load -i ntranslate-image.tar"
+            echo "docker image ls | grep ntranslate       # now visible"
+            echo "docker run --rm --entrypoint ktranslate ntranslate:ci -version"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
