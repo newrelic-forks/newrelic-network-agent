@@ -1,12 +1,12 @@
 name: CI Build (no push)
 
-# Validation build for the investigation playground: builds the Docker image end-to-end
+# Validation build for the develop playground: builds the Docker image end-to-end
 # (which also compiles the Go binary via `make`) and exports it as a downloadable artifact.
 # It is NEVER pushed to a registry. Download the artifact and `docker load` it locally.
 
 on:
   push:
-    branches: [ investigation ]
+    branches: [ develop ]
   pull_request:
   workflow_dispatch:
     inputs:
