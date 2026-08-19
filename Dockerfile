@@ -8,16 +8,21 @@ RUN make
 
 # maxmind dbs
 FROM alpine:latest as maxmind
-ARG MAXMIND_LICENSE_KEY
-ARG YOUR_ACCOUNT_ID
 RUN apk add -U curl tar
 ENV GEOLITE2_COUNTRY_FILE=GeoLite2-Country.mmdb
 ENV GEOLITE2_ASN_FILE=GeoLite2-ASN.mmdb
-RUN if [ -z "${MAXMIND_LICENSE_KEY}" ]; then echo "MAXMIND_LICENSE_KEY" not set; exit 1; fi
-RUN curl -L -o /tmp/country.tar.gz -u ${YOUR_ACCOUNT_ID}:${MAXMIND_LICENSE_KEY} "https://download.maxmind.com/geoip/databases/GeoLite2-Country/download?suffix=tar.gz" && \
-	tar zxf /tmp/country.tar.gz --strip-components 1 -C /
-RUN curl -L -o /tmp/asn.tar.gz -u ${YOUR_ACCOUNT_ID}:${MAXMIND_LICENSE_KEY} "https://download.maxmind.com/geoip/databases/GeoLite2-ASN/download?suffix=tar.gz" && \
-	tar zxf /tmp/asn.tar.gz --strip-components 1 -C /
+# MaxMind account id + license key come from BuildKit secrets (never build-args), so the
+# values never appear in build logs, image layers, or `docker history` -- even if a step
+# fails (build-args get expanded into the printed RUN command; secret files do not).
+RUN --mount=type=secret,id=mm_account_id --mount=type=secret,id=mm_license_key \
+    set -eu; \
+    ACCT="$(cat /run/secrets/mm_account_id 2>/dev/null || true)"; \
+    KEY="$(cat /run/secrets/mm_license_key 2>/dev/null || true)"; \
+    if [ -z "$KEY" ]; then echo "maxmind license key secret (mm_license_key) not provided"; exit 1; fi; \
+    curl -sfL -o /tmp/country.tar.gz -u "$ACCT:$KEY" "https://download.maxmind.com/geoip/databases/GeoLite2-Country/download?suffix=tar.gz"; \
+    tar zxf /tmp/country.tar.gz --strip-components 1 -C /; \
+    curl -sfL -o /tmp/asn.tar.gz -u "$ACCT:$KEY" "https://download.maxmind.com/geoip/databases/GeoLite2-ASN/download?suffix=tar.gz"; \
+    tar zxf /tmp/asn.tar.gz --strip-components 1 -C /
 
 # snmp profiles
 FROM alpine:latest as snmp

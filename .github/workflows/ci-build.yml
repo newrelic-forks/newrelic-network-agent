@@ -48,12 +48,14 @@ jobs:
           # type=docker is single-platform, which is why the platform is fixed per run.
           outputs: type=docker,dest=/tmp/ktranslate-image.tar
           build-args: |
-            MAXMIND_LICENSE_KEY=${{ secrets.MM_DOWNLOAD_KEY }}
-            YOUR_ACCOUNT_ID=${{ secrets.MM_ACCOUNT_ID }}
             KENTIK_KTRANSLATE_VERSION=${{ env.KENTIK_KTRANSLATE_VERSION }}
             KENTIK_SNMP_PROFILE_REPO=https://github.com/DavSanchez/snmp-profiles
+          # All credentials are BuildKit secrets (never build-args) so they cannot leak
+          # into logs/layers even on a failed step.
           secrets: |
             github_token=${{ secrets.SNMP_PROFILES_TOKEN }}
+            mm_account_id=${{ secrets.MM_ACCOUNT_ID }}
+            mm_license_key=${{ secrets.MM_DOWNLOAD_KEY }}
 
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
