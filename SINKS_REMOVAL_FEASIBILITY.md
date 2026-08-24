@@ -152,3 +152,30 @@ This doc is the analysis only — no sink code has been touched on this branch. 
 wants to proceed, the mechanical part (delete 11 directories, prune `sinks.go`/`config.go`/
 `main.go`, `go mod tidy`) is maybe half a day of work; the two judgment calls in §4 and the
 two scope questions in §5 are the part that actually needs a decision before starting.
+
+## 7. Recovering a removed sink later
+
+The removal itself happened in a single commit, `99ff54b` ("refactor(sinks)!: remove
+non-New Relic/OTel sinks"). Nothing here is a one-way door — every removed sink (`kafka`,
+`ddog`, `file`, `gcloud`, `gcppubsub`, `kentik`, `net`, `prom`, plus the `splunk` alias and
+`s3`-as-a-default-sink) is fully intact one commit earlier, and that commit is tagged
+`archive/pre-sink-removal` (`cded527`) specifically so it doesn't need to be rediscovered by
+digging through `git log`.
+
+To bring one back:
+
+- **See what it looked like:** `git show archive/pre-sink-removal:pkg/sinks/kafka/kafa.go`
+  (swap the path for any other removed sink).
+- **Restore just that sink's files:** `git checkout archive/pre-sink-removal -- pkg/sinks/kafka`,
+  then re-add its `case` arm in `pkg/sinks/sinks.go`, its config struct + default block in
+  `config.go`, and its flag-override `case` arms in `cmd/ktranslate/main.go` — diff
+  `99ff54b` against `archive/pre-sink-removal` for the exact lines that came out for that
+  sink.
+- **Restore everything this commit removed:** `git revert 99ff54b` (this also brings back
+  the `hack/prometheus` compose files and the `README`/`config.go` sections it touched).
+
+Deliberately not doing this via commented-out code in the tree: a whole sink implementation
+sitting inertly in comments would never get compile-checked, linted, or covered by CI, so it
+would silently rot as `SinkImpl`, config structs, or logger signatures drift — and it adds
+permanent noise for a "just in case." A tag against the exact pre-removal commit costs
+nothing to maintain and is guaranteed to still be exactly correct whenever it's needed.
