@@ -15,7 +15,7 @@ import (
 // None of the generated patterns match sysdesc -- the common case in production,
 // where most configured match rules don't apply to a given device, but every one of
 // them still gets recompiled from scratch on every call (profile.go:305,322) rather
-// than once at load time. See DISCOVERY_PERFORMANCE_PLAN.md, finding A36.
+// than once at load time. See docs/DISCOVERY_PERFORMANCE_PLAN.md, finding A36.
 func buildBenchMibDB(b *testing.B, numProfiles, numMatches int) (mdb *MibDB, sysid, sysdesc string) {
 	b.Helper()
 	l := lt.NewBenchContextL(logger.NilContext, b)
@@ -46,7 +46,7 @@ func buildBenchMibDB(b *testing.B, numProfiles, numMatches int) (mdb *MibDB, sys
 // exercised on every discovery hit (disco.go:350) and, more importantly, on every
 // config parse -- which happens up to three times per discovery cycle across the
 // whole device fleet (snmp.go:205,457-468; disco.go:44,411; snmp.go:161). See
-// DISCOVERY_PERFORMANCE_PLAN.md findings A15, A24, A30, A36.
+// docs/DISCOVERY_PERFORMANCE_PLAN.md findings A15, A24, A30, A36.
 func BenchmarkFindProfile_MatchesList(b *testing.B) {
 	for _, numMatches := range []int{0, 5, 20, 50} {
 		b.Run(fmt.Sprintf("patterns=%d", numMatches), func(b *testing.B) {

@@ -1,13 +1,13 @@
 name: Benchmark (Tier A)
 
-# Deterministic Go micro-benchmarks (BENCHMARKING_PLAN.md's Tier A) compared against
+# Deterministic Go micro-benchmarks (docs/BENCHMARKING_PLAN.md's Tier A) compared against
 # the checked-in baseline via benchstat. Manual/opt-in on develop (push +
 # workflow_dispatch), plus pull_request so a PR touching Go source or the baseline
 # gets the comparison as a sticky comment automatically -- this is the one trigger
 # type that doesn't need the workflow file registered on the repo's default branch
-# (main, deliberately kept pristine per PLAYGROUND.md), since pull_request events use
+# (main, deliberately kept pristine per docs/PLAYGROUND.md), since pull_request events use
 # the workflow as it exists on the PR's own head ref. Reports the diff for humans to
-# judge -- doesn't fail the build on a threshold yet (BENCHMARKING_PLAN.md #3:
+# judge -- doesn't fail the build on a threshold yet (docs/BENCHMARKING_PLAN.md #3:
 # "tighten later once the numbers are trusted").
 #
 # Runs everything inside the flake.nix devShell rather than a separate
@@ -18,11 +18,11 @@ name: Benchmark (Tier A)
 #
 # -count=5 matches how benchmarks/baseline.txt itself was captured (a -count=10 run
 # across all three packages took longer than a 5-minute budget locally; see
-# BENCHMARKING_PLAN.md's Tier A section). For a more rigorous one-off check when
+# docs/BENCHMARKING_PLAN.md's Tier A section). For a more rigorous one-off check when
 # actually evaluating a proposed fix, run `just bench-diff <pkg>` locally with
 # -count=10+ instead of relying on this routine/lightweight CI signal.
 #
-# No Tier B job yet -- that NixOS VM synthetic device farm (BENCHMARKING_PLAN.md
+# No Tier B job yet -- that NixOS VM synthetic device farm (docs/BENCHMARKING_PLAN.md
 # #2.2) doesn't exist as repo infra yet. Add a second job here once it does (that one
 # will need enable_kvm: true; this one doesn't build any VMs, so it's left off).
 
@@ -68,7 +68,7 @@ jobs:
               # back-to-back runs), and benchstat groups/refuses-to-compare by the full
               # config line including cpu, not just goos/goarch. Without this, two runs on
               # different underlying hardware silently produce two disconnected,
-              # uncompared tables instead of a real diff -- see BENCHMARKING_PLAN.md.
+              # uncompared tables instead of a real diff -- see docs/BENCHMARKING_PLAN.md.
               benchstat -ignore cpu benchmarks/baseline.txt /tmp/new.txt
               echo "\`\`\`"
             } | tee /tmp/report.md >> "$GITHUB_STEP_SUMMARY"

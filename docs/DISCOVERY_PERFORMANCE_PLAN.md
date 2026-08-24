@@ -471,7 +471,7 @@ scales with total fleet size on every discovery tick, not with the delta.
 
 ## 6. Before changing behavior: measure first
 
-See `BENCHMARKING_PLAN.md` for the full measurement strategy (deterministic micro-benchmarks
+See `docs/BENCHMARKING_PLAN.md` for the full measurement strategy (deterministic micro-benchmarks
 for each bottleneck below, plus a NixOS-VM synthetic device farm for a real end-to-end
 IPs/sec and devices/sec number). No phase in §4 should be considered done without a
 `benchstat`-style before/after comparison attached to its PR.

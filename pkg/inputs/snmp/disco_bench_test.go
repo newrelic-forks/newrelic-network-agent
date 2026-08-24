@@ -14,7 +14,7 @@ import (
 // probe per combination, not one per OID). Real timeout_ms is 3000
 // (config/snmp-base.yaml:27, deployment/docker/snmp-base-nr.yaml:26); scaled down by
 // ~1000x here so the suite stays fast. Read results as relative comparisons between
-// concurrency strategies, not absolute production timing -- BENCHMARKING_PLAN.md's
+// concurrency strategies, not absolute production timing -- docs/BENCHMARKING_PLAN.md's
 // Tier B (a real NixOS device farm) is what validates real-world magnitude.
 const simulatedProbeLatency = 3 * time.Millisecond
 

@@ -1,6 +1,6 @@
 # Benchmarking Plan — Measuring Before Optimizing
 
-Branch: `investigation`. Companion to `DISCOVERY_PERFORMANCE_PLAN.md`. That document
+Branch: `investigation`. Companion to `docs/DISCOVERY_PERFORMANCE_PLAN.md`. That document
 catalogs suspected bottlenecks with file:line citations (IDs `A1`–`A56` in its Appendix);
 this document is the measurement layer that turns "we think X is slow because of Y" into
 "here is the before/after number for Y, with statistical confidence." No remediation from
@@ -10,7 +10,7 @@ the other plan should be described as done until it has a benchmark result attac
 
 ## 0. Principle
 
-Every phase in `DISCOVERY_PERFORMANCE_PLAN.md` §4 gets a benchmark run before the change and
+Every phase in `docs/DISCOVERY_PERFORMANCE_PLAN.md` §4 gets a benchmark run before the change and
 after the change, compared with `benchstat` (§3 below). "It should be faster" is not
 evidence; a `benchstat old.txt new.txt` table is.
 
@@ -120,7 +120,7 @@ silently no comparison). This bit twice, at two different levels:
    config just like it would a different OS.
 
 Fix: `benchstat -ignore cpu` (confirmed via `benchstat -h`: `-ignore keys` — "ignore
-variations in keys"), applied in both `benchmark.yml` and the `justfile`'s
+variations in keys"), applied in both `benchmark.yml` and the `Justfile`'s
 `bench-diff` recipe. Verified by reproducing the exact failure locally first
 (same baseline file, one copy with its `cpu:` line hand-edited to a different string)
 and confirming `-ignore cpu` restores the `vs base` column — not just re-running CI
@@ -227,7 +227,7 @@ not a slow software-emulation fallback.
 
 This repo's CI on `investigation` is deliberately manual/opt-in
 (`.github/workflows/test-on-pr.yml` is `workflow_dispatch`-only; auto-triggers were
-disabled per `PLAYGROUND.md`; `.github/workflows/ci-build.yml` runs on
+disabled per `docs/PLAYGROUND.md`; `.github/workflows/ci-build.yml` runs on
 `push: [investigation]` + `pull_request`). A new benchmark workflow should match that
 convention rather than gate every push:
 
@@ -314,7 +314,7 @@ IPs, since literally running that many VMs isn't practical in CI.
 
 ---
 
-## Appendix — cross-reference to `DISCOVERY_PERFORMANCE_PLAN.md`
+## Appendix — cross-reference to `docs/DISCOVERY_PERFORMANCE_PLAN.md`
 
 This document deliberately does not repeat the bottleneck citations (`A1`-`A56`) already
 recorded there — see that file's Appendix for the exact `file:line` source of every

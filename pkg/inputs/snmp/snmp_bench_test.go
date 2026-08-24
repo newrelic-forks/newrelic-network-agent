@@ -38,7 +38,7 @@ import (
 // background goroutine which would attempt a real SNMP round trip against a
 // nonexistent device and only resolve after a multi-second timeout -- leaking
 // goroutines across iterations rather than measuring anything useful. The
-// synchronous per-device loop body is what §2.5 in DISCOVERY_PERFORMANCE_PLAN.md
+// synchronous per-device loop body is what §2.5 in docs/DISCOVERY_PERFORMANCE_PLAN.md
 // identifies as the bottleneck; the async poll itself is unaffected by fleet size.
 func BenchmarkDeviceInitLoop(b *testing.B) {
 	log := lt.NewBenchContextL(logger.NilContext, b)
