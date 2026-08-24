@@ -58,11 +58,11 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
   -flow_only
     	If true, don't poll snmp devices.
   -format string
-    	Format to convert kflow to: (json|flat_json|avro|netflow|influx|carbon|prometheus|new_relic|new_relic_metric|elasticsearch|kflow|otel|snmp|parquet) (default "flat_json")
+    	Format to convert kflow to: (json|flat_json|avro|netflow|influx|carbon|prometheus|new_relic|new_relic_metric|elasticsearch|kflow|otel|snmp) (default "flat_json")
   -format_metric string
-    	Format to convert metrics to: (json|avro|netflow|influx|prometheus|new_relic|new_relic_metric|elasticsearch|kflow|parquet)
+    	Format to convert metrics to: (json|avro|netflow|influx|prometheus|new_relic|new_relic_metric|elasticsearch|kflow)
   -format_rollup string
-    	Format to convert rollups to: (json|avro|netflow|influx|prometheus|new_relic|new_relic_metric|elasticsearch|kflow|parquet)
+    	Format to convert rollups to: (json|avro|netflow|influx|prometheus|new_relic|new_relic_metric|elasticsearch|kflow)
   -gcp.project string
     	Google ProjectID to listen for flows on
   -gcp.sample float
