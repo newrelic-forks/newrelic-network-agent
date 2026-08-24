@@ -7,7 +7,6 @@ require (
 	cloud.google.com/go/secretmanager v1.11.5
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.6.0
 	github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets v0.7.1
-	github.com/DataDog/datadog-api-client-go/v2 v2.5.0
 	github.com/agoda-com/opentelemetry-go/otelslog v0.1.1
 	github.com/agoda-com/opentelemetry-logs-go v0.5.0
 	github.com/aristanetworks/goeapi v0.6.0
