@@ -16,7 +16,6 @@ import (
 	"github.com/kentik/ktranslate/pkg/formats/netflow"
 	"github.com/kentik/ktranslate/pkg/formats/nrm"
 	"github.com/kentik/ktranslate/pkg/formats/otel"
-	"github.com/kentik/ktranslate/pkg/formats/parquet"
 	"github.com/kentik/ktranslate/pkg/formats/prom"
 	"github.com/kentik/ktranslate/pkg/formats/redis"
 	"github.com/kentik/ktranslate/pkg/formats/snmp"
@@ -49,7 +48,6 @@ const (
 	FORMAT_KFLOW                = "kflow"
 	FORMAT_OTEL                 = "otel"
 	FORMAT_SNMP                 = "snmp"
-	FORMAT_PARQUET              = "parquet"
 	FORMAT_REDIS                = "redis"
 )
 
@@ -81,8 +79,6 @@ func NewFormat(ctx context.Context, format Format, log logger.Underlying, regist
 		return otel.NewFormat(ctx, log, cfg.OtelFormat, logTee, registry)
 	case FORMAT_SNMP:
 		return snmp.NewFormat(log, cfg.SnmpFormat)
-	case FORMAT_PARQUET:
-		return parquet.NewFormat(log, compression)
 	case FORMAT_REDIS:
 		return redis.NewFormat(ctx, log, cfg.RedisFormat)
 	default:
