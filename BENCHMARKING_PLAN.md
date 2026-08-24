@@ -94,13 +94,47 @@ unbounded fan-out buys no throughput over a correctly-sized pool, only extra
 writing the next Tier A fake — a fake that's *too* free-lunch can quietly measure the
 wrong thing.
 
-`benchmarks/baseline.txt` covers all of the above, captured inside the Nix devShell
-with `-count=5` (not 10, to keep the combined run under a few minutes — the earlier
-`-count=10` run across just the mibs package took ~2 minutes; across all three
-packages it exceeded 5). `-count=5` is enough to store as a reference baseline, but
-`benchstat` will report `± ∞` (needs ≥6 samples for a confidence interval) — any real
-before/after comparison should re-run both sides with `-count=10`+ for statistical
-confidence, per §3.
+`benchmarks/baseline.txt` covers all of the above, captured with `-count=5` (not 10,
+to keep the combined run under a few minutes — the earlier `-count=10` run across
+just the mibs package took ~2 minutes; across all three packages it exceeded 5).
+`-count=5` is enough to store as a reference baseline, but `benchstat` will report
+`± ∞` (needs ≥6 samples for a confidence interval) — any real before/after comparison
+should re-run both sides with `-count=10`+ for statistical confidence, per §3.
+
+**Platform matters more than it looks like it should — and it's not just OS/arch.**
+`benchstat` groups results by the full `goos`/`goarch`/`cpu` config line at the top of
+each file before comparing anything — two files that differ on *any* of those are
+printed as separate, uncompared result sets (no `vs base` column, no error, just
+silently no comparison). This bit twice, at two different levels:
+
+1. First version of the CI workflow used a baseline captured on a Mac
+   (`darwin/arm64`) compared against CI's `linux/amd64` run — an OS/arch mismatch.
+   Fixed by capturing `benchmarks/baseline.txt` on `linux/amd64` itself (via
+   `gh run download` against an actual CI run, not a local machine), matching what
+   `benchmark.yml` (§3) runs on.
+2. That *still* wasn't enough — a second real CI run (same workflow, same
+   `ubuntu-latest`) produced the exact same silent-no-comparison symptom again. Cause:
+   `ubuntu-latest` is not hardware-uniform. Run #1 landed on `cpu: AMD EPYC 9V45
+   96-Core Processor`; run #2 landed on `cpu: INTEL(R) XEON(R) PLATINUM 8573C`. Same
+   OS, same arch, different silicon — and `benchstat` treats that as a different
+   config just like it would a different OS.
+
+Fix: `benchstat -ignore cpu` (confirmed via `benchstat -h`: `-ignore keys` — "ignore
+variations in keys"), applied in both `benchmark.yml` and the `justfile`'s
+`bench-diff` recipe. Verified by reproducing the exact failure locally first
+(same baseline file, one copy with its `cpu:` line hand-edited to a different string)
+and confirming `-ignore cpu` restores the `vs base` column — not just re-running CI
+and hoping. `goos`/`goarch` are deliberately still left as real grouping keys (a
+genuine cross-platform difference should stay flagged); only `cpu` — noise on a
+shared runner fleet, not signal — is ignored.
+
+Consequence that's still true: running `just bench-diff` on a Mac against this
+`linux/amd64` baseline will still hit a real `goos`/`goarch` mismatch (which
+`-ignore cpu` doesn't and shouldn't paper over). That's a known, accepted tradeoff
+for now (one baseline, not a per-platform set) — locally on a Mac, either capture a
+separate local baseline for that session, or just eyeball the absolute numbers
+rather than expecting a `vs base` column. CI is the one place this baseline is
+actually meant to produce a real comparison.
 
 ### 2.2 Tier B — NixOS VM synthetic device farm
 

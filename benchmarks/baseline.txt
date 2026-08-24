@@ -1,155 +1,155 @@
-goos: darwin
-goarch: arm64
+goos: linux
+goarch: amd64
 pkg: github.com/kentik/ktranslate/pkg/inputs/snmp/mibs
-cpu: Apple M1 Max
-BenchmarkFindProfile_MatchesList/patterns=0-10         	 2861600	       406.5 ns/op	     232 B/op	       3 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=0-10         	 2987104	       398.6 ns/op	     232 B/op	       3 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=0-10         	 3049466	       394.8 ns/op	     232 B/op	       3 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=0-10         	 3010371	       404.7 ns/op	     232 B/op	       3 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=0-10         	 2938876	       403.5 ns/op	     232 B/op	       3 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=5-10         	   53181	     22825 ns/op	   37168 B/op	     428 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=5-10         	   56168	     21738 ns/op	   37168 B/op	     428 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=5-10         	   54630	     21796 ns/op	   37168 B/op	     428 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=5-10         	   55876	     23434 ns/op	   37168 B/op	     428 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=5-10         	   52933	     22256 ns/op	   37168 B/op	     428 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=20-10        	   13660	     86606 ns/op	  150779 B/op	    1723 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=20-10        	   12903	     87970 ns/op	  150779 B/op	    1723 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=20-10        	   13599	     89908 ns/op	  150779 B/op	    1723 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=20-10        	   12561	     88141 ns/op	  150780 B/op	    1723 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=20-10        	   13698	     92935 ns/op	  150779 B/op	    1723 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=50-10        	    5382	    221706 ns/op	  380800 B/op	    4333 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=50-10        	    5466	    217953 ns/op	  380801 B/op	    4333 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=50-10        	    5474	    220229 ns/op	  380800 B/op	    4333 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=50-10        	    5539	    220052 ns/op	  380802 B/op	    4333 allocs/op
-BenchmarkFindProfile_MatchesList/patterns=50-10        	    5572	    215528 ns/op	  380800 B/op	    4333 allocs/op
-BenchmarkFindProfile_FleetParse/devices=100-10         	     274	   4320047 ns/op	 7410543 B/op	   85308 allocs/op
-BenchmarkFindProfile_FleetParse/devices=100-10         	     267	   4334455 ns/op	 7410531 B/op	   85307 allocs/op
-BenchmarkFindProfile_FleetParse/devices=100-10         	     282	   4339496 ns/op	 7410515 B/op	   85307 allocs/op
-BenchmarkFindProfile_FleetParse/devices=100-10         	     278	   4323203 ns/op	 7410531 B/op	   85308 allocs/op
-BenchmarkFindProfile_FleetParse/devices=100-10         	     276	   4333517 ns/op	 7410521 B/op	   85307 allocs/op
-BenchmarkFindProfile_FleetParse/devices=1000-10        	      27	  43159877 ns/op	74105541 B/op	  853081 allocs/op
-BenchmarkFindProfile_FleetParse/devices=1000-10        	      27	  43415739 ns/op	74105254 B/op	  853079 allocs/op
-BenchmarkFindProfile_FleetParse/devices=1000-10        	      27	  43303458 ns/op	74105345 B/op	  853080 allocs/op
-BenchmarkFindProfile_FleetParse/devices=1000-10        	      27	  43147957 ns/op	74105364 B/op	  853080 allocs/op
-BenchmarkFindProfile_FleetParse/devices=1000-10        	      27	  43072914 ns/op	74105178 B/op	  853078 allocs/op
-BenchmarkFindProfile_FleetParse/devices=5000-10        	       5	 216679075 ns/op	370527244 B/op	 4265402 allocs/op
-BenchmarkFindProfile_FleetParse/devices=5000-10        	       5	 215563608 ns/op	370526241 B/op	 4265394 allocs/op
-BenchmarkFindProfile_FleetParse/devices=5000-10        	       5	 216393733 ns/op	370526889 B/op	 4265399 allocs/op
-BenchmarkFindProfile_FleetParse/devices=5000-10        	       5	 216960367 ns/op	370527096 B/op	 4265398 allocs/op
-BenchmarkFindProfile_FleetParse/devices=5000-10        	       5	 215551350 ns/op	370524288 B/op	 4265389 allocs/op
+cpu: AMD EPYC 9V45 96-Core Processor                
+BenchmarkFindProfile_MatchesList/patterns=0-2         	 3182210	       567.6 ns/op	     232 B/op	       3 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=0-2         	 2123239	       576.3 ns/op	     232 B/op	       3 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=0-2         	 1633647	       649.4 ns/op	     232 B/op	       3 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=0-2         	 2163204	       570.1 ns/op	     232 B/op	       3 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=0-2         	 4445606	       272.0 ns/op	     232 B/op	       3 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=5-2         	   52928	     22918 ns/op	   37154 B/op	     428 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=5-2         	   50744	     23188 ns/op	   37154 B/op	     428 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=5-2         	   51444	     22565 ns/op	   37154 B/op	     428 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=5-2         	   53221	     22936 ns/op	   37154 B/op	     428 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=5-2         	   53691	     22651 ns/op	   37154 B/op	     428 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=20-2        	   12733	     91865 ns/op	  150724 B/op	    1723 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=20-2        	   12814	     90897 ns/op	  150723 B/op	    1723 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=20-2        	   13213	     91987 ns/op	  150724 B/op	    1723 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=20-2        	   12972	     96113 ns/op	  150724 B/op	    1723 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=20-2        	   12872	     94285 ns/op	  150723 B/op	    1723 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=50-2        	    4882	    234763 ns/op	  380661 B/op	    4333 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=50-2        	    4641	    227216 ns/op	  380661 B/op	    4333 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=50-2        	    5077	    234219 ns/op	  380662 B/op	    4333 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=50-2        	    4920	    234127 ns/op	  380662 B/op	    4333 allocs/op
+BenchmarkFindProfile_MatchesList/patterns=50-2        	    4958	    236685 ns/op	  380661 B/op	    4333 allocs/op
+BenchmarkFindProfile_FleetParse/devices=100-2         	     262	   4602063 ns/op	 7407799 B/op	   85304 allocs/op
+BenchmarkFindProfile_FleetParse/devices=100-2         	     259	   4564508 ns/op	 7407799 B/op	   85304 allocs/op
+BenchmarkFindProfile_FleetParse/devices=100-2         	     266	   4498559 ns/op	 7407796 B/op	   85304 allocs/op
+BenchmarkFindProfile_FleetParse/devices=100-2         	     249	   4723391 ns/op	 7407797 B/op	   85304 allocs/op
+BenchmarkFindProfile_FleetParse/devices=100-2         	     256	   4614652 ns/op	 7407792 B/op	   85304 allocs/op
+BenchmarkFindProfile_FleetParse/devices=1000-2        	      25	  46292682 ns/op	74078030 B/op	  853044 allocs/op
+BenchmarkFindProfile_FleetParse/devices=1000-2        	      25	  45327159 ns/op	74077877 B/op	  853043 allocs/op
+BenchmarkFindProfile_FleetParse/devices=1000-2        	      26	  46131813 ns/op	74078011 B/op	  853044 allocs/op
+BenchmarkFindProfile_FleetParse/devices=1000-2        	      26	  45604878 ns/op	74077909 B/op	  853043 allocs/op
+BenchmarkFindProfile_FleetParse/devices=1000-2        	      24	  45871655 ns/op	74077969 B/op	  853043 allocs/op
+BenchmarkFindProfile_FleetParse/devices=5000-2        	       5	 229600465 ns/op	370389862 B/op	 4265219 allocs/op
+BenchmarkFindProfile_FleetParse/devices=5000-2        	       5	 222098571 ns/op	370389955 B/op	 4265220 allocs/op
+BenchmarkFindProfile_FleetParse/devices=5000-2        	       5	 222830024 ns/op	370389851 B/op	 4265220 allocs/op
+BenchmarkFindProfile_FleetParse/devices=5000-2        	       5	 224566724 ns/op	370389064 B/op	 4265214 allocs/op
+BenchmarkFindProfile_FleetParse/devices=5000-2        	       5	 225213106 ns/op	370389152 B/op	 4265215 allocs/op
 PASS
-ok  	github.com/kentik/ktranslate/pkg/inputs/snmp/mibs	57.946s
+ok  	github.com/kentik/ktranslate/pkg/inputs/snmp/mibs	61.425s
 ?   	github.com/kentik/ktranslate/pkg/inputs/snmp/mibs/apc	[no test files]
-goos: darwin
-goarch: arm64
+goos: linux
+goarch: amd64
 pkg: github.com/kentik/ktranslate/pkg/inputs/snmp
-cpu: Apple M1 Max
-BenchmarkPreScanFanOut/unbounded-10         	       6	 194082944 ns/op	10405661 B/op	  138586 allocs/op
-BenchmarkPreScanFanOut/unbounded-10         	       6	 194201924 ns/op	10416197 B/op	  138160 allocs/op
-BenchmarkPreScanFanOut/unbounded-10         	       6	 194783125 ns/op	10193402 B/op	  136652 allocs/op
-BenchmarkPreScanFanOut/unbounded-10         	       6	 194796188 ns/op	10034234 B/op	  135693 allocs/op
-BenchmarkPreScanFanOut/unbounded-10         	       6	 195272153 ns/op	10066533 B/op	  135957 allocs/op
-BenchmarkPreScanFanOut/pool=256-10          	       2	 837271229 ns/op	 8959352 B/op	  126096 allocs/op
-BenchmarkPreScanFanOut/pool=256-10          	       2	 810874083 ns/op	 8959352 B/op	  126096 allocs/op
-BenchmarkPreScanFanOut/pool=256-10          	       2	 807169542 ns/op	 8959352 B/op	  126096 allocs/op
-BenchmarkPreScanFanOut/pool=256-10          	       2	 809652230 ns/op	 8959352 B/op	  126096 allocs/op
-BenchmarkPreScanFanOut/pool=256-10          	       2	 809542812 ns/op	 8959352 B/op	  126096 allocs/op
-BenchmarkPreScanFanOut/pool=1024-10         	       6	 200927056 ns/op	 8959352 B/op	  126096 allocs/op
-BenchmarkPreScanFanOut/pool=1024-10         	       5	 200663450 ns/op	 8959352 B/op	  126096 allocs/op
-BenchmarkPreScanFanOut/pool=1024-10         	       5	 201268725 ns/op	 8960382 B/op	  126105 allocs/op
-BenchmarkPreScanFanOut/pool=1024-10         	       5	 202373725 ns/op	 8959352 B/op	  126096 allocs/op
-BenchmarkPreScanFanOut/pool=1024-10         	       5	 202103050 ns/op	 8959396 B/op	  126096 allocs/op
-BenchmarkVerificationLoop/threads=4-10      	       1	1569016041 ns/op	  431024 B/op	    7256 allocs/op
-BenchmarkVerificationLoop/threads=4-10      	       1	1594838916 ns/op	  457792 B/op	    7495 allocs/op
-BenchmarkVerificationLoop/threads=4-10      	       1	1563791375 ns/op	  444240 B/op	    7374 allocs/op
-BenchmarkVerificationLoop/threads=4-10      	       1	1585424292 ns/op	  454432 B/op	    7465 allocs/op
-BenchmarkVerificationLoop/threads=4-10      	       1	1614918041 ns/op	  451184 B/op	    7436 allocs/op
-BenchmarkVerificationLoop/threads=64-10     	      12	 101679365 ns/op	  289905 B/op	    5995 allocs/op
-BenchmarkVerificationLoop/threads=64-10     	      12	 100203823 ns/op	  288906 B/op	    5986 allocs/op
-BenchmarkVerificationLoop/threads=64-10     	      12	 101245139 ns/op	  289606 B/op	    5992 allocs/op
-BenchmarkVerificationLoop/threads=64-10     	      12	  97880854 ns/op	  288533 B/op	    5983 allocs/op
-BenchmarkVerificationLoop/threads=64-10     	      12	  99908194 ns/op	  291968 B/op	    6014 allocs/op
-BenchmarkVerificationLoop/threads=256-10    	      43	  27025783 ns/op	  278108 B/op	    5888 allocs/op
-BenchmarkVerificationLoop/threads=256-10    	      44	  26990235 ns/op	  276979 B/op	    5878 allocs/op
-BenchmarkVerificationLoop/threads=256-10    	      43	  27194245 ns/op	  277595 B/op	    5883 allocs/op
-BenchmarkVerificationLoop/threads=256-10    	      44	  27056388 ns/op	  277330 B/op	    5881 allocs/op
-BenchmarkVerificationLoop/threads=256-10    	      44	  26979683 ns/op	  276941 B/op	    5877 allocs/op
-BenchmarkCIDRSerialization/serial-10        	       1	1599053666 ns/op	  275664 B/op	    5871 allocs/op
-BenchmarkCIDRSerialization/serial-10        	       1	1580295750 ns/op	  290896 B/op	    6007 allocs/op
-BenchmarkCIDRSerialization/serial-10        	       1	1597465042 ns/op	  298176 B/op	    6072 allocs/op
-BenchmarkCIDRSerialization/serial-10        	       1	1568866000 ns/op	  314304 B/op	    6216 allocs/op
-BenchmarkCIDRSerialization/serial-10        	       1	1595501417 ns/op	  305792 B/op	    6140 allocs/op
-BenchmarkCIDRSerialization/parallel-10      	       3	 410365458 ns/op	  339392 B/op	    6444 allocs/op
-BenchmarkCIDRSerialization/parallel-10      	       3	 391353555 ns/op	  334949 B/op	    6404 allocs/op
-BenchmarkCIDRSerialization/parallel-10      	       3	 400622764 ns/op	  333418 B/op	    6390 allocs/op
-BenchmarkCIDRSerialization/parallel-10      	       3	 392791917 ns/op	  333941 B/op	    6395 allocs/op
-BenchmarkCIDRSerialization/parallel-10      	       3	 395989833 ns/op	  341669 B/op	    6464 allocs/op
-BenchmarkDeviceInitLoop/devices=100-10      	      76	  19899343 ns/op	13676639 B/op	    8602 allocs/op
-BenchmarkDeviceInitLoop/devices=100-10      	      72	  17430626 ns/op	13677704 B/op	    8602 allocs/op
-BenchmarkDeviceInitLoop/devices=100-10      	      74	  19051427 ns/op	13660101 B/op	    8602 allocs/op
-BenchmarkDeviceInitLoop/devices=100-10      	      50	  25754754 ns/op	13691852 B/op	    8602 allocs/op
-BenchmarkDeviceInitLoop/devices=100-10      	      55	  22348055 ns/op	13701365 B/op	    8602 allocs/op
-BenchmarkDeviceInitLoop/devices=1000-10     	       6	 317459812 ns/op	136229204 B/op	   86022 allocs/op
-BenchmarkDeviceInitLoop/devices=1000-10     	       6	 187815597 ns/op	136229236 B/op	   86021 allocs/op
-BenchmarkDeviceInitLoop/devices=1000-10     	       6	 182754889 ns/op	136229108 B/op	   86021 allocs/op
-BenchmarkDeviceInitLoop/devices=1000-10     	       6	 251135076 ns/op	136228424 B/op	   86016 allocs/op
-BenchmarkDeviceInitLoop/devices=1000-10     	       6	 249660944 ns/op	137988668 B/op	   86020 allocs/op
-BenchmarkDeviceInitLoop/devices=5000-10     	       1	1114683209 ns/op	681146280 B/op	  430113 allocs/op
-BenchmarkDeviceInitLoop/devices=5000-10     	       1	1194453750 ns/op	681144032 B/op	  430102 allocs/op
-BenchmarkDeviceInitLoop/devices=5000-10     	       2	 862036396 ns/op	687746872 B/op	  430090 allocs/op
-BenchmarkDeviceInitLoop/devices=5000-10     	       2	 875338458 ns/op	681143548 B/op	  430090 allocs/op
-BenchmarkDeviceInitLoop/devices=5000-10     	       2	1005729416 ns/op	681142888 B/op	  430089 allocs/op
+cpu: AMD EPYC 9V45 96-Core Processor                
+BenchmarkPreScanFanOut/unbounded-2         	       5	 230229847 ns/op	10460532 B/op	  139499 allocs/op
+BenchmarkPreScanFanOut/unbounded-2         	       5	 231921126 ns/op	10449579 B/op	  139401 allocs/op
+BenchmarkPreScanFanOut/unbounded-2         	       4	 255514817 ns/op	11049156 B/op	  143654 allocs/op
+BenchmarkPreScanFanOut/unbounded-2         	       5	 230492258 ns/op	11044299 B/op	  144711 allocs/op
+BenchmarkPreScanFanOut/unbounded-2         	       5	 230926543 ns/op	11122475 B/op	  145409 allocs/op
+BenchmarkPreScanFanOut/pool=256-2          	       2	 768262676 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=256-2          	       2	 782333320 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=256-2          	       2	 775515778 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=256-2          	       2	 776050655 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=256-2          	       2	 773622130 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=1024-2         	       5	 216981506 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=1024-2         	       5	 216859502 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=1024-2         	       5	 215751930 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=1024-2         	       5	 215691499 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkPreScanFanOut/pool=1024-2         	       5	 216326433 ns/op	 8959352 B/op	  126096 allocs/op
+BenchmarkVerificationLoop/threads=4-2      	       1	1444631025 ns/op	  468768 B/op	    7593 allocs/op
+BenchmarkVerificationLoop/threads=4-2      	       1	1444640205 ns/op	  470448 B/op	    7608 allocs/op
+BenchmarkVerificationLoop/threads=4-2      	       1	1452801787 ns/op	  466976 B/op	    7577 allocs/op
+BenchmarkVerificationLoop/threads=4-2      	       1	1451873259 ns/op	  469888 B/op	    7603 allocs/op
+BenchmarkVerificationLoop/threads=4-2      	       1	1474557859 ns/op	  460928 B/op	    7523 allocs/op
+BenchmarkVerificationLoop/threads=64-2     	      12	  92488501 ns/op	  290960 B/op	    6005 allocs/op
+BenchmarkVerificationLoop/threads=64-2     	      12	  92321525 ns/op	  290493 B/op	    6000 allocs/op
+BenchmarkVerificationLoop/threads=64-2     	      12	  92400448 ns/op	  290820 B/op	    6003 allocs/op
+BenchmarkVerificationLoop/threads=64-2     	      12	  92764657 ns/op	  290736 B/op	    6003 allocs/op
+BenchmarkVerificationLoop/threads=64-2     	      12	  92727750 ns/op	  290456 B/op	    6000 allocs/op
+BenchmarkVerificationLoop/threads=256-2    	      44	  26038578 ns/op	  277694 B/op	    5884 allocs/op
+BenchmarkVerificationLoop/threads=256-2    	      44	  26154340 ns/op	  277636 B/op	    5884 allocs/op
+BenchmarkVerificationLoop/threads=256-2    	      44	  26243217 ns/op	  277730 B/op	    5885 allocs/op
+BenchmarkVerificationLoop/threads=256-2    	      44	  26083699 ns/op	  277756 B/op	    5885 allocs/op
+BenchmarkVerificationLoop/threads=256-2    	      45	  26074409 ns/op	  277511 B/op	    5883 allocs/op
+BenchmarkCIDRSerialization/serial-2        	       1	1452509836 ns/op	  307248 B/op	    6153 allocs/op
+BenchmarkCIDRSerialization/serial-2        	       1	1451143328 ns/op	  312736 B/op	    6202 allocs/op
+BenchmarkCIDRSerialization/serial-2        	       1	1450789850 ns/op	  315536 B/op	    6227 allocs/op
+BenchmarkCIDRSerialization/serial-2        	       1	1451021975 ns/op	  320016 B/op	    6267 allocs/op
+BenchmarkCIDRSerialization/serial-2        	       1	1456605606 ns/op	  316992 B/op	    6240 allocs/op
+BenchmarkCIDRSerialization/parallel-2      	       3	 364306302 ns/op	  340997 B/op	    6458 allocs/op
+BenchmarkCIDRSerialization/parallel-2      	       3	 365756010 ns/op	  343088 B/op	    6477 allocs/op
+BenchmarkCIDRSerialization/parallel-2      	       3	 367911189 ns/op	  341333 B/op	    6461 allocs/op
+BenchmarkCIDRSerialization/parallel-2      	       3	 367153306 ns/op	  342901 B/op	    6475 allocs/op
+BenchmarkCIDRSerialization/parallel-2      	       3	 364664539 ns/op	  340474 B/op	    6453 allocs/op
+BenchmarkDeviceInitLoop/devices=100-2      	     219	   5546269 ns/op	13675068 B/op	    8600 allocs/op
+BenchmarkDeviceInitLoop/devices=100-2      	     213	   5317621 ns/op	13679353 B/op	    8600 allocs/op
+BenchmarkDeviceInitLoop/devices=100-2      	     225	   5132701 ns/op	13669245 B/op	    8600 allocs/op
+BenchmarkDeviceInitLoop/devices=100-2      	     226	   5082805 ns/op	13622306 B/op	    8600 allocs/op
+BenchmarkDeviceInitLoop/devices=100-2      	     232	   5030347 ns/op	13622306 B/op	    8600 allocs/op
+BenchmarkDeviceInitLoop/devices=1000-2     	      24	  50478486 ns/op	137084517 B/op	   86005 allocs/op
+BenchmarkDeviceInitLoop/devices=1000-2     	      22	  50658309 ns/op	137397665 B/op	   86004 allocs/op
+BenchmarkDeviceInitLoop/devices=1000-2     	      22	  49865002 ns/op	136223952 B/op	   86004 allocs/op
+BenchmarkDeviceInitLoop/devices=1000-2     	      24	  50743659 ns/op	137569128 B/op	   86004 allocs/op
+BenchmarkDeviceInitLoop/devices=1000-2     	      24	  53030090 ns/op	136223856 B/op	   86003 allocs/op
+BenchmarkDeviceInitLoop/devices=5000-2     	       5	 246272385 ns/op	681120795 B/op	  430018 allocs/op
+BenchmarkDeviceInitLoop/devices=5000-2     	       5	 248013963 ns/op	681120776 B/op	  430018 allocs/op
+BenchmarkDeviceInitLoop/devices=5000-2     	       5	 245984564 ns/op	681120499 B/op	  430015 allocs/op
+BenchmarkDeviceInitLoop/devices=5000-2     	       5	 241771644 ns/op	693734416 B/op	  430015 allocs/op
+BenchmarkDeviceInitLoop/devices=5000-2     	       5	 241461580 ns/op	681120276 B/op	  430014 allocs/op
 PASS
-ok  	github.com/kentik/ktranslate/pkg/inputs/snmp	101.462s
-goos: darwin
-goarch: arm64
+ok  	github.com/kentik/ktranslate/pkg/inputs/snmp	100.209s
+goos: linux
+goarch: amd64
 pkg: github.com/kentik/ktranslate/pkg/cat
-cpu: Apple M1 Max
-BenchmarkConsumerThroughput/producers=100/consumers=1-10         	      99	  12084758 ns/op	  201198 B/op	     109 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=1-10         	      98	  11998639 ns/op	  199278 B/op	     106 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=1-10         	      99	  11986369 ns/op	  199384 B/op	     106 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=1-10         	      99	  11998948 ns/op	  199442 B/op	     106 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=1-10         	     100	  11960536 ns/op	  199274 B/op	     106 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=4-10         	     398	   3007926 ns/op	  199713 B/op	     112 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=4-10         	     396	   3023751 ns/op	  199636 B/op	     112 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=4-10         	     397	   3028293 ns/op	  199632 B/op	     112 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=4-10         	     394	   3029881 ns/op	  199634 B/op	     112 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=4-10         	     394	   3014639 ns/op	  199634 B/op	     112 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=16-10        	    1387	    859544 ns/op	  201106 B/op	     136 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=16-10        	    1390	    857405 ns/op	  201086 B/op	     136 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=16-10        	    1398	    859332 ns/op	  201078 B/op	     136 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=16-10        	    1392	    865586 ns/op	  201087 B/op	     136 allocs/op
-BenchmarkConsumerThroughput/producers=100/consumers=16-10        	    1389	    859049 ns/op	  201074 B/op	     136 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=1-10        	       9	 119456671 ns/op	  225778 B/op	    1016 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=1-10        	       9	 119477556 ns/op	  220872 B/op	    1006 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=1-10        	       9	 119107806 ns/op	  220872 B/op	    1006 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=1-10        	       9	 119355148 ns/op	  220872 B/op	    1006 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=1-10        	       9	 119412069 ns/op	  220872 B/op	    1006 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=4-10        	      39	  29856687 ns/op	  221872 B/op	    1013 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=4-10        	      39	  29912233 ns/op	  221232 B/op	    1012 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=4-10        	      39	  29949403 ns/op	  221232 B/op	    1012 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=4-10        	      38	  29816095 ns/op	  221232 B/op	    1012 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=4-10        	      40	  29359495 ns/op	  221232 B/op	    1012 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=16-10       	     158	   7547660 ns/op	  222675 B/op	    1036 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=16-10       	     158	   7567530 ns/op	  222678 B/op	    1036 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=16-10       	     158	   7587479 ns/op	  222675 B/op	    1036 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=16-10       	     160	   7437339 ns/op	  222707 B/op	    1036 allocs/op
-BenchmarkConsumerThroughput/producers=1000/consumers=16-10       	     160	   7498426 ns/op	  222674 B/op	    1036 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=1-10        	       2	 603316771 ns/op	  316872 B/op	    5006 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=1-10        	       2	 616516708 ns/op	  316872 B/op	    5006 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=1-10        	       2	 602394062 ns/op	  316872 B/op	    5006 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=1-10        	       2	 603199834 ns/op	  316872 B/op	    5006 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=1-10        	       2	 603496916 ns/op	  316872 B/op	    5006 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=4-10        	       7	 150133619 ns/op	  317232 B/op	    5012 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=4-10        	       7	 146999012 ns/op	  317232 B/op	    5012 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=4-10        	       7	 151709185 ns/op	  317232 B/op	    5012 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=4-10        	       7	 151096816 ns/op	  317232 B/op	    5012 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=4-10        	       7	 150578714 ns/op	  317232 B/op	    5012 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=16-10       	      30	  38075428 ns/op	  318698 B/op	    5036 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=16-10       	      31	  38207270 ns/op	  324913 B/op	    5047 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=16-10       	      32	  38076474 ns/op	  318672 B/op	    5036 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=16-10       	      31	  38175112 ns/op	  318952 B/op	    5036 allocs/op
-BenchmarkConsumerThroughput/producers=5000/consumers=16-10       	      31	  38130410 ns/op	  318672 B/op	    5036 allocs/op
+cpu: AMD EPYC 9V45 96-Core Processor                
+BenchmarkConsumerThroughput/producers=100/consumers=1-2         	      10	 106127110 ns/op	  201395 B/op	     110 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=1-2         	      10	 106421529 ns/op	  200033 B/op	     107 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=1-2         	      10	 106364617 ns/op	  199331 B/op	     106 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=1-2         	      10	 106337940 ns/op	  199320 B/op	     106 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=1-2         	      10	 106131729 ns/op	  199320 B/op	     106 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=4-2         	      45	  26592460 ns/op	  199652 B/op	     112 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=4-2         	      46	  26613706 ns/op	  199668 B/op	     112 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=4-2         	      46	  26601304 ns/op	  199632 B/op	     112 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=4-2         	      46	  26596810 ns/op	  199673 B/op	     112 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=4-2         	      46	  26594032 ns/op	  199639 B/op	     112 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=16-2        	     162	   7438321 ns/op	  201083 B/op	     136 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=16-2        	     160	   7444129 ns/op	  201101 B/op	     136 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=16-2        	     160	   7395590 ns/op	  201089 B/op	     136 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=16-2        	     160	   7454878 ns/op	  201072 B/op	     136 allocs/op
+BenchmarkConsumerThroughput/producers=100/consumers=16-2        	     160	   7447239 ns/op	  201072 B/op	     136 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=1-2        	       1	1058665177 ns/op	  228552 B/op	    1022 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=1-2        	       1	1059718062 ns/op	  223752 B/op	    1012 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=1-2        	       1	1059598153 ns/op	  270856 B/op	    1101 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=1-2        	       1	1060531728 ns/op	  220872 B/op	    1006 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=1-2        	       1	1059731723 ns/op	  220872 B/op	    1006 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=4-2        	       4	 264566940 ns/op	  253032 B/op	    1078 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=4-2        	       4	 264529930 ns/op	  221232 B/op	    1012 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=4-2        	       4	 264417058 ns/op	  221232 B/op	    1012 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=4-2        	       4	 264440080 ns/op	  221232 B/op	    1012 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=4-2        	       4	 264569125 ns/op	  221232 B/op	    1012 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=16-2       	      18	  66209424 ns/op	  231781 B/op	    1053 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=16-2       	      18	  65952292 ns/op	  222672 B/op	    1036 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=16-2       	      18	  66034329 ns/op	  222672 B/op	    1036 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=16-2       	      18	  65299833 ns/op	  222672 B/op	    1036 allocs/op
+BenchmarkConsumerThroughput/producers=1000/consumers=16-2       	      18	  65747737 ns/op	  222725 B/op	    1036 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=1-2        	       1	5305606281 ns/op	  316872 B/op	    5006 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=1-2        	       1	5304980427 ns/op	  316872 B/op	    5006 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=1-2        	       1	5303110531 ns/op	  316872 B/op	    5006 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=1-2        	       1	5304954145 ns/op	  316872 B/op	    5006 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=1-2        	       1	5300444318 ns/op	  316872 B/op	    5006 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=4-2        	       1	1322125256 ns/op	  317232 B/op	    5012 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=4-2        	       1	1321624230 ns/op	  317232 B/op	    5012 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=4-2        	       1	1323521862 ns/op	  317232 B/op	    5012 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=4-2        	       1	1319392227 ns/op	  317232 B/op	    5012 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=4-2        	       1	1321489886 ns/op	  317232 B/op	    5012 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=16-2       	       4	 325410408 ns/op	  318672 B/op	    5036 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=16-2       	       4	 325183297 ns/op	  318672 B/op	    5036 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=16-2       	       4	 324862772 ns/op	  318672 B/op	    5036 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=16-2       	       4	 326086244 ns/op	  318672 B/op	    5036 allocs/op
+BenchmarkConsumerThroughput/producers=5000/consumers=16-2       	       4	 324856204 ns/op	  318672 B/op	    5036 allocs/op
 PASS
-ok  	github.com/kentik/ktranslate/pkg/cat	64.060s
+ok  	github.com/kentik/ktranslate/pkg/cat	90.323s
 ?   	github.com/kentik/ktranslate/pkg/cat/auth	[no test files]

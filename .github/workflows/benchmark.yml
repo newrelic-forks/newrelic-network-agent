@@ -1,0 +1,92 @@
+name: Benchmark (Tier A)
+
+# Deterministic Go micro-benchmarks (BENCHMARKING_PLAN.md's Tier A) compared against
+# the checked-in baseline via benchstat. Manual/opt-in on develop (push +
+# workflow_dispatch), plus pull_request so a PR touching Go source or the baseline
+# gets the comparison as a sticky comment automatically -- this is the one trigger
+# type that doesn't need the workflow file registered on the repo's default branch
+# (main, deliberately kept pristine per PLAYGROUND.md), since pull_request events use
+# the workflow as it exists on the PR's own head ref. Reports the diff for humans to
+# judge -- doesn't fail the build on a threshold yet (BENCHMARKING_PLAN.md #3:
+# "tighten later once the numbers are trusted").
+#
+# Runs everything inside the flake.nix devShell rather than a separate
+# actions/setup-go + apt-get libpcap-dev + go install benchstat sequence -- that
+# devShell already pins go, libpcap+pkg-config, and goperf (which provides
+# benchstat), so this is the same reproducible environment a developer gets via
+# `nix develop` locally, not a second, drifting definition of the toolchain.
+#
+# -count=5 matches how benchmarks/baseline.txt itself was captured (a -count=10 run
+# across all three packages took longer than a 5-minute budget locally; see
+# BENCHMARKING_PLAN.md's Tier A section). For a more rigorous one-off check when
+# actually evaluating a proposed fix, run `just bench-diff <pkg>` locally with
+# -count=10+ instead of relying on this routine/lightweight CI signal.
+#
+# No Tier B job yet -- that NixOS VM synthetic device farm (BENCHMARKING_PLAN.md
+# #2.2) doesn't exist as repo infra yet. Add a second job here once it does (that one
+# will need enable_kvm: true; this one doesn't build any VMs, so it's left off).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ develop ]
+    paths: &benchmark-paths
+      - '**.go'
+      - 'benchmarks/baseline.txt'
+      - '.github/workflows/benchmark.yml'
+      - 'flake.nix'
+      - 'flake.lock'
+  pull_request:
+    paths: *benchmark-paths
+
+permissions:
+  contents: read
+  pull-requests: write # needed for the sticky PR comment
+
+jobs:
+  tier-a:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Run benchmarks and compare against baseline
+        run: |
+          nix develop --command bash -c '
+            set -euo pipefail
+            go generate ./pkg/version # pkg/api (and anything importing it) needs generated_version.go to build
+            go test ./pkg/inputs/snmp/mibs/... ./pkg/inputs/snmp/ ./pkg/cat/... \
+              -bench=. -benchmem -run=^$ -count=5 | tee /tmp/new.txt
+            {
+              echo "## Tier A benchmark comparison vs \`benchmarks/baseline.txt\`"
+              echo "\`\`\`"
+              # -ignore cpu: ubuntu-latest is not hardware-uniform -- successive runs can
+              # land on different CPU models (seen in practice: AMD EPYC vs Intel Xeon on
+              # back-to-back runs), and benchstat groups/refuses-to-compare by the full
+              # config line including cpu, not just goos/goarch. Without this, two runs on
+              # different underlying hardware silently produce two disconnected,
+              # uncompared tables instead of a real diff -- see BENCHMARKING_PLAN.md.
+              benchstat -ignore cpu benchmarks/baseline.txt /tmp/new.txt
+              echo "\`\`\`"
+            } | tee /tmp/report.md >> "$GITHUB_STEP_SUMMARY"
+          '
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: tier-a-benchmarks
+          path: /tmp/report.md
+
+      - name: Upload raw benchmark output
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-${{ github.run_id }}
+          path: |
+            /tmp/new.txt
+            benchmarks/baseline.txt
+          retention-days: 30
+          if-no-files-found: error
