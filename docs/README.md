@@ -16,9 +16,6 @@ can be acted on, revised, or removed at any time — they're not fixed specs.
 - [`SINKS_REMOVAL_FEASIBILITY.md`](./SINKS_REMOVAL_FEASIBILITY.md) — feasibility analysis
   for removing every non-New Relic/OTel sink; also documents how to recover a removed sink
   via the `archive/pre-sink-removal` tag.
-- [`ZSTD_REMOVAL_FEASIBILITY.md`](./ZSTD_REMOVAL_FEASIBILITY.md) — feasibility analysis for
-  removing `github.com/DataDog/zstd`, the last dependency pinned by the Honeycomb telemetry
-  path in `pkg/eggs/baseserver`.
 - [`DISCOVERY_PERFORMANCE_PLAN.md`](./DISCOVERY_PERFORMANCE_PLAN.md) — bottleneck analysis
   and remediation plan for slow SNMP discovery/polling.
 - [`BENCHMARKING_PLAN.md`](./BENCHMARKING_PLAN.md) — the measurement layer for the above:

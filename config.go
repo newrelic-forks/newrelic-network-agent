@@ -133,8 +133,6 @@ type ServerConfig struct {
 	LogToStdout     bool
 	MetricsEndpoint string
 	MetaListenAddr  string
-	OllyDataset     string
-	OllyWriteKey    string
 	CfgPath         string `yaml:"-"` // We don't want to read this directly because it comes from a flag but saved here for internal use.
 }
 
@@ -431,8 +429,6 @@ func DefaultConfig() *Config {
 			LogToStdout:     false,
 			MetricsEndpoint: "none",
 			MetaListenAddr:  "localhost:0",
-			OllyDataset:     "",
-			OllyWriteKey:    "",
 			CfgPath:         "",
 		},
 		API: &APIConfig{

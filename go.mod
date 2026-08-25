@@ -20,10 +20,8 @@ require (
 	github.com/go-openapi/runtime v0.26.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/snappy v0.0.4
-	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gosnmp/gosnmp v1.42.1
-	github.com/honeycombio/libhoney-go v1.15.6
 	github.com/imdario/mergo v0.3.16
 	github.com/influxdata/line-protocol/v2 v2.2.1
 	github.com/json-iterator/go v1.1.12
@@ -72,7 +70,6 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.8.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/keyvault/internal v0.5.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2 // indirect
-	github.com/DataDog/zstd v1.5.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.3.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
@@ -85,9 +82,6 @@ require (
 	github.com/dgryski/go-bits v0.0.0-20180113010104-bd8a69a71dc2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
-	github.com/facebookgo/limitgroup v0.0.0-20150612190941-6abd8d71ec01 // indirect
-	github.com/facebookgo/muster v0.0.0-20150708232844-fd3d7953fd52 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-git/gcfg/v2 v2.0.2 // indirect
 	github.com/go-git/go-billy/v6 v6.0.0-alpha.1 // indirect
@@ -106,13 +100,13 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/gopacket v1.1.19 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kevinburke/ssh_config v1.5.0 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/libp2p/go-reuseport v0.4.0 // indirect
@@ -138,8 +132,6 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/vaughan0/go-ini v0.0.0-20130923145212-a98ad7ee00ec // indirect
-	github.com/vmihailenco/msgpack/v5 v5.3.4 // indirect
-	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.mongodb.org/mongo-driver v1.17.7 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -158,5 +150,4 @@ require (
 	google.golang.org/api v0.162.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260414002931-afd174a4e478 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478 // indirect
-	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
 )
