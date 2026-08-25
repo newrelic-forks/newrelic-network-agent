@@ -615,10 +615,6 @@ func applyFlags(cfg *ktranslate.Config) error {
 				cfg.Server.MetaListenAddr = val
 			case "metrics":
 				cfg.Server.MetricsEndpoint = val
-			case "olly_dataset":
-				cfg.Server.OllyDataset = val
-			case "olly_write_key":
-				cfg.Server.OllyWriteKey = val
 			// pkg/api
 			case "api_device_file":
 				cfg.API.DeviceFile = val
