@@ -27,6 +27,7 @@
             packages = with pkgs; [
               go # matches go.mod's `go 1.25.0` (nixos-unstable currently ships 1.25.12)
               goperf # provides `benchstat` (and benchsave/benchfilter) -- see BENCHMARKING_PLAN.md
+              go-licence-detector # generates THIRD_PARTY_NOTICES.md -- see `just third-party-notices`
               just
               gopls
               delve
