@@ -22,9 +22,10 @@ name: Benchmark (Tier A)
 # actually evaluating a proposed fix, run `just bench-diff <pkg>` locally with
 # -count=10+ instead of relying on this routine/lightweight CI signal.
 #
-# No Tier B job yet -- that NixOS VM synthetic device farm (docs/BENCHMARKING_PLAN.md
-# #2.2) doesn't exist as repo infra yet. Add a second job here once it does (that one
-# will need enable_kvm: true; this one doesn't build any VMs, so it's left off).
+# Tier B (the NixOS VM synthetic device farm, docs/BENCHMARKING_PLAN.md #2.2) lives in
+# its own workflow -- benchmark-tier-b.yml -- not a second job here: it boots dozens
+# of VMs and takes minutes, which doesn't fit this workflow's every-PR/every-push
+# trigger surface.
 
 on:
   workflow_dispatch:

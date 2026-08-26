@@ -31,3 +31,7 @@ pkg/version/generated_version.go
 config.yaml
 
 .DS_Store
+
+## nix build output symlinks (nix build ./#..., nix/tests/*)
+result
+result-*

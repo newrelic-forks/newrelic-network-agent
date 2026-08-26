@@ -40,15 +40,20 @@ Nix is being introduced **only** for two things:
    to remember/re-run manually) so anyone picking up this repo gets the same tool versions
    without hand-installing things.
 
-Nix is explicitly **not** being adopted for building or packaging the product. The
+Nix is explicitly **not** being adopted for building or packaging the *product*. The
 existing `Makefile` + `Dockerfile` + `.github/workflows/ci-build.yml` remain the only
-supported way to build a real ktranslate binary/image. Concretely, this means the Tier B
-NixOS test **does not compile ktranslate via Nix** (e.g. no `buildGoModule` of this repo) —
-it takes an already-built binary (built the normal way, `make`, exactly as
-`test-on-pr.yml` already does) as an input, and only uses Nix to orchestrate the VMs/network
-around that binary. This keeps "what compiles the product" singular and keeps Nix's blast
-radius limited to test infrastructure, which matters for a team that just inherited this
-codebase and doesn't need a second build system to learn on top of Go+Docker.
+supported way to build a real, released ktranslate binary/image. There is one narrow,
+deliberate exception: Tier B's `collector` VM needs a real Linux ktranslate binary to run
+inside it, and `nix/tests/collector-bin.nix` builds one via `pkgs.buildGoModule` — but its
+`buildPhase` literally shells out to `make all` rather than reimplementing the build, so
+Make remains the single source of truth for *how* to build; Nix's job there is limited to
+vendoring Go module deps reproducibly (`vendorHash`, fetched with network access, same as
+any `buildGoModule` package) and dispatching the build to a matching-architecture builder
+when the evaluating host doesn't have one (see §2.2 on why that matters differently for
+*building* this binary vs. *running* the VM test that uses it). This keeps "what defines
+the product build" singular (this is a disposable test fixture, versioned
+`0-test-fixture`, never published) while still letting `nix build` produce it
+reproducibly without a manual "did you remember to `make` first" step.
 
 This scope is intentionally narrow for now. Revisit if/when there's a concrete reason to
 consider Nix for build/packaging (e.g. reproducible release artifacts, cross-compilation
@@ -146,62 +151,96 @@ enterprise case, forces the full `timeout_ms` wait) vs. an **actively rejected**
 fast — you cannot get the slow case without a real kernel and a real drop rule. NixOS VM
 tests give you both, on a real virtual network, reproducibly.
 
+Implemented in `nix/tests/snmp-discovery-bench.nix`, wired into `flake.nix`'s `checks`
+output. Confirmed working end-to-end, real numbers below — not a sketch.
+
 **Topology:**
-- One `collector` node: runs the pre-built ktranslate binary (see §1 — built by `make`, not
-  by Nix) against the farm's address range, using a real `snmp.yml` discovery config that
-  mirrors the shipped defaults (`config/snmp-base.yaml`, `deployment/docker/snmp-base-nr.yaml`
-  — same `threads`, `timeout_ms`, `retries`, `check_all_ips` values, so the benchmark is
-  measuring the actual shipped configuration, not a hypothetical one).
-- N `device` nodes: run real `net-snmp`'s `snmpd` (packaged in nixpkgs) with a minimal MIB
-  config, each on its own address in the farm's virtual subnet.
-- A configurable subset of addresses are **silent**: either no node at all (just an
-  unclaimed address on the virtual network — a real "nothing there" case) or a node with an
-  explicit `networking.firewall`/`iptables -j DROP` rule on UDP/161 and TCP/1 (the "actively
-  firewalled" case). Another subset is **rejecting** (node up, nothing listening on those
-  ports — fast RST). The rest **respond** (real `snmpd`).
-- Node/address counts and the respond:reject:drop ratio are parameters (generate `nodes`
-  attrs programmatically via `builtins.listToAttrs (map ... (lib.range 1 N))`), so the same
-  test file can be run at different scales.
+- One `collector` node: runs the real Tier-B-fixture ktranslate binary (§1,
+  `nix/tests/collector-bin.nix`) against the farm's address range, using a real `snmp.yml`
+  discovery config that mirrors the shipped `deployment/docker/snmp-base-nr.yaml` example
+  (same `threads`, `timeout_ms`, `retries`, and — deliberately — `check_all_ips: true`, so
+  the benchmark measures the actual shipped configuration, including its full-subnet-sweep
+  behavior, not a hypothetical narrower one).
+- N `device` nodes: run real `net-snmp`'s `snmpd` (packaged in nixpkgs), each on its own
+  address in the farm's virtual `/24`, generated programmatically
+  (`builtins.listToAttrs (map ... (lib.range 1 N))`) and split by `respondFrac`/`rejectFrac`
+  parameters.
+- `networking.firewall.rejectPackets` (default `false` = silent DROP) gives the
+  respond/reject/drop distinction natively, with no manual iptables rules needed: leave it
+  at the default for **drop** nodes (silent, forces the full timeout); set it `true` for
+  **respond** and **reject** nodes (fast RST/ICMP-unreachable) — respond nodes need this
+  too, not just `services.snmpd.enable`, or the pre-scan's TCP-dial liveness probe gets
+  silently dropped there as well, corrupting the "respond nodes are fast" half of the
+  measurement. The remainder of non-respond/reject addresses split evenly between an
+  explicit **drop** node and simply omitting a node at that address at all
+  (**unclaimed**) — see §7 on why these two aren't yet confirmed to behave identically.
 
-**Mechanics (`pkgs.testers.runNixOSTest`):**
-```nix
-# sketch — not final, illustrates the shape described above
-testers.runNixOSTest {
-  name = "snmp-discovery-bench";
-  nodes = {
-    collector = { ... }: { /* runs the pre-built ktranslate binary against the farm */ };
-  } // (generated device/reject/drop nodes);
-  testScript = ''
-    # start all nodes, wait for snmpd units on "respond" nodes
-    # run collector's discovery, capture start/end timestamps from its log
-    # copy the report out via machine.copy_from_vm / a shared store path
-  '';
-}
-```
-Run via `nix build .#checks.x86_64-linux.snmp-discovery-bench` (or `nix flake check`).
+**Mechanics:** `pkgs.testers.runNixOSTest` with a standard `nodes = { ... }` (QEMU/KVM)
+definition — not the newer systemd-nspawn `containers = { ... }` backend, which was tried
+first (needs no virtualization at all, looked appealing) but unconditionally requires the
+Nix daemon feature `uid-range`, needing `auto-allocate-uids`/`cgroups` enabled in the
+*executing* machine's own `nix.conf` plus a matching feature declaration on the calling
+side — an out-of-repo system change that turned out to be unnecessary once the real
+execution model below was understood correctly.
 
-**Scale ceiling:** each node is a full VM — RAM/CPU bound, not something you scale to
-5,000 or 65,000 on a shared CI runner. Realistic target: tens to a few hundred nodes with a
-representative drop/reject/respond mix. That's enough to get a *real, trustworthy* IPs/sec
-and devices/sec number to compare against the field report and against post-fix runs — it's
-a calibration point, not a literal full-scale replica. See §5 for how this combines with
-Tier A to reason about full scale.
+**Execution model — the part that wasn't obvious going in.** On Apple Silicon, these VMs
+run **natively on the host Mac**, not inside nix-darwin's `linux-builder`. That distinction
+matters because the `linux-builder` (itself a VM, via Apple's Virtualization.framework)
+cannot do nested virtualization — confirmed both by the official NixOS wiki ("As it
+happens, M1 doesn't support nested virtualization. So it can run a Linux builder, or any
+other NixOS virtual machine, but it cannot do so inside e.g. the Linux builder") and by
+this repo's own attempt to fix it via `uid-range`, which was solving the wrong problem.
+The actual fix: since nixpkgs#282401 (2024, see
+[nixcademy's writeup](https://nixcademy.com/posts/running-nixos-integration-tests-on-macos/)),
+`runNixOSTest`'s qemu process and Python test driver run directly on whichever host
+*evaluates* the test — so evaluating this file's `pkgs` as `aarch64-darwin`/`x86_64-darwin`
+(not `aarch64-linux`/`x86_64-linux`) makes the test execute right there on the Mac, via
+`apple-virt`/HVF acceleration, with zero `linux-builder` involvement for the test-*run*
+itself. `flake.nix`'s `checks` output does this by mapping each of the four `forAllSystems`
+systems to the matching-arch **Linux** system only for `collectorBin` (`packages.*` stays
+Linux-only, since that's a real binary the guest VMs need), while `pkgs.testers.runNixOSTest`
+itself gets called with the system's own (possibly Darwin) `pkgs`. `nix.settings.system-features`
+needing `nixos-test`/`apple-virt` is auto-detected by Nix 2.19+ with no nix-darwin config
+change required at all (confirmed via `nix show-config system-features` locally). See
+`nix/tests/minimal-ping.nix` — a fast (~15-20s), permanently-kept two-node ping-pong sanity
+check — for the minimal reproduction that confirmed this mechanism before trusting it on
+the real, much larger test.
 
-**CI feasibility (verified, not assumed):** the official Nix tutorial for this feature
-(nix.dev, "Integration testing with NixOS virtual machines") notes hardware acceleration is
-required and many CIs lack it, pointing at `cachix/install-nix-action`'s guidance for
-GitHub Actions specifically. Checking that action's current README directly: it lists
-*"Enables KVM on supported machines: run VMs and NixOS tests with full
-hardware-acceleration"* as a feature, `enable_kvm: true` is the **default**, and its FAQ
-gives the exact recipe:
-```yaml
-- uses: cachix/install-nix-action@v31
-  with:
-    enable_kvm: true
-    extra_nix_config: "system-features = nixos-test benchmark big-parallel kvm"
-```
-So on standard GitHub-hosted `ubuntu-latest` runners this runs with real KVM acceleration,
-not a slow software-emulation fallback.
+**Scale, confirmed empirically (not assumed):**
+
+| Scale | Where | Result |
+|---|---|---|
+| 12 nodes (7 respond / 2 reject / 1 drop / 2 unclaimed) | Local (Apple Silicon Mac, native `apple-virt`) | Completes in ~4-4.5 min; discovery itself ~194s, dominated by `check_all_ips: true` sweeping the full `/24` (~240 unclaimed addresses beyond the 12 defined ones), each paying real timeout cost — a small-scale, faithful reproduction of the exact field-reported pattern ("65,000 IPs scanned, ~5,000 real devices") this tier exists to validate against. |
+| 40 nodes (70/20/10 split, the original target topology) | Local, same Mac | Ran over an hour under heavy, sustained CPU contention (41 concurrent qemu processes; load average 25-40) without completing — not crashing, genuinely resource-bound. |
+| 12 nodes | CI (`ubuntu-latest`, 4 vCPU/16GB) | **Failed** — the collector VM never became interactive: `RuntimeError: Shell did not start in time`. Confirmed by reading nixpkgs source (`nixos/lib/test-driver`'s `connect()`): this is a **hardcoded, non-configurable** 10 retries × 30s = 5-minute wait, not a NixOS option. With `virtualisation.cores` defaulting to 1/VM, 12 concurrent VMs on a 4-vCPU runner is a real 3x oversubscription — genuine CPU starvation during boot-time systemd/dbus activation, not a fluke. |
+| 8 nodes (5 respond / 1 reject / 1 drop / 1 unclaimed) | CI, same runner | **Succeeds** — confirmed via two real runs (`device_count: 5, node_count: 8` both times), ~7 min total. This is what `benchmark-tier-b.yml` actually runs. |
+
+So the field is now three scales, not two: 12-node smoke (local iteration), 8-node CI (what actually runs in CI, sized for a standard runner's 4 vCPUs), and the 40-node target (local/aspirational on beefier hardware only — confirmed *not* to fit a standard GitHub-hosted runner at all, not just "not yet confirmed").
+
+Per-VM memory needed hand-tuning to get even the 40-node case to boot without an outright
+crash: the test framework's default `virtualisation.memorySize` (~1024 MiB) times dozens of
+concurrently-running device VMs first caused severe memory-pressure thrashing (25GB+
+compressed), and overcorrecting to 192 MiB caused an actual VM boot failure (a
+respond-category node loading `net-snmp` disconnected the test-driver shell entirely).
+384 MiB for device nodes / 768 MiB for the collector was the value that held.
+
+Consequently, `flake.nix` exposes **three** checks per system: `snmp-discovery-bench-smoke`
+(`deviceCount = 12`, used as the `Justfile`'s `bench-tier-b` default for routine local
+iteration), `snmp-discovery-bench-ci` (`deviceCount = 8`, what `benchmark-tier-b.yml`
+actually runs), and `snmp-discovery-bench` (the real 40-node/70-20-10 target,
+`Justfile`'s `bench-tier-b-full` — local/aspirational use on hardware with cores to spare,
+not something CI runs). This is a calibration point, not a literal full-scale
+(5,000-65,000) replica — see §5 for how it combines with Tier A to reason about full scale.
+
+**CI feasibility (confirmed, not assumed):** `.github/workflows/benchmark-tier-b.yml` runs
+`checks.x86_64-linux.snmp-discovery-bench-ci` on `ubuntu-latest` via
+`cachix/install-nix-action@v31` with `enable_kvm: true` — that runner is already
+`x86_64-linux`, so the VM test runs its qemu process natively via `kvm` right there, no
+`apple-virt`/`linux-builder` cross-system complexity involved at all (that's specific to
+running this locally from Apple Silicon). Verified with two real runs (via a temporarily
+added `pull_request` trigger on the implementing PR, removed again once confirmed): the
+12-node smoke scale fails there (see the table above), the 8-node CI scale succeeds
+consistently.
 
 ---
 
@@ -218,10 +257,13 @@ not a slow software-emulation fallback.
   3. Run benchmarks again, save `new.txt`.
   4. `benchstat old.txt new.txt` → paste the table into the PR description as evidence.
 - Tier B's report is simpler (one real number per run, not a statistical distribution over
-  many fast iterations): timestamp, node count, drop:reject:respond ratio, elapsed time,
-  IPs/sec, devices/sec found. Append each run to a tracked file (`benchmarks/history.md` or
-  `.csv`) so there's a trend line across changes over time, rather than a single
-  point-in-time claim.
+  many fast iterations): `elapsed_s`, `device_count`, `node_count`, compared against
+  `benchmarks/tier-b-baseline.json` (a checked-in snapshot from a real CI run of
+  `snmp-discovery-bench-ci`, not a local one — same "capture on the hardware the
+  comparison actually runs on" principle as Tier A's baseline, §2.1). Reported the same
+  way as Tier A: a markdown table to `$GITHUB_STEP_SUMMARY` and a sticky PR comment.
+  Refresh the baseline the same way Tier A's is refreshed — from an actual CI run's
+  result, via `gh run download` or reading the job summary, not a local run.
 
 ### CI wiring
 
@@ -231,18 +273,24 @@ disabled per `docs/PLAYGROUND.md`; `.github/workflows/ci-build.yml` runs on
 `push: [investigation]` + `pull_request`). A new benchmark workflow should match that
 convention rather than gate every push:
 
-- New `.github/workflows/benchmark.yml`, `workflow_dispatch` (+ optionally
-  `push: [investigation]` like `ci-build.yml`).
-- **Tier A job**: checkout → `actions/setup-go` → `go install golang.org/x/perf/cmd/benchstat@latest`
-  → run benchmarks → if a baseline (`benchmarks/baseline.txt`) is checked in, diff with
-  `benchstat` and write the table to `$GITHUB_STEP_SUMMARY` (shows directly in the Actions
-  run, no artifact download needed) → upload raw `.txt` files as artifacts too.
-- **Tier B job**: separate (slower, noisier) job — checkout → `cachix/install-nix-action@v31`
-  (`enable_kvm: true`) → `make` (build the real binary the normal way, per §1) →
-  `nix build .#checks.x86_64-linux.snmp-discovery-bench` (or `nix flake check`) → append
-  the result to `benchmarks/history.md` and upload as an artifact. Consider a `schedule`
-  (nightly) trigger in addition to manual, since it's the one that tracks drift over time
-  without needing someone to remember to run it.
+- `.github/workflows/benchmark.yml` (Tier A) — `workflow_dispatch` + `push: [develop]` +
+  `pull_request` (path-filtered). Checkout → `cachix/install-nix-action@v31` →
+  `nix develop --command` runs the benchmarks and `benchstat -ignore cpu` against the
+  checked-in baseline → writes to `$GITHUB_STEP_SUMMARY` and a sticky PR comment
+  (`marocchino/sticky-pull-request-comment@v2`) → uploads raw output as an artifact.
+- `.github/workflows/benchmark-tier-b.yml` (Tier B) — **separate workflow**, not a second
+  job here: it takes noticeably longer per run than Tier A (VM boot included), so it's
+  path-filtered to only the code that plausibly changes what it measures
+  (`pkg/inputs/snmp/**`, `nix/tests/**`) rather than running on every PR regardless of
+  relevance. Triggers: `workflow_dispatch` + nightly `schedule` (drift tracking without
+  needing someone to remember to run it) + `push: [develop]` + `pull_request`
+  (path-filtered), mirroring Tier A's own trigger shape. Checkout →
+  `cachix/install-nix-action@v31` (`enable_kvm: true`) →
+  `nix build .#checks.x86_64-linux.snmp-discovery-bench-ci` (the 8-node CI-sized target,
+  §2.2 — **not** the 40-node one, confirmed too large for a standard runner) → compare
+  against `benchmarks/tier-b-baseline.json` → write to `$GITHUB_STEP_SUMMARY` and a
+  sticky PR comment (`marocchino/sticky-pull-request-comment@v2`) → upload the raw
+  result as an artifact.
 - Regression policy: start by just reporting the diff for humans to judge (this is an
   investigation branch, not a release pipeline) rather than failing the build on a
   threshold. Tighten later once the numbers are trusted.
@@ -256,17 +304,20 @@ convention rather than gate every push:
 ## 4. Proposed file layout
 
 ```
-flake.nix                                   # devShell + Tier B check, nothing else
+flake.nix                                   # devShell + Tier B packages/checks
 flake.lock
-nix/devshell.nix                            # Go toolchain, benchstat, lint tools, libpcap
+nix/tests/collector-bin.nix                 # builds the Tier B fixture ktranslate binary (§1)
+nix/tests/minimal-ping.nix                  # fast sanity check for the execution model (§2.2)
 nix/tests/snmp-discovery-bench.nix          # the runNixOSTest definition (§2.2)
 pkg/inputs/snmp/disco_bench_test.go         # Tier A
 pkg/inputs/snmp/snmp_bench_test.go          # Tier A
 pkg/inputs/snmp/mibs/profile_bench_test.go  # Tier A
 pkg/cat/kkc_bench_test.go                   # Tier A
 benchmarks/baseline.txt                     # Tier A baseline for benchstat diffing
-benchmarks/history.md                       # Tier B run history (append-only)
-.github/workflows/benchmark.yml
+benchmarks/tier-b-baseline.json             # Tier B baseline (from a real CI run, not local)
+Justfile                                    # bench*, bench-tier-b, bench-tier-b-full recipes
+.github/workflows/benchmark.yml             # Tier A
+.github/workflows/benchmark-tier-b.yml      # Tier B
 ```
 
 ---
@@ -297,20 +348,56 @@ IPs, since literally running that many VMs isn't practical in CI.
 
 ---
 
-## 7. Open questions / follow-ups before implementation
+## 7. Open questions / follow-ups
 
-- Exact mechanism for getting the pre-built ktranslate binary into the `collector` VM
-  (shared Nix store path vs. a virtiofs/9p mount vs. baking it into a throwaway NixOS image
-  at test-build time via `pkgs.runCommand` that just copies in an externally-provided path —
-  functionally equivalent, pick whichever is least fiddly once someone's hands-on with it;
-  none of these options involve Nix *compiling* the binary, consistent with §1).
-  This is genuinely just an implementation detail; not decision-worthy up front.
-- Where the `benchmarks/baseline.txt` Tier A baseline comes from initially (a checked-in
-  snapshot from current `main`/`investigation` HEAD before any Phase 1-5 change lands).
-- Whether `benchmarks/history.md` should be git-committed (simple, visible in PR diffs) or
-  kept as a rolling CI artifact only (avoids repo churn from every run) — leaning
-  git-committed since it's low-frequency (manual/nightly) and the trend-over-time value
-  depends on it being durable and diffable.
+Resolved during implementation:
+
+- Getting the ktranslate binary into the `collector` VM: `environment.systemPackages =
+  [ collectorBin ]` with `collectorBin` from `nix/tests/collector-bin.nix` — a normal Nix
+  store path closure-referenced into the VM, no manual mount/copy step needed.
+- Exact discovery-output key shape: confirmed `<name>__<ip>:` (`disco.go:421,429`) — the
+  test counts devices via `grep -c '__' <output file>`.
+- No CLI flags beyond `-snmp=... -snmp_discovery=true -snmp_out_file=... -log_level=info`
+  were needed for `Discover()` to run to completion.
+- Where the `benchmarks/baseline.txt` Tier A baseline comes from: a checked-in snapshot
+  captured from an actual CI run (see §2.1) — already done, not hypothetical.
+- **Whether 40 concurrent VMs (or even 12) fit a standard GitHub-hosted runner.** They
+  don't — confirmed with two real `benchmark-tier-b.yml` runs (via a temporarily added
+  `pull_request` trigger, removed once confirmed): 12 nodes hit the NixOS test driver's
+  hardcoded 5-minute boot-shell timeout (`RuntimeError: Shell did not start in time`,
+  `nixos/lib/test-driver`'s `connect()` — not a NixOS option, can't be raised), and the
+  root cause (CPU oversubscription: `virtualisation.cores` defaults to 1/VM against the
+  runner's 4 physical vCPUs) means the 40-node target almost certainly never fits a
+  standard runner at all. Fixed by adding `snmp-discovery-bench-ci` (8 nodes, still hits
+  all four respond/reject/drop/unclaimed categories) as what CI actually runs — confirmed
+  passing twice in a row.
+
+Still open:
+
+- **Unclaimed address vs. explicit drop node — not yet distinguished empirically.** Both
+  currently produce a silent timeout from the collector's point of view (no host to ARP for
+  vs. a host that drops at the firewall), and nothing in the confirmed runs above isolated
+  their timing from each other. Worth a targeted comparison once someone's looking at
+  per-address timing rather than just aggregate elapsed time.
+- **Resolved: Tier B now has a correctness assertion, not just a measurement.** Before
+  this, the test recorded `device_count`/`elapsed_s` without checking either against an
+  expectation — a regression that silently discovered 0 devices, or took 10x longer,
+  would not have failed the test at all. `snmp-discovery-bench.nix`'s test script now
+  asserts `device_count == <respond-category node count>` right after computing it, so
+  `Discover()` actually misbehaving (not just crashing outright) fails the test.
+- **Resolved: comparison reporting mirrors Tier A** — `benchmarks/tier-b-baseline.json`
+  (a checked-in snapshot from a real CI run) plus a markdown-table step in
+  `benchmark-tier-b.yml`, posted as a sticky PR comment on `pull_request` (path-filtered
+  to `pkg/inputs/snmp/**`/`nix/tests/**`) in addition to the nightly/dispatch run. A
+  single-run number, not a statistical distribution like `benchstat` — expect more
+  run-to-run variance than Tier A (real VM boot/scheduler jitter). Whether that variance
+  is small enough for the comparison to be trustworthy without multiple runs is not yet
+  characterized — see §6's stated intent to run the same topology twice before trusting
+  a before/after pair, which hasn't actually been done yet for Tier B.
+- Whether the real 40-node/70-20-10 target (`snmp-discovery-bench`) is worth running
+  *anywhere* automated, given it doesn't fit standard CI hardware — options include a
+  bigger (paid) GitHub-hosted runner tier, or accepting it as a manual/local-only
+  calibration check run occasionally on beefier hardware. Not decided yet.
 
 ---
 

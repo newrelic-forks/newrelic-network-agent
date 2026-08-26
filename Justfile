@@ -3,6 +3,8 @@
 #
 # Benchmarking recipes below -- see BENCHMARKING_PLAN.md #3.
 
+CURRENT_SYSTEM := `nix eval --impure --raw --expr builtins.currentSystem`
+
 default:
     @just --list
 
@@ -33,6 +35,21 @@ bench-diff pkg baseline="benchmarks/baseline.txt":
     # also a real goos/goarch mismatch, so don't expect a meaningful `vs base` delta
     # from this locally, only from CI's own comparison.
     benchstat -ignore cpu {{baseline}} "$tmp"
+
+# Run the Tier B synthetic SNMP device farm at its small (12-node) scale --
+# BENCHMARKING_PLAN.md #2.2. Fast enough for routine local iteration (confirmed
+# end-to-end in a few minutes). Defaults to the current host's system -- on Apple
+# Silicon this runs the VMs natively via apple-virt/HVF, no linux-builder involved
+# (see nix/tests/snmp-discovery-bench.nix); in CI (system=x86_64-linux) it runs
+# natively via kvm.
+bench-tier-b system=CURRENT_SYSTEM:
+    nix build .#checks.{{system}}.snmp-discovery-bench-smoke -L --print-out-paths
+
+# Run the full 40-node/70-20-10 target topology. CI-scale, not laptop-scale: expect
+# tens of minutes under any real resource contention -- see snmp-discovery-bench in
+# flake.nix's checks output for why this isn't the local default.
+bench-tier-b-full system=CURRENT_SYSTEM:
+    nix build .#checks.{{system}}.snmp-discovery-bench -L --print-out-paths
 
 # Regenerate THIRD_PARTY_NOTICES.md from go.mod (direct + indirect deps).
 third-party-notices out="THIRD_PARTY_NOTICES.md":
