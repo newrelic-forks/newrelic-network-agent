@@ -1,5 +1,7 @@
-# Benchmarking workflow helpers -- see BENCHMARKING_PLAN.md #3.
-# Run inside `nix develop` (flake.nix) to guarantee `benchstat` (via goperf) is present.
+# Dev tooling helpers for this fork. Run inside `nix develop` (flake.nix) to guarantee the
+# tools each recipe needs (benchstat via goperf, go-licence-detector, ...) are present.
+#
+# Benchmarking recipes below -- see BENCHMARKING_PLAN.md #3.
 
 default:
     @just --list
@@ -31,3 +33,25 @@ bench-diff pkg baseline="benchmarks/baseline.txt":
     # also a real goos/goarch mismatch, so don't expect a meaningful `vs base` delta
     # from this locally, only from CI's own comparison.
     benchstat -ignore cpu {{baseline}} "$tmp"
+
+# Regenerate THIRD_PARTY_NOTICES.md from go.mod (direct + indirect deps).
+third-party-notices out="THIRD_PARTY_NOTICES.md":
+    # go-licence-detector reads LICENSE files out of the local module cache -- it doesn't
+    # fetch them itself, so on a cold cache (e.g. a fresh CI runner) it silently produces
+    # a notices file with zero package entries instead of erroring.
+    go mod download all
+    go list -mod=mod -m -json all | go-licence-detector \
+        -includeIndirect \
+        -rules assets/licence/rules.json \
+        -overrides assets/licence/overrides.json \
+        -noticeTemplate assets/licence/THIRD_PARTY_NOTICES.md.tmpl \
+        -noticeOut {{out}}
+
+# Verify THIRD_PARTY_NOTICES.md is up to date with go.mod.
+third-party-notices-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tmp="$(mktemp)"
+    trap 'rm -f "$tmp"' EXIT
+    just third-party-notices "$tmp"
+    diff "$tmp" THIRD_PARTY_NOTICES.md

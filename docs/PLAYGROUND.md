@@ -40,6 +40,10 @@ git checkout develop && git rebase main   # replay playground changes on top
 - **`.github/workflows/ci-build.yml`** — builds the image and exports it as a
   `docker load`-compatible tarball **artifact** (never pushed to a registry). Triggers on push
   to `develop`, on PRs, and via manual dispatch (with a platform choice).
+- **`THIRD_PARTY_NOTICES.md`** — generated from `go.mod` via `just third-party-notices`
+  (`go.elastic.co/go-licence-detector`, gated by `assets/licence/rules.json`'s license
+  allowlist). `just third-party-notices-check` (wired into
+  `.github/workflows/license-notice.yml`) fails CI if it's out of date with `go.mod`.
 - **Inherited kentik workflows** (`publish-*`, `create-release`, `test-on-pr`,
   `clean-stale-issues`) — auto-triggers disabled by reducing each `on:` block to
   `workflow_dispatch:` only. Restore the original `on:` blocks (intact on `main` / in history)
