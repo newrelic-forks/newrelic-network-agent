@@ -55,7 +55,7 @@ jobs:
           password: ${{ secrets.QUAY_LOGIN_TOKEN }}
 
       - name: Install dependencies
-        run: sudo apt-get install make libpcap-dev
+        run: sudo apt-get install make
 
       - name: Run build
         run: |

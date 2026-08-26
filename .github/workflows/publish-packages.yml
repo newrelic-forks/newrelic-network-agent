@@ -105,16 +105,16 @@ jobs:
         run: |
           if [ "${{ matrix.distro }}" = "centos" ]
           then
-            yum install -y make gcc diffutils libpcap-devel
+            yum install -y make gcc diffutils
           elif [ "${{ matrix.distro }}" = "ubi8" ]
           then
-            yum install -y make gcc diffutils libpcap-devel
+            yum install -y make gcc diffutils
           elif [ "${{ matrix.distro }}" = "ubi9" ]
           then
-            yum install -y make gcc diffutils libpcap-devel
+            yum install -y make gcc diffutils
           else
             apt-get update
-            apt-get -y install make libpcap-dev ca-certificates build-essential curl git
+            apt-get -y install make ca-certificates build-essential curl git
           fi
 
       - name: Run Make

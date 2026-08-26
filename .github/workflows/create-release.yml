@@ -112,26 +112,25 @@ jobs:
             if [ "${{ matrix.release }}" = "7" ]
             then
               yum install -y centos-release-scl
-              yum install -y make gcc diffutils libpcap-devel rh-ruby27 rh-ruby27-ruby-devel redhat-rpm-config gcc-c++ rh-ruby27-rubygems
+              yum install -y make gcc diffutils rh-ruby27 rh-ruby27-ruby-devel redhat-rpm-config gcc-c++ rh-ruby27-rubygems
               scl enable rh-ruby27 bash
             else
               dnf -y --disablerepo '*' --enablerepo=extras swap centos-linux-repos centos-stream-repos
               yum install -y make gcc diffutils ruby-devel redhat-rpm-config gcc-c++
-              dnf -y --enablerepo=powertools install libpcap-devel
             fi
           elif [ "${{ matrix.distro }}" = "ubi" ]
           then
             if [ "${{ matrix.release }}" = "8" ]
             then
-              yum install -y make gcc diffutils libpcap-devel microdnf gcc-c++ redhat-rpm-config
+              yum install -y make gcc diffutils microdnf gcc-c++ redhat-rpm-config
               microdnf module enable ruby:2.7
               microdnf install ruby
             else
-              yum install -y make gcc diffutils libpcap-devel ruby-devel gcc-c++ redhat-rpm-config
+              yum install -y make gcc diffutils ruby-devel gcc-c++ redhat-rpm-config
             fi
           else
             apt-get update
-            apt-get -y install make libpcap-dev ca-certificates build-essential curl ruby ruby-dev git
+            apt-get -y install make ca-certificates build-essential curl ruby ruby-dev git
           fi
 
       - name: Run Make

@@ -30,8 +30,6 @@
               just
               gopls
               delve
-              libpcap # cgo dependency -- mirrors `apt-get install libpcap-dev` in test-on-pr.yml
-              pkg-config
             ];
           };
         });
