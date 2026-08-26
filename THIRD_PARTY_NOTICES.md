@@ -1,6 +1,6 @@
 # Third Party Notices
 
-`ktranslate` uses source code from third party libraries which carry their own copyright
+`ntranslate` uses source code from third party libraries which carry their own copyright
 notices and license terms. These notices are provided below.
 
 In the event that a required notice is missing or incorrect, please notify us either by
