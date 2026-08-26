@@ -30,7 +30,7 @@ Two tiers, because "network-bound" and "code-bound" need different treatment:
 
 ## 1. Nix usage — scope decision (for now)
 
-Nix is being introduced **only** for two things:
+Nix is being introduced for:
 
 1. **Tier B's benchmark harness** — the NixOS VM test that stands up the synthetic device
    farm (§2.2).
@@ -39,26 +39,30 @@ Nix is being introduced **only** for two things:
    `sudo apt-get install make libpcap-dev` step, which a `devShell` should make unnecessary
    to remember/re-run manually) so anyone picking up this repo gets the same tool versions
    without hand-installing things.
+3. **`packages.*.ntranslate`** (`nix/ntranslate.nix`) — a real ktranslate binary buildable via
+   `nix build`, since the binary is now fully static (upstream #14, "go static") and
+   distributable on its own. Its `buildPhase` literally shells out to `make all` rather than
+   reimplementing the build, so Make remains the single source of truth for *how* to build;
+   Nix's job here is limited to vendoring Go module deps reproducibly (`vendorHash`, fetched
+   with network access, same as any `buildGoModule` package) and dispatching the build to a
+   matching-architecture builder when the evaluating host doesn't have one (see §2.2 on why
+   that matters differently for *building* this binary vs. *running* the VM test that uses
+   it). Tier B's `collector` VM reuses this same package for its own binary rather than
+   building a private copy — one definition of "how to build ktranslate via Nix," not two
+   that could drift apart.
 
-Nix is explicitly **not** being adopted for building or packaging the *product*. The
-existing `Makefile` + `Dockerfile` + `.github/workflows/ci-build.yml` remain the only
-supported way to build a real, released ktranslate binary/image. There is one narrow,
-deliberate exception: Tier B's `collector` VM needs a real Linux ktranslate binary to run
-inside it, and `nix/tests/collector-bin.nix` builds one via `pkgs.buildGoModule` — but its
-`buildPhase` literally shells out to `make all` rather than reimplementing the build, so
-Make remains the single source of truth for *how* to build; Nix's job there is limited to
-vendoring Go module deps reproducibly (`vendorHash`, fetched with network access, same as
-any `buildGoModule` package) and dispatching the build to a matching-architecture builder
-when the evaluating host doesn't have one (see §2.2 on why that matters differently for
-*building* this binary vs. *running* the VM test that uses it). This keeps "what defines
-the product build" singular (this is a disposable test fixture, versioned
-`0-test-fixture`, never published) while still letting `nix build` produce it
-reproducibly without a manual "did you remember to `make` first" step.
+Nix is explicitly **not** being adopted for the *release* pipeline. The existing `Makefile` +
+`Dockerfile` + `.github/workflows/{create-release,publish-*,ci-build}.yml` remain the only
+supported way to produce official released artifacts (Docker images, `.deb`/`.rpm` packages,
+etc.) — `packages.*.ntranslate` is an additional distribution path and dev convenience, not
+a replacement.
 
 This scope is intentionally narrow for now. Revisit if/when there's a concrete reason to
-consider Nix for build/packaging (e.g. reproducible release artifacts, cross-compilation
-pain) — that would be a separate decision with its own tradeoffs, not a side effect of
-adopting it for benchmarking.
+consider Nix for the release pipeline itself (e.g. reproducible release artifacts,
+cross-compilation pain) — that's a separate decision with its own tradeoffs (two of the
+publish workflows are self-hosted-runner production pipelines with remote buildx and
+packagecloud publishing), not a side effect of adopting Nix for benchmarking or packaging a
+standalone binary.
 
 ---
 
@@ -155,8 +159,8 @@ Implemented in `nix/tests/snmp-discovery-bench.nix`, wired into `flake.nix`'s `c
 output. Confirmed working end-to-end, real numbers below — not a sketch.
 
 **Topology:**
-- One `collector` node: runs the real Tier-B-fixture ktranslate binary (§1,
-  `nix/tests/collector-bin.nix`) against the farm's address range, using a real `snmp.yml`
+- One `collector` node: runs the real ktranslate binary (§1, `nix/ntranslate.nix`) against
+  the farm's address range, using a real `snmp.yml`
   discovery config that mirrors the shipped `deployment/docker/snmp-base-nr.yaml` example
   (same `threads`, `timeout_ms`, `retries`, and — deliberately — `check_all_ips: true`, so
   the benchmark measures the actual shipped configuration, including its full-subnet-sweep
@@ -304,9 +308,9 @@ convention rather than gate every push:
 ## 4. Proposed file layout
 
 ```
-flake.nix                                   # devShell + Tier B packages/checks
+flake.nix                                   # devShell + ntranslate package + Tier B checks
 flake.lock
-nix/tests/collector-bin.nix                 # builds the Tier B fixture ktranslate binary (§1)
+nix/ntranslate.nix                          # builds the real ktranslate binary (§1) -- reused by Tier B
 nix/tests/minimal-ping.nix                  # fast sanity check for the execution model (§2.2)
 nix/tests/snmp-discovery-bench.nix          # the runNixOSTest definition (§2.2)
 pkg/inputs/snmp/disco_bench_test.go         # Tier A
@@ -353,8 +357,9 @@ IPs, since literally running that many VMs isn't practical in CI.
 Resolved during implementation:
 
 - Getting the ktranslate binary into the `collector` VM: `environment.systemPackages =
-  [ collectorBin ]` with `collectorBin` from `nix/tests/collector-bin.nix` — a normal Nix
-  store path closure-referenced into the VM, no manual mount/copy step needed.
+  [ collectorBin ]` with `collectorBin` from `packages.*.ntranslate` (`nix/ntranslate.nix`)
+  — a normal Nix store path closure-referenced into the VM, no manual mount/copy step
+  needed.
 - Exact discovery-output key shape: confirmed `<name>__<ip>:` (`disco.go:421,429`) — the
   test counts devices via `grep -c '__' <output file>`.
 - No CLI flags beyond `-snmp=... -snmp_discovery=true -snmp_out_file=... -log_level=info`

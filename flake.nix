@@ -3,18 +3,19 @@
 
   # Scope (see docs/BENCHMARKING_PLAN.md "Nix usage" section):
   #   - a devShell with the tools needed to develop and benchmark this repo
+  #   - packages.*.ntranslate (nix/ntranslate.nix): a real ktranslate binary, built by
+  #     shelling out to `make all` -- Make remains the single source of truth for *how*
+  #     to build; Nix's job here is limited to vendoring Go deps reproducibly and
+  #     dispatching to a configured remote Linux builder when needed. This is an
+  #     additional distribution path and dev convenience, not a replacement: the
+  #     Makefile, Dockerfile, and .github/workflows/{create-release,publish-*,
+  #     ci-build}.yml remain the only supported way to produce official released
+  #     artifacts, pending a separate future decision to change that.
   #   - a NixOS VM test harness for the Tier B synthetic SNMP farm (checks.*, see
-  #     nix/tests/snmp-discovery-bench.nix), including a throwaway ktranslate binary
-  #     built just for that test fixture (packages.*.collector-bin /
-  #     nix/tests/collector-bin.nix) -- its buildPhase still just shells out to
-  #     `make all`, so Make remains the single source of truth for *how* to build;
-  #     Nix's job there is limited to vendoring Go deps reproducibly and dispatching
-  #     to a configured remote Linux builder when needed. The VM tests themselves are
-  #     a separate story: on Darwin they run natively via apple-virt/HVF, not inside
-  #     that remote builder -- see snmp-discovery-bench.nix's header comment.
-  # This flake does NOT build or package the real, released ktranslate binary/image --
-  # the Makefile, Dockerfile, and .github/workflows/ci-build.yml remain the only
-  # supported way to produce that.
+  #     nix/tests/snmp-discovery-bench.nix), which reuses packages.*.ntranslate as its
+  #     collector VM's binary rather than building its own separate copy. The VM tests
+  #     themselves are a separate story: on Darwin they run natively via apple-virt/HVF,
+  #     not inside that remote builder -- see snmp-discovery-bench.nix's header comment.
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -50,7 +51,7 @@
           pkgs = nixpkgs.legacyPackages.${system};
         in
         {
-          collector-bin = import ./nix/tests/collector-bin.nix { inherit pkgs; src = self; };
+          ntranslate = import ./nix/ntranslate.nix { inherit pkgs; src = self; };
         });
 
       checks = forAllSystems (system:
@@ -79,7 +80,7 @@
           snmp-discovery-bench = import ./nix/tests/snmp-discovery-bench.nix {
             inherit pkgs;
             inherit (pkgs) lib;
-            collectorBin = self.packages.${linuxSystem}.collector-bin;
+            collectorBin = self.packages.${linuxSystem}.ntranslate;
           };
 
           # Small topology (matches what was actually iterated on and confirmed working
@@ -90,7 +91,7 @@
           snmp-discovery-bench-smoke = import ./nix/tests/snmp-discovery-bench.nix {
             inherit pkgs;
             inherit (pkgs) lib;
-            collectorBin = self.packages.${linuxSystem}.collector-bin;
+            collectorBin = self.packages.${linuxSystem}.ntranslate;
             deviceCount = 12;
           };
 
@@ -107,7 +108,7 @@
           snmp-discovery-bench-ci = import ./nix/tests/snmp-discovery-bench.nix {
             inherit pkgs;
             inherit (pkgs) lib;
-            collectorBin = self.packages.${linuxSystem}.collector-bin;
+            collectorBin = self.packages.${linuxSystem}.ntranslate;
             deviceCount = 8;
           };
         });
