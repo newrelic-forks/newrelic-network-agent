@@ -57,6 +57,13 @@ jobs:
             mm_account_id=${{ secrets.MM_ACCOUNT_ID }}
             mm_license_key=${{ secrets.MM_DOWNLOAD_KEY }}
 
+      # Sanity-checks the built image directly (independent of the artifact upload below,
+      # which is subject to storage quotas), so a missing/misplaced file fails CI loudly.
+      - name: Verify third-party notices are present in the image
+        run: |
+          docker load -i /tmp/ntranslate-image.tar
+          docker run --rm --entrypoint cat ntranslate:ci /usr/share/doc/ktranslate/THIRD_PARTY_NOTICES.md | head -5
+
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
         with:
