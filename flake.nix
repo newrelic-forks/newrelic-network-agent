@@ -41,6 +41,8 @@
               just
               gopls
               delve
+              secretspec # declarative secrets for testing/nr scripts -- see testing/nr/README.md
+              _1password-cli # provides `op`, backs secretspec's onepassword provider
             ];
           };
         });
