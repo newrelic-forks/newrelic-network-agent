@@ -38,7 +38,8 @@ human or agent -- can see.
 
 ```bash
 secretspec run -- ./run-snmp-test.sh up --site <name> --cidr <cidr> --nr-account-id <id> \
-    [--nr-region us_stage] [--image upstream|local] [--profiles-dir /path/to/snmp-profiles/profiles]
+    [--nr-region us_stage] [--image upstream|local] [--profiles-dir /path/to/snmp-profiles/profiles] \
+    [--custom-attributes key=value[,key=value...]]
 ```
 
 - `--image upstream` (default) pulls `kentik/ktranslate:v2`, the public
@@ -81,6 +82,15 @@ secretspec run -- ./run-snmp-test.sh up --site <name> --cidr <cidr> --nr-account
 - `--profiles-dir` is optional: point it at a local clone of the private
   `snmp-profiles` mirror if you want profiles mounted in from outside the
   image.
+- `--custom-attributes` passes straight through to `-nr_custom_attributes`
+  ([NR-612348](https://new-relic.atlassian.net/browse/NR-612348)) -- stamps
+  every metric batch this run sends with the given `key=value` pairs, e.g.
+  `--custom-attributes install_id=my-test-run`, so you can tell it apart
+  from any other ktranslate instance's data in NR (see "how do I know these
+  are my metrics" -- this is the actual fix for that). Only understood by
+  images built after that change landed (`ntranslate:nr-custom-attributes`
+  or later); leave it unset against `--image upstream` or an older build --
+  the flag doesn't exist there and the agent will reject it.
 - The first `up` for a given `--site` renders `snmp-template.yaml` into
   `state/<site>/snmp.yaml` with your `--cidr` and the `SNMP_COMMUNITY`
   secret filled in, then discovers devices into that file. Subsequent `up`

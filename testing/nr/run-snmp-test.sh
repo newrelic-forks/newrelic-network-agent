@@ -8,7 +8,8 @@
 #
 # Usage:
 #   secretspec run -- testing/nr/run-snmp-test.sh up   --site NAME --cidr CIDR --nr-account-id ID \
-#       [--nr-region REGION] [--image upstream|<local-tag>] [--profiles-dir DIR]
+#       [--nr-region REGION] [--image upstream|<local-tag>] [--profiles-dir DIR] \
+#       [--custom-attributes key=value[,key=value...]]
 #   secretspec run -- testing/nr/run-snmp-test.sh down --site NAME
 #
 # --image upstream pulls the public kentik/ktranslate:v2 image. Anything
@@ -16,6 +17,12 @@
 # ntranslate:develop, or ntranslate:<scratch-branch>, built with
 # ./build-fork-image.sh <git-ref>. No pull is attempted for these; build (or
 # rebuild) them yourself first.
+#
+# --custom-attributes passes straight through to -nr_custom_attributes
+# (NR-612348) -- stamps every metric batch with these key=value pairs, so you
+# can tell this run's data apart from any other ktranslate instance's in NR.
+# Only understood by images built after that change landed; omit it against
+# --image upstream or an older local build.
 #
 # NEW_RELIC_API_KEY and SNMP_COMMUNITY must already be in the environment --
 # `secretspec run --` is what puts them there. Never hardcode either, and
@@ -30,7 +37,7 @@ STATE_ROOT="$DIR/state"
 usage() {
   cat <<'USAGE' >&2
 Usage:
-  run-snmp-test.sh up   --site NAME --cidr CIDR --nr-account-id ID [--nr-region REGION] [--image upstream|<local-tag>] [--profiles-dir DIR]
+  run-snmp-test.sh up   --site NAME --cidr CIDR --nr-account-id ID [--nr-region REGION] [--image upstream|<local-tag>] [--profiles-dir DIR] [--custom-attributes key=value[,key=value...]]
   run-snmp-test.sh down --site NAME
 
 Always run via: secretspec run -- testing/nr/run-snmp-test.sh ...
@@ -52,6 +59,7 @@ nr_account_id=""
 nr_region="us_stage"
 image="upstream"
 profiles_dir=""
+custom_attributes=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -61,6 +69,7 @@ while [ $# -gt 0 ]; do
     --nr-region) nr_region="$2"; shift 2 ;;
     --image) image="$2"; shift 2 ;;
     --profiles-dir) profiles_dir="$2"; shift 2 ;;
+    --custom-attributes) custom_attributes="$2"; shift 2 ;;
     -h|--help) usage ;;
     *) echo "Unknown argument: $1" >&2; usage ;;
   esac
@@ -123,6 +132,11 @@ if [ -n "$profiles_dir" ]; then
   volume_flags+=(-v "$profiles_dir:/etc/ktranslate/profiles:ro")
 fi
 
+extra_flags=()
+if [ -n "$custom_attributes" ]; then
+  extra_flags+=(-nr_custom_attributes="$custom_attributes")
+fi
+
 docker run -d --name "$container" --restart unless-stopped "${pull_flag[@]}" \
   -p 162:1620/udp \
   "${volume_flags[@]}" \
@@ -137,6 +151,7 @@ docker run -d --name "$container" --restart unless-stopped "${pull_flag[@]}" \
   -sinks=new_relic \
   -format=new_relic_metric \
   -log_level debug \
-  -tee_logs=true
+  -tee_logs=true \
+  "${extra_flags[@]}"
 
 echo "Started $container ($docker_image) for site '$site' -- state at $snmp_config"
