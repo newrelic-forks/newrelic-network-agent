@@ -78,11 +78,10 @@ jobs:
           push: true
           tags: kentik/ktranslate:${{ env.KENTIK_KTRANSLATE_VERSION }}, kentik/ktranslate:latest, kentik/ktranslate:v2, quay.io/kentik/ktranslate:v2, quay.io/kentik/ktranslate:latest, quay.io/kentik/ktranslate:${{ env.KENTIK_KTRANSLATE_VERSION }}
           build-args: |
-            MAXMIND_LICENSE_KEY=${{ secrets.MM_DOWNLOAD_KEY }}
-            YOUR_ACCOUNT_ID=${{ secrets.MM_ACCOUNT_ID }}
             KENTIK_KTRANSLATE_VERSION=${{ env.KENTIK_KTRANSLATE_VERSION }}
           secrets: |
-            MAXMIND_LICENSE_KEY=${{ secrets.MM_DOWNLOAD_KEY }}
+            mm_account_id=${{ secrets.MM_ACCOUNT_ID }}
+            mm_license_key=${{ secrets.MM_DOWNLOAD_KEY }}
 
       - name: Build and Publish Docker (Kentik EU)
         uses: docker/build-push-action@v6
@@ -94,11 +93,10 @@ jobs:
           push: true
           tags: kentik/ktranslate:eu, quay.io/kentik/ktranslate:eu
           build-args: |
-            MAXMIND_LICENSE_KEY=${{ secrets.MM_DOWNLOAD_KEY }}
-            YOUR_ACCOUNT_ID=${{ secrets.MM_ACCOUNT_ID }}
             KENTIK_KTRANSLATE_VERSION=${{ env.KENTIK_KTRANSLATE_VERSION }}
           secrets: |
-            MAXMIND_LICENSE_KEY=${{ secrets.MM_DOWNLOAD_KEY }}
+            mm_account_id=${{ secrets.MM_ACCOUNT_ID }}
+            mm_license_key=${{ secrets.MM_DOWNLOAD_KEY }}
 
       - name: Build and Publish Nopriv
         uses: docker/build-push-action@v6

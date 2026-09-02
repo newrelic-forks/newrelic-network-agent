@@ -64,8 +64,7 @@ jobs:
           push: true
           tags: kentik/ktranslate:staging, quay.io/kentik/ktranslate:staging
           build-args: |
-            MAXMIND_LICENSE_KEY=${{ secrets.MM_DOWNLOAD_KEY }}
-            YOUR_ACCOUNT_ID=${{ secrets.MM_ACCOUNT_ID }}
             KENTIK_KTRANSLATE_VERSION=${{ env.KENTIK_KTRANSLATE_VERSION }}
           secrets: |
-            MAXMIND_LICENSE_KEY=${{ secrets.MM_DOWNLOAD_KEY }}
+            mm_account_id=${{ secrets.MM_ACCOUNT_ID }}
+            mm_license_key=${{ secrets.MM_DOWNLOAD_KEY }}
