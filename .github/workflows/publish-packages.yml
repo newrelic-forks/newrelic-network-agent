@@ -128,7 +128,7 @@ jobs:
 
       - name: Create package
         id: package
-        uses: kentik/pkg@master
+        uses: kentik/pkg@35f2f9380d77ac7d0b9967986f5866c4d79cbfd2 # master, 2023-08-29 (repo appears unmaintained; pinned for supply-chain safety)
         with:
           name: ktranslate
           version: ${{ env.KENTIK_KTRANSLATE_VERSION }}
