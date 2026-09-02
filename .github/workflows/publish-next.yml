@@ -6,6 +6,7 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
+    environment: next
     steps:
       - uses: actions/checkout@v2
         with:
