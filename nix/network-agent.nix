@@ -1,5 +1,5 @@
 # Builds the real ktranslate binary via Nix -- this fork's own distributable, referred to
-# by its name (ntranslate) at the flake package level, while the binary itself keeps its
+# by its name (network-agent) at the flake package level, while the binary itself keeps its
 # actual product name (ktranslate) unchanged. `make all` is still the literal build command
 # run below (buildPhase just shells out to it) -- Nix's job here is limited to fetching Go
 # module deps reproducibly (the standard buildGoModule vendorHash mechanism) and providing

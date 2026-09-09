@@ -3,7 +3,7 @@
 
   # Scope (see docs/BENCHMARKING_PLAN.md "Nix usage" section):
   #   - a devShell with the tools needed to develop and benchmark this repo
-  #   - packages.*.ntranslate (nix/ntranslate.nix): a real ktranslate binary, built by
+  #   - packages.*.network-agent (nix/network-agent.nix): a real ktranslate binary, built by
   #     shelling out to `make all` -- Make remains the single source of truth for *how*
   #     to build; Nix's job here is limited to vendoring Go deps reproducibly and
   #     dispatching to a configured remote Linux builder when needed. This is an
@@ -12,7 +12,7 @@
   #     ci-build}.yml remain the only supported way to produce official released
   #     artifacts, pending a separate future decision to change that.
   #   - a NixOS VM test harness for the Tier B synthetic SNMP farm (checks.*, see
-  #     nix/tests/snmp-discovery-bench.nix), which reuses packages.*.ntranslate as its
+  #     nix/tests/snmp-discovery-bench.nix), which reuses packages.*.network-agent as its
   #     collector VM's binary rather than building its own separate copy. The VM tests
   #     themselves are a separate story: on Darwin they run natively via apple-virt/HVF,
   #     not inside that remote builder -- see snmp-discovery-bench.nix's header comment.
@@ -51,7 +51,7 @@
           pkgs = nixpkgs.legacyPackages.${system};
         in
         {
-          ntranslate = import ./nix/ntranslate.nix { inherit pkgs; src = self; };
+          network-agent = import ./nix/network-agent.nix { inherit pkgs; src = self; };
         });
 
       checks = forAllSystems (system:
@@ -80,7 +80,7 @@
           snmp-discovery-bench = import ./nix/tests/snmp-discovery-bench.nix {
             inherit pkgs;
             inherit (pkgs) lib;
-            collectorBin = self.packages.${linuxSystem}.ntranslate;
+            collectorBin = self.packages.${linuxSystem}.network-agent;
           };
 
           # Small topology (matches what was actually iterated on and confirmed working
@@ -91,7 +91,7 @@
           snmp-discovery-bench-smoke = import ./nix/tests/snmp-discovery-bench.nix {
             inherit pkgs;
             inherit (pkgs) lib;
-            collectorBin = self.packages.${linuxSystem}.ntranslate;
+            collectorBin = self.packages.${linuxSystem}.network-agent;
             deviceCount = 12;
           };
 
@@ -108,7 +108,7 @@
           snmp-discovery-bench-ci = import ./nix/tests/snmp-discovery-bench.nix {
             inherit pkgs;
             inherit (pkgs) lib;
-            collectorBin = self.packages.${linuxSystem}.ntranslate;
+            collectorBin = self.packages.${linuxSystem}.network-agent;
             deviceCount = 8;
           };
         });

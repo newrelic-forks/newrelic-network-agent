@@ -39,7 +39,7 @@ Nix is being introduced for:
    `sudo apt-get install make libpcap-dev` step, which a `devShell` should make unnecessary
    to remember/re-run manually) so anyone picking up this repo gets the same tool versions
    without hand-installing things.
-3. **`packages.*.ntranslate`** (`nix/ntranslate.nix`) — a real ktranslate binary buildable via
+3. **`packages.*.network-agent`** (`nix/network-agent.nix`) — a real ktranslate binary buildable via
    `nix build`, since the binary is now fully static (upstream #14, "go static") and
    distributable on its own. Its `buildPhase` literally shells out to `make all` rather than
    reimplementing the build, so Make remains the single source of truth for *how* to build;
@@ -54,7 +54,7 @@ Nix is being introduced for:
 Nix is explicitly **not** being adopted for the *release* pipeline. The existing `Makefile` +
 `Dockerfile` + `.github/workflows/{create-release,publish-*,ci-build}.yml` remain the only
 supported way to produce official released artifacts (Docker images, `.deb`/`.rpm` packages,
-etc.) — `packages.*.ntranslate` is an additional distribution path and dev convenience, not
+etc.) — `packages.*.network-agent` is an additional distribution path and dev convenience, not
 a replacement.
 
 This scope is intentionally narrow for now. Revisit if/when there's a concrete reason to
@@ -159,7 +159,7 @@ Implemented in `nix/tests/snmp-discovery-bench.nix`, wired into `flake.nix`'s `c
 output. Confirmed working end-to-end, real numbers below — not a sketch.
 
 **Topology:**
-- One `collector` node: runs the real ktranslate binary (§1, `nix/ntranslate.nix`) against
+- One `collector` node: runs the real ktranslate binary (§1, `nix/network-agent.nix`) against
   the farm's address range, using a real `snmp.yml`
   discovery config that mirrors the shipped `deployment/docker/snmp-base-nr.yaml` example
   (same `threads`, `timeout_ms`, `retries`, and — deliberately — `check_all_ips: true`, so
@@ -308,9 +308,9 @@ convention rather than gate every push:
 ## 4. Proposed file layout
 
 ```
-flake.nix                                   # devShell + ntranslate package + Tier B checks
+flake.nix                                   # devShell + network-agent package + Tier B checks
 flake.lock
-nix/ntranslate.nix                          # builds the real ktranslate binary (§1) -- reused by Tier B
+nix/network-agent.nix                       # builds the real ktranslate binary (§1) -- reused by Tier B
 nix/tests/minimal-ping.nix                  # fast sanity check for the execution model (§2.2)
 nix/tests/snmp-discovery-bench.nix          # the runNixOSTest definition (§2.2)
 pkg/inputs/snmp/disco_bench_test.go         # Tier A
@@ -357,7 +357,7 @@ IPs, since literally running that many VMs isn't practical in CI.
 Resolved during implementation:
 
 - Getting the ktranslate binary into the `collector` VM: `environment.systemPackages =
-  [ collectorBin ]` with `collectorBin` from `packages.*.ntranslate` (`nix/ntranslate.nix`)
+  [ collectorBin ]` with `collectorBin` from `packages.*.network-agent` (`nix/network-agent.nix`)
   — a normal Nix store path closure-referenced into the VM, no manual mount/copy step
   needed.
 - Exact discovery-output key shape: confirmed `<name>__<ip>:` (`disco.go:421,429`) — the
