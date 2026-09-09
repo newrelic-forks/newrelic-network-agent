@@ -9,7 +9,7 @@ internal investigation playground. **Not** wired up to publish anywhere. (The re
 - **`DavSanchez/ntranslate`** (this repo, private)
   - `main` — faithful copy of `kentik/ktranslate@main`. Keep it pristine; do not add work here.
   - `develop` — the working branch (CI build, snmp auth, disabled upstream workflows).
-- **`DavSanchez/snmp-profiles`** (private) — point-in-time mirror of `kentik/snmp-profiles`.
+- **`newrelic-forks/snmp-profiles`** (public) — point-in-time mirror of `kentik/snmp-profiles`.
   The Docker image bakes these SNMP profiles into `/etc/ktranslate/profiles`.
 
 Remotes:
@@ -58,7 +58,7 @@ git checkout develop && git rebase main   # replay playground changes on top
 |--------|---------|
 | `MM_ACCOUNT_ID`   | MaxMind account ID (GeoLite2 download) |
 | `MM_DOWNLOAD_KEY` | MaxMind license key |
-| `SNMP_PROFILES_TOKEN` | fine-grained PAT, read-only Contents on `DavSanchez/snmp-profiles` |
+| `SNMP_PROFILES_TOKEN` | fine-grained PAT, read-only Contents on `newrelic-forks/snmp-profiles` (mirror is public, so this is no longer strictly required, but the opt-in auth path stays wired in case that changes) |
 
 **Local** (`.envrc`, gitignored, loaded by direnv):
 
@@ -120,7 +120,7 @@ BUILDX="$(nix --extra-experimental-features 'nix-command flakes' \
   --secret id=mm_account_id,env=MM_ACCOUNT_ID \
   --secret id=mm_license_key,env=MM_DOWNLOAD_KEY \
   --build-arg KENTIK_KTRANSLATE_VERSION=local-test \
-  --build-arg KENTIK_SNMP_PROFILE_REPO=https://github.com/DavSanchez/snmp-profiles \
+  --build-arg KENTIK_SNMP_PROFILE_REPO=https://github.com/newrelic-forks/snmp-profiles \
   -t ntranslate:local --load .
 ```
 
