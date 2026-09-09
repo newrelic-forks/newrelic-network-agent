@@ -1,22 +1,23 @@
-# ntranslate — investigation playground
+# newrelic-network-agent — investigation playground
 
-Private fork of [`kentik/ktranslate`](https://github.com/kentik/ktranslate) used as an
-internal investigation playground. **Not** wired up to publish anywhere. (The repo is named
-`ntranslate`; the software/binary is still upstream `ktranslate`.)
+Fork of [`kentik/ktranslate`](https://github.com/kentik/ktranslate) living in the
+`newrelic-forks` GitHub org, used as an internal investigation playground. **Not** wired up
+to publish anywhere yet. (The repo is named `newrelic-network-agent`; the software/binary is
+still upstream `ktranslate`.)
 
 ## Repos & branches
 
-- **`DavSanchez/ntranslate`** (this repo, private)
+- **`newrelic-forks/newrelic-network-agent`** (this repo, public)
   - `main` — faithful copy of `kentik/ktranslate@main`. Keep it pristine; do not add work here.
   - `develop` — the working branch (CI build, snmp auth, disabled upstream workflows).
-- **`DavSanchez/snmp-profiles`** (private) — point-in-time mirror of `kentik/snmp-profiles`.
+- **`newrelic-forks/snmp-profiles`** (public) — point-in-time mirror of `kentik/snmp-profiles`.
   The Docker image bakes these SNMP profiles into `/etc/ktranslate/profiles`.
 
 Remotes:
 
 | name | URL |
 |------|-----|
-| `origin`   | `git@github.com:DavSanchez/ntranslate.git` |
+| `origin`   | `git@github.com:newrelic-forks/newrelic-network-agent.git` |
 | `upstream` | `git@github.com:kentik/ktranslate.git` |
 
 ### Pulling in upstream changes
@@ -44,10 +45,20 @@ git checkout develop && git rebase main   # replay playground changes on top
   (`go.elastic.co/go-licence-detector`, gated by `assets/licence/rules.json`'s license
   allowlist). `just third-party-notices-check` (wired into
   `.github/workflows/license-notice.yml`) fails CI if it's out of date with `go.mod`.
-- **Inherited kentik workflows** (`publish-*`, `create-release`, `test-on-pr`,
-  `clean-stale-issues`) — auto-triggers disabled by reducing each `on:` block to
-  `workflow_dispatch:` only. Restore the original `on:` blocks (intact on `main` / in history)
-  to re-enable.
+- **Removed Kentik release/publish workflows** (`publish-develop`, `publish-eapi`,
+  `publish-kentik`, `publish-next`, `publish-prod`, `publish-staging`, `publish-packages`,
+  `create-release`) — these built/pushed to Kentik-owned Docker Hub, Quay, and packagecloud
+  namespaces we don't have credentials or infra for. Removed rather than disabled, since
+  re-enabling them would publish to someone else's registry. New Relic's own release
+  pipeline (Docker image first) is tracked separately.
+- **Kept, but currently unwired**: `network-agent-package.yml` (renamed from
+  `ktranslate-package.yml`) plus its companions `bin/get_mm.sh`, `ktranslate.service`,
+  `ktranslate@.service`, `scripts/post-install` — the `.deb`/`.rpm` package recipe itself
+  isn't Kentik-registry-specific, so it's kept for New Relic's own package pipeline. No
+  workflow currently invokes it.
+- **Inherited kentik workflows kept, still disabled** (`test-on-pr`, `clean-stale-issues`) —
+  auto-triggers reduced to `workflow_dispatch:` only; not release-related, re-enabling them
+  is a separate decision.
 - **`.dockerignore`** — excludes `.envrc` so local secrets never enter the build context.
 
 ## Secrets
@@ -58,7 +69,7 @@ git checkout develop && git rebase main   # replay playground changes on top
 |--------|---------|
 | `MM_ACCOUNT_ID`   | MaxMind account ID (GeoLite2 download) |
 | `MM_DOWNLOAD_KEY` | MaxMind license key |
-| `SNMP_PROFILES_TOKEN` | fine-grained PAT, read-only Contents on `DavSanchez/snmp-profiles` |
+| `SNMP_PROFILES_TOKEN` | fine-grained PAT, read-only Contents on `newrelic-forks/snmp-profiles` (mirror is public, so this is no longer strictly required, but the opt-in auth path stays wired in case that changes) |
 
 **Local** (`.envrc`, gitignored, loaded by direnv):
 
@@ -120,7 +131,7 @@ BUILDX="$(nix --extra-experimental-features 'nix-command flakes' \
   --secret id=mm_account_id,env=MM_ACCOUNT_ID \
   --secret id=mm_license_key,env=MM_DOWNLOAD_KEY \
   --build-arg KENTIK_KTRANSLATE_VERSION=local-test \
-  --build-arg KENTIK_SNMP_PROFILE_REPO=https://github.com/DavSanchez/snmp-profiles \
+  --build-arg KENTIK_SNMP_PROFILE_REPO=https://github.com/newrelic-forks/snmp-profiles \
   -t ntranslate:local --load .
 ```
 

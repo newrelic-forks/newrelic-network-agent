@@ -20,7 +20,7 @@ pkgs.buildGoModule {
   pname = "ktranslate";
   inherit src version;
 
-  vendorHash = "sha256-zaAtFYFOY71xVW0Vh8nTwdfT+Lk7C0S1EKKKYca2QsI=";
+  vendorHash = "sha256-ZQUnUlWTspAZMO90kEJ6+xukw3gX10+IwTegaCUtEo0=";
 
   nativeBuildInputs = [ pkgs.gnumake ];
 
