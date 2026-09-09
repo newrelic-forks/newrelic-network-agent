@@ -44,10 +44,20 @@ git checkout develop && git rebase main   # replay playground changes on top
   (`go.elastic.co/go-licence-detector`, gated by `assets/licence/rules.json`'s license
   allowlist). `just third-party-notices-check` (wired into
   `.github/workflows/license-notice.yml`) fails CI if it's out of date with `go.mod`.
-- **Inherited kentik workflows** (`publish-*`, `create-release`, `test-on-pr`,
-  `clean-stale-issues`) — auto-triggers disabled by reducing each `on:` block to
-  `workflow_dispatch:` only. Restore the original `on:` blocks (intact on `main` / in history)
-  to re-enable.
+- **Removed Kentik release/publish workflows** (`publish-develop`, `publish-eapi`,
+  `publish-kentik`, `publish-next`, `publish-prod`, `publish-staging`, `publish-packages`,
+  `create-release`) — these built/pushed to Kentik-owned Docker Hub, Quay, and packagecloud
+  namespaces we don't have credentials or infra for. Removed rather than disabled, since
+  re-enabling them would publish to someone else's registry. New Relic's own release
+  pipeline (Docker image first) is tracked separately.
+- **Kept, but currently unwired**: `network-agent-package.yml` (renamed from
+  `ktranslate-package.yml`) plus its companions `bin/get_mm.sh`, `ktranslate.service`,
+  `ktranslate@.service`, `scripts/post-install` — the `.deb`/`.rpm` package recipe itself
+  isn't Kentik-registry-specific, so it's kept for New Relic's own package pipeline. No
+  workflow currently invokes it.
+- **Inherited kentik workflows kept, still disabled** (`test-on-pr`, `clean-stale-issues`) —
+  auto-triggers reduced to `workflow_dispatch:` only; not release-related, re-enabling them
+  is a separate decision.
 - **`.dockerignore`** — excludes `.envrc` so local secrets never enter the build context.
 
 ## Secrets
