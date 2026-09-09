@@ -29,6 +29,9 @@ pkg/version/generated_version.go
 
 ## local configuration
 config.yaml
+.envrc
+.env
+testing/nr/state/
 
 .DS_Store
 
