@@ -277,7 +277,20 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
     	Run VPC Flow Ingest
 ```
 
+
+# Further documentation
+
+The flag list above is a snapshot. `ktranslate -h` on a current binary is authoritative for names.
+
+Newer operator guides live on the [wiki](https://github.com/kentik/ktranslate/wiki):
+
+* [Sending data with OTLP](https://github.com/kentik/ktranslate/wiki/Sending-Data-with-OTLP) (`-format=otel`, Grafana Cloud / Alloy)
+* [NetBox discovery](https://github.com/kentik/ktranslate/wiki/NetBox-Discovery)
+* [Sinks, formats, and rollups](https://github.com/kentik/ktranslate/wiki/Sinks-Formats-and-Rollups) (Kafka SASL/TLS, S3 endpoints, parquet, rollup flags)
+* [Advanced Configuration](https://github.com/kentik/ktranslate/wiki/Advanced-Ktranslate-Configuration) (`snmp-base.yaml`, profile git URL)
+
 # pprof
+
 To expose profiling endpoints, use the `-metalisten` flag. This can be used with tools such as
 `go tool pprof` to capture and view the data. For example, if `ktranslate` was started with
 `-metalisten :6060`:
