@@ -4,11 +4,11 @@
 notices and license terms. These notices are provided below.
 
 In the event that a required notice is missing or incorrect, please notify us either by
-[opening an issue](https://github.com/DavSanchez/ntranslate/issues/new).
+[opening an issue](https://github.com/newrelic-forks/newrelic-network-agent/issues/new).
 
 For any licenses that require the disclosure of source code, the source code can be found
 at https://github.com/kentik/ktranslate/ (this project's upstream) and
-https://github.com/DavSanchez/ntranslate/ (the fork this notice is generated for).
+https://github.com/newrelic-forks/newrelic-network-agent/ (the fork this notice is generated for).
 
 
 
@@ -1826,14 +1826,6 @@ Distributed under the following license(s):
 
 
 
-## [github.com/cyphar/filepath-securejoin](https://github.com/cyphar/filepath-securejoin)
-
-Distributed under the following license(s):
-
-* MPL-2.0
-
-
-
 ## [github.com/davecgh/go-spew](https://github.com/davecgh/go-spew)
 
 Distributed under the following license(s):
@@ -2058,7 +2050,7 @@ Distributed under the following license(s):
 
 
 
-## [github.com/go-git/go-git-fixtures/v5](https://github.com/go-git/go-git-fixtures)
+## [github.com/go-git/go-git-fixtures/v6](https://github.com/go-git/go-git-fixtures)
 
 Distributed under the following license(s):
 
