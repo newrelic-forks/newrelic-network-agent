@@ -1,12 +1,13 @@
-# ntranslate — investigation playground
+# newrelic-network-agent — investigation playground
 
-Private fork of [`kentik/ktranslate`](https://github.com/kentik/ktranslate) used as an
-internal investigation playground. **Not** wired up to publish anywhere. (The repo is named
-`ntranslate`; the software/binary is still upstream `ktranslate`.)
+Fork of [`kentik/ktranslate`](https://github.com/kentik/ktranslate) living in the
+`newrelic-forks` GitHub org, used as an internal investigation playground. **Not** wired up
+to publish anywhere yet. (The repo is named `newrelic-network-agent`; the software/binary is
+still upstream `ktranslate`.)
 
 ## Repos & branches
 
-- **`DavSanchez/ntranslate`** (this repo, private)
+- **`newrelic-forks/newrelic-network-agent`** (this repo, public)
   - `main` — faithful copy of `kentik/ktranslate@main`. Keep it pristine; do not add work here.
   - `develop` — the working branch (CI build, snmp auth, disabled upstream workflows).
 - **`DavSanchez/snmp-profiles`** (private) — point-in-time mirror of `kentik/snmp-profiles`.
@@ -16,7 +17,7 @@ Remotes:
 
 | name | URL |
 |------|-----|
-| `origin`   | `git@github.com:DavSanchez/ntranslate.git` |
+| `origin`   | `git@github.com:newrelic-forks/newrelic-network-agent.git` |
 | `upstream` | `git@github.com:kentik/ktranslate.git` |
 
 ### Pulling in upstream changes
