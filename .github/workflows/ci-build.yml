@@ -49,7 +49,7 @@ jobs:
           outputs: type=docker,dest=/tmp/ntranslate-image.tar
           build-args: |
             KENTIK_KTRANSLATE_VERSION=${{ env.KENTIK_KTRANSLATE_VERSION }}
-            KENTIK_SNMP_PROFILE_REPO=https://github.com/DavSanchez/snmp-profiles
+            KENTIK_SNMP_PROFILE_REPO=https://github.com/newrelic-forks/snmp-profiles
           # All credentials are BuildKit secrets (never build-args) so they cannot leak
           # into logs/layers even on a failed step.
           secrets: |
