@@ -8,34 +8,30 @@
 # scanner was replaced with a pure-Go one (upstream #14, "go static") -- CGO_ENABLED=0
 # produces a genuinely static binary.
 #
-# `version`/`date` are plain strings, not env vars: unlike Make/Docker (which read
-# NETWORK_AGENT_VERSION from the environment, since a human or CI sets it), this derivation
-# is always built with an explicit, already-resolved value from flake.nix -- no impure
-# `builtins.getEnv` needed anywhere in this file or its caller. Nix's own `self.rev`
-# (flake.nix) already gives a fully deterministic version per commit, so there's no
-# override path to plumb through: a release is just building the tagged commit, and the
-# commit SHA is sufficient provenance (`git tag --points-at <sha>` recovers the tag name
-# if ever needed) -- see flake.nix for exactly what's passed in.
+# Deliberately does not stamp a commit-specific version/date into the binary via ldflags
+# (pkg/version/version.go's own "dev"/"unknown" defaults stand as built). self.rev is the
+# whole repo's HEAD SHA, so using it here would change this derivation's build inputs --
+# and invalidate its Nix cache entry -- on every commit to the repo, including ones that
+# never touch Go source at all. Nix's own provenance (the derivation hash, the flake lock)
+# already records exactly what was built; a baked-in string would be strictly weaker and
+# cost cache reuse across unrelated history for no benefit. Make/Docker builds don't have
+# this tension (see Makefile), so they still stamp NETWORK_AGENT_VERSION/-DATE freely.
 #
 # This is also Tier B's own NixOS VM test fixture (see snmp-discovery-bench.nix) -- one
 # definition shared by both uses, rather than the VM test privately building its own copy
 # that could silently drift from this one.
-{ pkgs, src, version, date }:
+{ pkgs, src }:
 
 pkgs.buildGoModule {
   pname = "ktranslate";
-  inherit src version;
+  inherit src;
+  version = "unstable";
 
   vendorHash = "sha256-ZQUnUlWTspAZMO90kEJ6+xukw3gX10+IwTegaCUtEo0=";
 
   subPackages = [ "cmd/ktranslate" ];
 
   env.CGO_ENABLED = "0";
-
-  ldflags = [
-    "-X=github.com/kentik/ktranslate/pkg/version.versionStr=${version}"
-    "-X=github.com/kentik/ktranslate/pkg/version.dateStr=${date}"
-  ];
 
   doCheck = false; # this package only needs to run, not pass go test
 }

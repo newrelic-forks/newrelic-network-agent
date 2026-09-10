@@ -4,12 +4,11 @@
   # Scope (see docs/BENCHMARKING_PLAN.md "Nix usage" section):
   #   - a devShell with the tools needed to develop and benchmark this repo
   #   - packages.*.network-agent (nix/network-agent.nix): a real ktranslate binary, built
-  #     directly via buildGoModule's own go build + ldflags (no dependency on the
-  #     Makefile, which is Kentik-era tooling that may go away). This is an additional
-  #     distribution path and dev convenience, not a replacement: the Makefile,
-  #     Dockerfile, and .github/workflows/ci-build.yml remain the only supported way to
-  #     produce official released artifacts, pending a separate future decision to
-  #     change that.
+  #     directly via buildGoModule's own go build (no dependency on the Makefile, which
+  #     is Kentik-era tooling that may go away). This is an additional distribution path
+  #     and dev convenience, not a replacement: the Makefile, Dockerfile, and
+  #     .github/workflows/ci-build.yml remain the only supported way to produce official
+  #     released artifacts, pending a separate future decision to change that.
   #   - a NixOS VM test harness for the Tier B synthetic SNMP farm (checks.*, see
   #     nix/tests/snmp-discovery-bench.nix), which reuses packages.*.network-agent as its
   #     collector VM's binary rather than building its own separate copy. The VM tests
@@ -27,27 +26,18 @@
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ]; # NixOS VM tests only make sense on Linux
       forLinuxSystems = nixpkgs.lib.genAttrs linuxSystems;
 
-      # The name this crosses into Makefile/Dockerfile/CI under, for the devShell export
-      # below -- see `make check-version-env-var`, which fails CI if Dockerfile's ARG
-      # ever falls out of sync with it. The network-agent package itself no longer needs
-      # to know this name: it takes `version` as a plain argument (below), not an env var.
+      # Name of the env var the devShell exports below, for interactive
+      # `make`/`docker build` -- see `make check-version-env-var`, which
+      # fails CI if Dockerfile's ARG ever falls out of sync with it.
       versionEnvVar = "NETWORK_AGENT_VERSION";
 
-      # Computed once, purely, from this flake's own git metadata -- no `builtins.getEnv`,
-      # no `--impure`, anywhere in this file or nix/network-agent.nix. A release is just
-      # building the tagged commit; self.rev (its SHA) is fully sufficient provenance, and
-      # self.dirtyShortRev already carries its own "-dirty" suffix for local/dev builds.
+      # For the devShell export only -- see nix/network-agent.nix for why the
+      # package itself deliberately does *not* consume this (or a matching
+      # per-commit date): self.rev is the whole repo's HEAD SHA, so using it
+      # to stamp Make/Docker builds is fine (those aren't Nix-cached), but
+      # baking it into the package would invalidate that derivation's cache
+      # on every commit, including ones that never touch Go source.
       version = self.rev or "0.0.0-${self.dirtyShortRev or "unknown"}";
-
-      # self.lastModifiedDate is this commit's own timestamp (verified: unaffected by
-      # dirtying the tree without a new commit), not wall-clock "now" -- unlike Make's
-      # `$(shell date -u ...)`, building the same commit twice doesn't produce two
-      # different dates, which would otherwise mean two different (and uncacheable)
-      # store paths for what should be an identical build.
-      date =
-        let d = self.lastModifiedDate; in
-        "${builtins.substring 0 4 d}-${builtins.substring 4 2 d}-${builtins.substring 6 2 d}"
-        + "T${builtins.substring 8 2 d}:${builtins.substring 10 2 d}:${builtins.substring 12 2 d}Z";
     in
     {
       devShells = forAllSystems (system:
@@ -64,13 +54,10 @@
               gopls
               delve
             ];
-            # Same version the network-agent package below builds with, so
-            # `make all`/`docker build --build-arg NETWORK_AGENT_VERSION`
-            # run from inside this shell match it automatically instead of
-            # falling back to Make's own (differently-formatted) git-describe.
-            # (Make computes its own date independently via `git log`, so
-            # there's no equivalent NETWORK_AGENT_DATE export needed here --
-            # see Makefile.)
+            # So `make all`/`docker build --build-arg NETWORK_AGENT_VERSION`
+            # run from inside this shell get a real commit-based version
+            # automatically, instead of falling back to Make's own (still
+            # perfectly fine, just differently-formatted) git-describe.
             "${versionEnvVar}" = version;
           };
         });
@@ -81,7 +68,7 @@
         in
         {
           network-agent = import ./nix/network-agent.nix {
-            inherit pkgs version date;
+            inherit pkgs;
             src = self;
           };
         });
