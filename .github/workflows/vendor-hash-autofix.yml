@@ -48,6 +48,15 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v31
 
+      # GitHub Actions cache-backed Nix substituter (see vendor-hash-check.yml).
+      # Mainly speeds up the full-package confirmation build below, since the
+      # goModules build above is a fixed-output derivation and deliberately
+      # forced to fail on a hash mismatch either way.
+      - name: Nix build cache
+        uses: Mic92/hestia@v3.0.1
+        with:
+          upstream-cache-filter: "true"
+
       - name: Refresh vendorHash
         run: |
           set -euo pipefail

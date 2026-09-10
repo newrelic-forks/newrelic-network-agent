@@ -21,7 +21,7 @@ name: Vendor hash check
 on:
   workflow_dispatch:
   push:
-    branches: [ develop ]
+    branches: [ main ]
     paths: &vendor-hash-paths
       - 'go.mod'
       - 'go.sum'
@@ -43,6 +43,18 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
+
+      # GitHub Actions cache-backed Nix substituter: wires a post-build-hook into
+      # nix.conf so this build's outputs (and any dependency not already on
+      # cache.nixos.org) upload here and get pulled by later runs instead of
+      # rebuilt. upstream-cache-filter skips re-caching anything already signed by
+      # cache.nixos.org, since the shared 10GB-per-repo quota is better spent on
+      # this repo's own outputs. See cache-gc.yml for the required cleanup job
+      # (the quota is shared across every workflow that uses this step).
+      - name: Nix build cache
+        uses: Mic92/hestia@v3.0.1
+        with:
+          upstream-cache-filter: "true"
 
       - name: Build network-agent's go-modules fetch (validates vendorHash)
         run: nix build .#packages.x86_64-linux.network-agent.goModules -L
