@@ -3,7 +3,7 @@ package auth
 import (
 	"net"
 
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 type AuthConfig struct {

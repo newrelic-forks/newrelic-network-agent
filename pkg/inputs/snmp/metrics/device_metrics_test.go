@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/gosnmp/gosnmp"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/mibs"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/mibs"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 func TestCheckCondition(t *testing.T) {

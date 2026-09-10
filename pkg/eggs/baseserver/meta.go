@@ -14,9 +14,9 @@ import (
 	"fmt"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate/pkg/eggs/features"
-	"github.com/kentik/ktranslate/pkg/eggs/version"
-	"github.com/kentik/ktranslate/pkg/util/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/features"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/version"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/logger"
 
 	"github.com/gorilla/mux"
 )

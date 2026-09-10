@@ -15,11 +15,11 @@ import (
 	"time"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/formats"
-	"github.com/kentik/ktranslate/pkg/formats/nrm"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/nrm"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 const (
@@ -100,7 +100,7 @@ type NRSink struct {
 	fmtr        *nrm.NRMFormat
 	tooBig      chan int
 	logTee      chan string
-	config      *ktranslate.NewRelicSinkConfig
+	config      *networkagent.NewRelicSinkConfig
 }
 
 type NRMetric struct {
@@ -116,7 +116,7 @@ type NRResponce struct {
 	RequestId string `json:"requestId"`
 }
 
-func NewSink(log logger.Underlying, registry go_metrics.Registry, tooBig chan int, logTee chan string, cfg *ktranslate.NewRelicSinkConfig) (*NRSink, error) {
+func NewSink(log logger.Underlying, registry go_metrics.Registry, tooBig chan int, logTee chan string, cfg *networkagent.NewRelicSinkConfig) (*NRSink, error) {
 	nr := NRSink{
 		ContextL:  logger.NewContextLFromUnderlying(logger.SContext{S: "nrSink"}, log),
 		NRApiKey:  os.Getenv(EnvNrApiKey),

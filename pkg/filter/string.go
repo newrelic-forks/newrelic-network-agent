@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
 )
 
 type StringFilter struct {

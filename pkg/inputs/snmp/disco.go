@@ -15,14 +15,14 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/config"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/metadata"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/mibs"
-	snmp_util "github.com/kentik/ktranslate/pkg/inputs/snmp/util"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/config"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/metadata"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/mibs"
+	snmp_util "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 const (
@@ -36,7 +36,7 @@ type SnmpDiscoDeviceStat struct {
 	delta    int
 }
 
-func Discover(ctx context.Context, log logger.ContextL, pollDuration time.Duration, cfg *ktranslate.SNMPInputConfig, apic *api.KentikApi, confMgr config.ConfigManager) (*SnmpDiscoDeviceStat, error) {
+func Discover(ctx context.Context, log logger.ContextL, pollDuration time.Duration, cfg *networkagent.SNMPInputConfig, apic *api.KentikApi, confMgr config.ConfigManager) (*SnmpDiscoDeviceStat, error) {
 	// First, parse the config file and see what we're doing.
 	snmpFile := cfg.SNMPFile
 	log.Infof("SNMP Discovery, loading config from %s", snmpFile)
@@ -197,7 +197,7 @@ func checkIfIgnored(ip string, ignoreMap map[string]bool, ignoreList []netip.Pre
 	return false
 }
 
-func RunDiscoOnTimer(ctx context.Context, c chan os.Signal, log logger.ContextL, pollTimeMin int, checkNow bool, cfg *ktranslate.SNMPInputConfig, apic *api.KentikApi, confMgr config.ConfigManager) {
+func RunDiscoOnTimer(ctx context.Context, c chan os.Signal, log logger.ContextL, pollTimeMin int, checkNow bool, cfg *networkagent.SNMPInputConfig, apic *api.KentikApi, confMgr config.ConfigManager) {
 	pt := time.Duration(pollTimeMin) * time.Minute
 	check := func() {
 		stats, err := Discover(ctx, log, pt, cfg, apic, confMgr)

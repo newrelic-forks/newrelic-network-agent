@@ -67,7 +67,7 @@
           # rebuilding this on every commit is correct: that's the point of a CI variant.
           network-agent-ci = networkAgent.overrideAttrs (old: {
             ldflags = old.ldflags ++ [
-              "-X=github.com/kentik/ktranslate/pkg/version.buildStr=ci-${self.shortRev or self.dirtyShortRev}"
+              "-X=github.com/newrelic-forks/newrelic-network-agent/pkg/version.buildStr=ci-${self.shortRev or self.dirtyShortRev}"
             ];
           });
         });

@@ -3,20 +3,20 @@ package local
 import (
 	"context"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/fsnotify/fsnotify"
 )
 
 type LocalConfig struct {
 	logger.ContextL
-	currentConfig *ktranslate.Config
+	currentConfig *networkagent.Config
 	watcher       *fsnotify.Watcher
 }
 
-func NewConfig(log logger.Underlying, cfg *ktranslate.Config) (*LocalConfig, error) {
+func NewConfig(log logger.Underlying, cfg *networkagent.Config) (*LocalConfig, error) {
 	lc := LocalConfig{
 		ContextL:      logger.NewContextLFromUnderlying(logger.SContext{S: "localConfig"}, log),
 		currentConfig: cfg,
@@ -41,7 +41,7 @@ func NewConfig(log logger.Underlying, cfg *ktranslate.Config) (*LocalConfig, err
 	return &lc, nil
 }
 
-func (lc *LocalConfig) Run(ctx context.Context, cb func(*ktranslate.Config) error) {
+func (lc *LocalConfig) Run(ctx context.Context, cb func(*networkagent.Config) error) {
 	lc.Infof("config checker running")
 	for {
 		select {

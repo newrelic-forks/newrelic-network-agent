@@ -12,11 +12,11 @@ import (
 
 	go_metrics "github.com/kentik/go-metrics"
 
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/eggs/kmux"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/ic"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/kmux"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/ic"
 )
 
 type KentikHttpListener struct {

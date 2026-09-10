@@ -9,17 +9,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/cat"
-	"github.com/kentik/ktranslate/pkg/filter"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/version"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/cat"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/filter"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/version"
 
 	"github.com/imdario/mergo"
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate/pkg/eggs/baseserver"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/eggs/properties"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/baseserver"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/properties"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -113,13 +113,13 @@ func main() {
 
 	// dump default config to stdout and exit
 	if *generateConfig {
-		if err := yaml.NewEncoder(os.Stdout).Encode(ktranslate.DefaultConfig()); err != nil {
+		if err := yaml.NewEncoder(os.Stdout).Encode(networkagent.DefaultConfig()); err != nil {
 			panic(err)
 		}
 		os.Exit(0)
 	}
 
-	cfg := ktranslate.DefaultConfig()
+	cfg := networkagent.DefaultConfig()
 
 	// apply initial flags
 	if err := applyFlags(cfg); err != nil {
@@ -128,7 +128,7 @@ func main() {
 
 	// if config specified, merge config
 	if v := *configFilePath; v != "" {
-		ktCfg, err := ktranslate.LoadConfig(context.Background(), v)
+		ktCfg, err := networkagent.LoadConfig(context.Background(), v)
 		if err != nil {
 			panic(err)
 		}
@@ -179,7 +179,7 @@ func main() {
 }
 
 // apply config based on mode group
-func applyMode(cfg *ktranslate.Config, mode string) error {
+func applyMode(cfg *networkagent.Config, mode string) error {
 	setNr := func() { // Specific settings for NR
 		cfg.Format = "new_relic"
 		cfg.SampleMin = 100
@@ -242,7 +242,7 @@ func applyMode(cfg *ktranslate.Config, mode string) error {
 }
 
 // TODO: this should be removed when flags are removed in favor of config
-func applyFlags(cfg *ktranslate.Config) error {
+func applyFlags(cfg *networkagent.Config) error {
 	errCh := make(chan error, 1)
 	doneCh := make(chan bool, 1)
 	go func() {
@@ -360,7 +360,7 @@ func applyFlags(cfg *ktranslate.Config) error {
 				}
 				cfg.EnableSNMPDiscovery = v
 			case "kentik_email":
-				cfg.KentikCreds = []ktranslate.KentikCred{ktranslate.KentikCred{APIEmail: val, APIToken: os.Getenv(ktranslate.KentikAPITokenEnvVar)}}
+				cfg.KentikCreds = []networkagent.KentikCred{networkagent.KentikCred{APIEmail: val, APIToken: os.Getenv(networkagent.KentikAPITokenEnvVar)}}
 			case "api_root":
 				cfg.APIBaseURL = val
 				cfg.GRPCBaseURL = strings.Replace(val, "api.kentik", "grpc.api.kentik", 1)

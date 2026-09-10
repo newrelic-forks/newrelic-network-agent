@@ -3,7 +3,7 @@ package nrm
 import (
 	"math/rand"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
 )
 
 var (

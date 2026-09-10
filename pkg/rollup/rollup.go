@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/filter"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/filter"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 const (
@@ -139,7 +139,7 @@ func (i *RollupDefs) Set(value string) error {
 	return nil
 }
 
-func GetRollups(log logger.Underlying, cfg *ktranslate.RollupConfig) ([]Roller, error) {
+func GetRollups(log logger.Underlying, cfg *networkagent.RollupConfig) ([]Roller, error) {
 	rollups := RollupDefs{}
 	for _, r := range cfg.Formats {
 		if err := rollups.Set(r); err != nil {

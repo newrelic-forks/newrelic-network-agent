@@ -22,10 +22,10 @@ import (
 	interfacepb "github.com/kentik/api-schema-public/gen/go/kentik/interface/v202108alpha1"
 	sitepb "github.com/kentik/api-schema-public/gen/go/kentik/site/v202509"
 	synthetics "github.com/kentik/api-schema-public/gen/go/kentik/synthetics/v202309"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/version"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/version"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -71,7 +71,7 @@ type KentikApi struct {
 	siteClient          sitepb.SiteServiceClient
 	mux                 sync.RWMutex
 	lastSynth           time.Time
-	config              *ktranslate.Config
+	config              *networkagent.Config
 	tagLookupClient     tagging.EnumerationsAdminServiceClient
 	lazyLoadCustoms     bool
 	fullLoadCustoms     bool
@@ -79,7 +79,7 @@ type KentikApi struct {
 	interfaceFilterText string
 }
 
-func NewKentikApi(ctx context.Context, log logger.ContextL, cfg *ktranslate.Config) (*KentikApi, error) {
+func NewKentikApi(ctx context.Context, log logger.ContextL, cfg *networkagent.Config) (*KentikApi, error) {
 	apiTimeoutStr := os.Getenv(kt.KentikAPITimeout)
 	apiTimeout := API_TIMEOUT
 	if apiTimeoutStr != "" {

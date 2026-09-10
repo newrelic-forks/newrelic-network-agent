@@ -16,12 +16,12 @@ import (
 func buildStaticBinary(t *testing.T) string {
 	t.Helper()
 
-	if out, err := exec.Command("go", "generate", "github.com/kentik/ktranslate/pkg/version").CombinedOutput(); err != nil {
+	if out, err := exec.Command("go", "generate", "github.com/newrelic-forks/newrelic-network-agent/pkg/version").CombinedOutput(); err != nil {
 		t.Fatalf("go generate ./pkg/version failed: %v\n%s", err, out)
 	}
 
 	bin := filepath.Join(t.TempDir(), "ktranslate")
-	cmd := exec.Command("go", "build", "-o", bin, "github.com/kentik/ktranslate/cmd/ktranslate")
+	cmd := exec.Command("go", "build", "-o", bin, "github.com/newrelic-forks/newrelic-network-agent/cmd/ktranslate")
 	cmd.Env = append(os.Environ(),
 		"CGO_ENABLED=0",
 		"GOOS="+runtime.GOOS,

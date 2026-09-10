@@ -11,11 +11,11 @@ import (
 
 	"github.com/gosnmp/gosnmp"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/mibs"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/util"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/tick"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/mibs"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/tick"
 )
 
 type Poller struct {

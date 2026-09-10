@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/kentik/ktranslate/pkg/util/netflow/session"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/session"
 )
 
 func TestObservationDomainSeparation(t *testing.T) {

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/judwhite/go-svc"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/version"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/version"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,8 +22,8 @@ type DummyService struct {
 	contextGotDone   bool
 }
 
-func testConfig() *ktranslate.ServerConfig {
-	return ktranslate.DefaultConfig().Server
+func testConfig() *networkagent.ServerConfig {
+	return networkagent.DefaultConfig().Server
 }
 
 func NewDummyService(t *testing.T, alwaysUp bool, healthcheckSleep time.Duration) *DummyService {

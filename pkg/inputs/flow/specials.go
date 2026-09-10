@@ -1,12 +1,12 @@
 package flow
 
 import (
-	"github.com/kentik/ktranslate"
+	"github.com/newrelic-forks/newrelic-network-agent"
 
 	producer "github.com/netsampler/goflow2/v2/producer/proto"
 )
 
-func loadDefault(cfg *ktranslate.FlowInputConfig) *producer.ProducerConfig {
+func loadDefault(cfg *networkagent.FlowInputConfig) *producer.ProducerConfig {
 	config := &producer.ProducerConfig{
 		Formatter: producer.FormatterConfig{
 			Fields: []string{},
@@ -58,7 +58,7 @@ func loadDefault(cfg *ktranslate.FlowInputConfig) *producer.ProducerConfig {
 	return config
 }
 
-func loadASA(cfg *ktranslate.FlowInputConfig) *producer.ProducerConfig {
+func loadASA(cfg *networkagent.FlowInputConfig) *producer.ProducerConfig {
 	config := &producer.ProducerConfig{
 		Formatter: producer.FormatterConfig{
 			Fields: []string{},
@@ -157,7 +157,7 @@ func loadASA(cfg *ktranslate.FlowInputConfig) *producer.ProducerConfig {
 	return config
 }
 
-func loadNBar(cfg *ktranslate.FlowInputConfig) *producer.ProducerConfig {
+func loadNBar(cfg *networkagent.FlowInputConfig) *producer.ProducerConfig {
 	config := &producer.ProducerConfig{
 		Formatter: producer.FormatterConfig{
 			Fields: []string{},
@@ -248,7 +248,7 @@ func loadNBar(cfg *ktranslate.FlowInputConfig) *producer.ProducerConfig {
 	return config
 }
 
-func loadPAN(cfg *ktranslate.FlowInputConfig) *producer.ProducerConfig {
+func loadPAN(cfg *networkagent.FlowInputConfig) *producer.ProducerConfig {
 	config := &producer.ProducerConfig{
 		Formatter: producer.FormatterConfig{
 			Fields: []string{},

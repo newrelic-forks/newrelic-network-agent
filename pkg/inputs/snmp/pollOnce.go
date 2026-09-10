@@ -7,11 +7,11 @@ import (
 	"time"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/metadata"
-	snmp_metrics "github.com/kentik/ktranslate/pkg/inputs/snmp/metrics"
-	snmp_util "github.com/kentik/ktranslate/pkg/inputs/snmp/util"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/metadata"
+	snmp_metrics "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/metrics"
+	snmp_util "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 func pollOnce(ctx context.Context, tdevice string, conf *kt.SnmpConfig, connectTimeout time.Duration, retries int, jchfChan chan []*kt.JCHF, metrics *kt.SnmpMetricSet, registry go_metrics.Registry, log logger.ContextL, logchan chan string) error {

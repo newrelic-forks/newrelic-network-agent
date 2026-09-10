@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/util/netflow/read"
-	"github.com/kentik/ktranslate/pkg/util/netflow/session"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/read"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/session"
 )
 
 // IPFIX

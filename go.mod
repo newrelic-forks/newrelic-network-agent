@@ -1,4 +1,4 @@
-module github.com/kentik/ktranslate
+module github.com/newrelic-forks/newrelic-network-agent
 
 go 1.25.0
 

@@ -13,11 +13,11 @@ import (
 
 	"github.com/go-logr/stdr"
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/formats/util"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/rollup"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -35,7 +35,7 @@ type OtelFormat struct {
 	mux          sync.RWMutex
 	exp          sdkmetric.Exporter
 	invalids     map[string]bool
-	config       *ktranslate.OtelFormatConfig
+	config       *networkagent.OtelFormatConfig
 	vecs         map[string]metric.Float64ObservableGauge
 	ctx          context.Context
 	inputs       map[string]chan OtelData
@@ -80,7 +80,7 @@ Some usefule env vars to think about setting:
 * OTEL_METRIC_EXPORT_INTERVAL=30000 -- time in ms to export. Default 60,000 (1 min).
 * OTEL_EXPORTER_OTLP_COMPRESSION=gzip -- turn on gzip compression.
 */
-func NewFormat(ctx context.Context, log logger.Underlying, cfg *ktranslate.OtelFormatConfig, logTee chan string, registry go_metrics.Registry) (*OtelFormat, error) {
+func NewFormat(ctx context.Context, log logger.Underlying, cfg *networkagent.OtelFormatConfig, logTee chan string, registry go_metrics.Registry) (*OtelFormat, error) {
 	jf := &OtelFormat{
 		ContextL:     logger.NewContextLFromUnderlying(logger.SContext{S: "otel"}, log),
 		lastMetadata: map[string]*kt.LastMetadata{},

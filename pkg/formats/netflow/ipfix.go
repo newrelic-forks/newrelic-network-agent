@@ -3,8 +3,8 @@ package netflow
 import (
 	"bytes"
 
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/netflow/ipfix"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/ipfix"
 )
 
 func (f *NetflowFormat) packIpfix(msgs []*kt.JCHF, serBuf []byte) (*kt.Output, error) {

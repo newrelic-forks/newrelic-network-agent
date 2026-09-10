@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	lt "github.com/kentik/ktranslate/pkg/eggs/logger/testing"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	lt "github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger/testing"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 func TestCheckForProvider(t *testing.T) {

@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	lt "github.com/kentik/ktranslate/pkg/eggs/logger/testing"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	lt "github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger/testing"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +18,7 @@ func TestSeriToInflux(t *testing.T) {
 	assert := assert.New(t)
 	l := lt.NewTestContextL(logger.NilContext, t).GetLogger().GetUnderlyingLogger()
 
-	cfg := ktranslate.InfluxDBFormatConfig{MeasurementPrefix: "notempty"}
+	cfg := networkagent.InfluxDBFormatConfig{MeasurementPrefix: "notempty"}
 	f, err := NewFormat(l, go_metrics.DefaultRegistry, kt.CompressionNone, &cfg)
 	assert.NoError(err)
 
@@ -36,7 +36,7 @@ func TestNewline(t *testing.T) {
 	assert := assert.New(t)
 	l := lt.NewTestContextL(logger.NilContext, t).GetLogger().GetUnderlyingLogger()
 
-	cfg := ktranslate.InfluxDBFormatConfig{MeasurementPrefix: "notempty"}
+	cfg := networkagent.InfluxDBFormatConfig{MeasurementPrefix: "notempty"}
 	f, err := NewFormat(l, go_metrics.DefaultRegistry, kt.CompressionNone, &cfg)
 	assert.NoError(err)
 

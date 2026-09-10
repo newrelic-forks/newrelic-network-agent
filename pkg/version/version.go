@@ -3,13 +3,13 @@ package version
 import (
 	"runtime"
 
-	"github.com/kentik/ktranslate/pkg/eggs/version"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/version"
 )
 
 // versionStr, dateStr, and buildStr are overridden at link time, e.g.:
-//   -ldflags "-X github.com/kentik/ktranslate/pkg/version.versionStr=v2.5.0 \
-//             -X github.com/kentik/ktranslate/pkg/version.dateStr=2026-09-09 \
-//             -X github.com/kentik/ktranslate/pkg/version.buildStr=ci-1234"
+//   -ldflags "-X github.com/newrelic-forks/newrelic-network-agent/pkg/version.versionStr=v2.5.0 \
+//             -X github.com/newrelic-forks/newrelic-network-agent/pkg/version.dateStr=2026-09-09 \
+//             -X github.com/newrelic-forks/newrelic-network-agent/pkg/version.buildStr=ci-1234"
 // See the Makefile's NETWORK_AGENT_VERSION/-DATE/-BUILD-derived LDFLAGS. buildStr is
 // optional and empty by default -- only CI/nix-ci builds set it.
 var (

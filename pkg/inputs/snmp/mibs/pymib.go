@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
 	"gopkg.in/yaml.v3"
 )
 

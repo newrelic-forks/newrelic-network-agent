@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/dchest/siphash"
 	gohll "github.com/sasha-s/go-hll"
@@ -26,7 +26,7 @@ type UniqueRollup struct {
 	rollupBase
 	kvs       chan *uset
 	exportKvs chan chan []Rollup
-	config    *ktranslate.RollupConfig
+	config    *networkagent.RollupConfig
 }
 
 type uset struct {
@@ -35,7 +35,7 @@ type uset struct {
 	prov    map[string]kt.Provider
 }
 
-func newUniqueRollup(log logger.Underlying, rd RollupDef, cfg *ktranslate.RollupConfig) (*UniqueRollup, error) {
+func newUniqueRollup(log logger.Underlying, rd RollupDef, cfg *networkagent.RollupConfig) (*UniqueRollup, error) {
 	r := &UniqueRollup{
 		ContextL:  logger.NewContextLFromUnderlying(logger.SContext{S: "uniqueRollup"}, log),
 		kvs:       make(chan *uset, CHAN_SLACK),

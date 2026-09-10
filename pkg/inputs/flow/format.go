@@ -11,13 +11,13 @@ import (
 	"time"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
+	"github.com/newrelic-forks/newrelic-network-agent"
 
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/ic"
-	"github.com/kentik/ktranslate/pkg/util/resolv"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/ic"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/resolv"
 
 	"github.com/netsampler/goflow2/v2/producer"
 	pp "github.com/netsampler/goflow2/v2/producer/proto"
@@ -44,7 +44,7 @@ type KentikDriver struct {
 	resolv       *resolv.Resolver
 	ctx          context.Context
 	config       *pp.ProducerConfig
-	cfg          *ktranslate.FlowInputConfig
+	cfg          *networkagent.FlowInputConfig
 	receiver     *utils.UDPReceiver
 	pipe         utils.FlowPipe
 	producer     producer.ProducerInterface
@@ -61,7 +61,7 @@ type FlowMetric struct {
 	Flows go_metrics.Meter
 }
 
-func NewKentikDriver(ctx context.Context, proto FlowSource, maxBatchSize int, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF, apic *api.KentikApi, fields string, resolv *resolv.Resolver, cfg *ktranslate.FlowInputConfig) *KentikDriver {
+func NewKentikDriver(ctx context.Context, proto FlowSource, maxBatchSize int, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF, apic *api.KentikApi, fields string, resolv *resolv.Resolver, cfg *networkagent.FlowInputConfig) *KentikDriver {
 	kt := KentikDriver{
 		ContextL:     logger.NewContextLFromUnderlying(logger.SContext{S: "flow"}, log),
 		jchfChan:     jchfChan,

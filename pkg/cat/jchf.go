@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/cdn"
-	patricia "github.com/kentik/ktranslate/pkg/util/gopatricia/patricia"
-	"github.com/kentik/ktranslate/pkg/util/ic"
-	model "github.com/kentik/ktranslate/pkg/util/kflow2"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/cdn"
+	patricia "github.com/newrelic-forks/newrelic-network-agent/pkg/util/gopatricia/patricia"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/ic"
+	model "github.com/newrelic-forks/newrelic-network-agent/pkg/util/kflow2"
 )
 
 var (

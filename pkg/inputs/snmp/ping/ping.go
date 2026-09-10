@@ -10,8 +10,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/ping/kaping"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/ping/kaping"
 
 	probing "github.com/prometheus-community/pro-bing"
 	"gonum.org/v1/gonum/stat"
