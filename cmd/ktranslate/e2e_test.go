@@ -11,8 +11,8 @@ import (
 
 // buildStaticBinary compiles the real ktranslate entrypoint the same way every
 // shipped build path does post-furious-removal (Makefile's all/windows/arm
-// targets, Dockerfile): CGO_ENABLED=0, -tags dynamic. It exists to catch
-// "the binary doesn't even start" regressions, not to exercise features.
+// targets, Dockerfile): CGO_ENABLED=0. It exists to catch "the binary doesn't
+// even start" regressions, not to exercise features.
 func buildStaticBinary(t *testing.T) string {
 	t.Helper()
 
@@ -21,7 +21,7 @@ func buildStaticBinary(t *testing.T) string {
 	}
 
 	bin := filepath.Join(t.TempDir(), "ktranslate")
-	cmd := exec.Command("go", "build", "-tags", "dynamic", "-o", bin, "github.com/kentik/ktranslate/cmd/ktranslate")
+	cmd := exec.Command("go", "build", "-o", bin, "github.com/kentik/ktranslate/cmd/ktranslate")
 	cmd.Env = append(os.Environ(),
 		"CGO_ENABLED=0",
 		"GOOS="+runtime.GOOS,
