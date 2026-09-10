@@ -1,0 +1,16 @@
+[Unit]
+Description=New Relic Network Agent Service
+After=network.target
+
+[Service]
+EnvironmentFile=-/etc/default/newrelic-network-agent-%i.env
+Type=simple
+User=newrelic-network-agent
+WorkingDirectory=/etc/newrelic-network-agent
+ExecStart=/usr/bin/newrelic-network-agent -listen off -mapping /etc/newrelic-network-agent/config.json -geo /etc/newrelic-network-agent/GeoLite2-Country.mmdb -udrs /etc/newrelic-network-agent/udr.csv -api_devices /etc/newrelic-network-agent/devices.json -asn /etc/newrelic-network-agent/GeoLite2-ASN.mmdb -log_level info $NETWORK_AGENT_FLAGS
+Restart=on-failure
+RestartSec=3
+## Restart on failure but wait 3 sec.
+
+[Install]
+WantedBy=multi-user.target
