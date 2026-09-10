@@ -39,10 +39,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v31
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
+
+      # GitHub Actions cache-backed Nix substituter: wires a post-build-hook into
+      # nix.conf so this build's outputs (and any dependency not already on
+      # cache.nixos.org) upload here and get pulled by later runs instead of
+      # rebuilt. upstream-cache-filter skips re-caching anything already signed by
+      # cache.nixos.org, since the shared 10GB-per-repo quota is better spent on
+      # this repo's own outputs. See cache-gc.yml for the required cleanup job
+      # (the quota is shared across every workflow that uses this step).
+      - name: Nix build cache
+        uses: Mic92/hestia@f1f4df2801140a36398ed423533c8460618539df # v3.0.1
+        with:
+          upstream-cache-filter: "true"
 
       - name: Build network-agent's go-modules fetch (validates vendorHash)
         run: nix build .#packages.x86_64-linux.network-agent.goModules -L
