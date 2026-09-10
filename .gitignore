@@ -20,10 +20,6 @@ config/GeoLite2-Country.mmdb
 config/GeoLite2-ASN.mmdb
 config/profiles
 
-#generated on build
-cmd/version/generated_version.go
-pkg/version/generated_version.go
-
 .vscode/
 .idea/
 
