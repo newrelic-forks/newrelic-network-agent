@@ -8,9 +8,9 @@
   #     to build; Nix's job here is limited to vendoring Go deps reproducibly and
   #     dispatching to a configured remote Linux builder when needed. This is an
   #     additional distribution path and dev convenience, not a replacement: the
-  #     Makefile, Dockerfile, and .github/workflows/{create-release,publish-*,
-  #     ci-build}.yml remain the only supported way to produce official released
-  #     artifacts, pending a separate future decision to change that.
+  #     Makefile, Dockerfile, and .github/workflows/ci-build.yml remain the only
+  #     supported way to produce official released artifacts, pending a separate
+  #     future decision to change that.
   #   - a NixOS VM test harness for the Tier B synthetic SNMP farm (checks.*, see
   #     nix/tests/snmp-discovery-bench.nix), which reuses packages.*.network-agent as its
   #     collector VM's binary rather than building its own separate copy. The VM tests
@@ -27,6 +27,18 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ]; # NixOS VM tests only make sense on Linux
       forLinuxSystems = nixpkgs.lib.genAttrs linuxSystems;
+
+      # The one name this crosses into Makefile/Dockerfile/CI under -- see
+      # `make check-version-env-var`, which fails CI if Dockerfile's ARG
+      # ever falls out of sync with it.
+      versionEnvVar = "NETWORK_AGENT_VERSION";
+
+      # Computed once here so the devShell (exports it for interactive
+      # `make`/`docker build`) and the network-agent package (uses it as
+      # its build version) can't independently disagree on what "the
+      # version" is for the same commit.
+      # self.dirtyShortRev already carries its own "-dirty" suffix.
+      version = self.rev or "0.0.0-${self.dirtyShortRev or "unknown"}";
     in
     {
       devShells = forAllSystems (system:
@@ -43,15 +55,31 @@
               gopls
               delve
             ];
+            # Same version the network-agent package below builds with, so
+            # `make all`/`docker build --build-arg NETWORK_AGENT_VERSION`
+            # run from inside this shell match it automatically instead of
+            # falling back to Make's own (differently-formatted) git-describe.
+            "${versionEnvVar}" = version;
           };
         });
 
       packages = forLinuxSystems (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          # Pure eval (the nix build/nix flake show default) makes this
+          # silently "" -- no --impure required for the common case, it
+          # just falls through to the shared `version` above. Only an
+          # explicit `NETWORK_AGENT_VERSION=... nix build --impure` (e.g. a
+          # future tagged-release workflow) overrides the package build
+          # specifically, independent of the devShell.
+          envVersion = builtins.getEnv versionEnvVar;
         in
         {
-          network-agent = import ./nix/network-agent.nix { inherit pkgs; src = self; };
+          network-agent = import ./nix/network-agent.nix {
+            inherit pkgs versionEnvVar;
+            src = self;
+            version = if envVersion != "" then envVersion else version;
+          };
         });
 
       checks = forAllSystems (system:

@@ -4,7 +4,7 @@ RUN apk add -U make bash libcap
 ENV CGO_ENABLED=0
 COPY . /src
 WORKDIR /src
-ARG KENTIK_KTRANSLATE_VERSION
+ARG NETWORK_AGENT_VERSION
 RUN make
 
 # maxmind dbs

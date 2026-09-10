@@ -14,7 +14,7 @@
 # This is also Tier B's own NixOS VM test fixture (see snmp-discovery-bench.nix) -- one
 # definition shared by both uses, rather than the VM test privately building its own copy
 # that could silently drift from this one.
-{ pkgs, src, version ? "nix-build" }:
+{ pkgs, src, versionEnvVar, version ? "nix-build" }:
 
 pkgs.buildGoModule {
   pname = "ktranslate";
@@ -24,7 +24,13 @@ pkgs.buildGoModule {
 
   nativeBuildInputs = [ pkgs.gnumake ];
 
-  env.KENTIK_KTRANSLATE_VERSION = version; # skips version.sh's git calls, see scripts/version.sh:4-9
+  # versionEnvVar's name is threaded from flake.nix (see its `versionEnvVar`
+  # binding) rather than hardcoded here, so the devShell (which exports it
+  # too, for `make`/`docker build` run interactively) and this package can't
+  # independently drift on the name. Setting it directly (rather than
+  # leaving it to Make's own git-describe fallback) matters here specifically
+  # because this `src` is a Nix store copy with no `.git` to describe.
+  env = { "${versionEnvVar}" = version; };
 
   buildPhase = ''
     runHook preBuild
