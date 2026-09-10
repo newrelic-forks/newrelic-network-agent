@@ -20,11 +20,34 @@
 # This is also Tier B's own NixOS VM test fixture (see snmp-discovery-bench.nix) -- one
 # definition shared by both uses, rather than the VM test privately building its own copy
 # that could silently drift from this one.
-{ pkgs, src }:
+#
+# The source is filtered down to just go.mod/go.sum plus every *.go file, via lib.fileset,
+# so that a change to anything else in the repo (docs, workflows, other nix files,
+# benchmark fixtures) doesn't invalidate this derivation's build inputs and force an
+# unnecessary rebuild -- only an actual change to the Go module (source or dependencies)
+# does that, which is exactly the set this package cares about. The root for this is a
+# literal relative path (`../.`), not flake.nix's `self`: self's Nix type is an attrset
+# (`typeOf self == "set"`, verified directly), not a `path`, and lib.fileset requires a
+# real path -- a plain relative path written here resolves to one, pointing at the same
+# already-fetched flake source, no separate copy or impurity involved.
+{ pkgs }:
+
+let
+  root = ../.;
+  fs = pkgs.lib.fileset;
+  goSrc = fs.toSource {
+    inherit root;
+    fileset = fs.unions [
+      (root + "/go.mod")
+      (root + "/go.sum")
+      (fs.fileFilter (file: file.hasExt "go") root)
+    ];
+  };
+in
 
 pkgs.buildGoModule {
   pname = "ktranslate";
-  inherit src;
+  src = goSrc;
   version = "unstable";
 
   vendorHash = "sha256-ZQUnUlWTspAZMO90kEJ6+xukw3gX10+IwTegaCUtEo0=";

@@ -67,10 +67,7 @@
           pkgs = nixpkgs.legacyPackages.${system};
         in
         {
-          network-agent = import ./nix/network-agent.nix {
-            inherit pkgs;
-            src = self;
-          };
+          network-agent = import ./nix/network-agent.nix { inherit pkgs; };
         });
 
       checks = forAllSystems (system:
