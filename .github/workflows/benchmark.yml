@@ -1,7 +1,7 @@
 name: Benchmark (Tier A)
 
 # Deterministic Go micro-benchmarks (docs/BENCHMARKING_PLAN.md's Tier A) compared against
-# the checked-in baseline via benchstat. Manual/opt-in on develop (push +
+# the checked-in baseline via benchstat. Manual/opt-in on main (push +
 # workflow_dispatch), plus pull_request so a PR touching Go source or the baseline
 # gets the comparison as a sticky comment automatically -- this is the one trigger
 # type that doesn't need the workflow file registered on the repo's default branch
@@ -30,7 +30,7 @@ name: Benchmark (Tier A)
 on:
   workflow_dispatch:
   push:
-    branches: [ develop ]
+    branches: [ main ]
     paths: &benchmark-paths
       - '**.go'
       - 'benchmarks/baseline.txt'
@@ -53,6 +53,20 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
+
+      # GitHub Actions cache-backed Nix substituter: wires a post-build-hook into
+      # nix.conf so this build's outputs (and any dependency not already on
+      # cache.nixos.org) upload here and get pulled by later runs instead of
+      # rebuilt. upstream-cache-filter skips re-caching anything already signed by
+      # cache.nixos.org, since the shared 10GB-per-repo quota is better spent on
+      # this repo's own outputs. See cache-gc.yml for the required cleanup job
+      # (the quota is shared across every workflow that uses this step). Speeds
+      # up building the devShell itself (go, libpcap+pkg-config, goperf) on top
+      # of whatever nixpkgs paths were already pulled from cache.nixos.org.
+      - name: Nix build cache
+        uses: Mic92/hestia@v3.0.1
+        with:
+          upstream-cache-filter: "true"
 
       - name: Run benchmarks and compare against baseline
         run: |
