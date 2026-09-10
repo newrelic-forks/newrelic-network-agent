@@ -1,10 +1,10 @@
 name: Cache GC (Hestia)
 
 # Garbage collection for the hestia binary cache used by benchmark.yml,
-# benchmark-tier-b.yml and license-notice.yml (and any future workflow that
-# wires hestia in). Without this job, the shared 10GB-per-repo GitHub Actions
-# cache quota fills up and GitHub's own blunt LRU eviction takes over instead
-# of hestia's own GC.
+# benchmark-tier-b.yml, license-notice.yml, vendor-hash-check.yml and
+# vendor-hash-autofix.yml (and any future workflow that wires hestia in).
+# Without this job, the shared 10GB-per-repo GitHub Actions cache quota fills
+# up and GitHub's own blunt LRU eviction takes over instead of hestia's own GC.
 
 concurrency:
   group: hestia-gc
@@ -34,9 +34,9 @@ jobs:
       contents: read
     steps:
       - name: Install Nix
-        uses: cachix/install-nix-action@v31
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
 
-      - uses: Mic92/hestia@v3.0.1
+      - uses: Mic92/hestia@f1f4df2801140a36398ed423533c8460618539df # v3.0.1
 
       - name: Run garbage collection
         run: |
