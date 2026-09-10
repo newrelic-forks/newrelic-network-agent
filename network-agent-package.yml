@@ -1,7 +1,7 @@
 meta:
-  description: Kentik KTranslate
-  vendor: Kentik
-  maintainer: Kentik
+  description: New Relic Network Agent
+  vendor: New Relic
+  maintainer: New Relic
 
 conditional:
   - when: format == "deb"
@@ -12,101 +12,101 @@ conditional:
       - git-core
 
 files:
-  "/usr/bin/ktranslate":
-    file: bin/ktranslate
+  "/usr/bin/newrelic-network-agent":
+    file: bin/newrelic-network-agent
     mode: "0755"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/GeoLite2-ASN.mmdb":
+  "/etc/newrelic-network-agent/GeoLite2-ASN.mmdb":
     file: config/GeoLite2-ASN.mmdb
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/GeoLite2-Country.mmdb":
+  "/etc/newrelic-network-agent/GeoLite2-Country.mmdb":
     file: config/GeoLite2-Country.mmdb
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/devices.json":
+  "/etc/newrelic-network-agent/devices.json":
     file: config/devices.json
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/snmp-base.yaml":
+  "/etc/newrelic-network-agent/snmp-base.yaml":
     file: config/snmp-base.yaml
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
     keep: true
 
-  "/etc/default/ktranslate.env.sample":
-    file: config/ktranslate.env.sample
+  "/etc/default/newrelic-network-agent.env.sample":
+    file: config/newrelic-network-agent.env.sample
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/udr.csv":
+  "/etc/newrelic-network-agent/udr.csv":
     file: config/udr.csv
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/config.json":
+  "/etc/newrelic-network-agent/config.json":
     file: config/config.json
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/mibs.db/000243.ldb":
+  "/etc/newrelic-network-agent/mibs.db/000243.ldb":
     file: config/mibs.db/000243.ldb
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/mibs.db/000244.ldb":
+  "/etc/newrelic-network-agent/mibs.db/000244.ldb":
     file: config/mibs.db/000244.ldb
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/mibs.db/000245.ldb":
+  "/etc/newrelic-network-agent/mibs.db/000245.ldb":
     file: config/mibs.db/000245.ldb
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/mibs.db/001158.log":
+  "/etc/newrelic-network-agent/mibs.db/001158.log":
     file: config/mibs.db/001158.log
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/mibs.db/CURRENT":
+  "/etc/newrelic-network-agent/mibs.db/CURRENT":
     file: config/mibs.db/CURRENT
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/mibs.db/CURRENT.bak":
+  "/etc/newrelic-network-agent/mibs.db/CURRENT.bak":
     file: config/mibs.db/CURRENT.bak
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/mibs.db/LOCK":
+  "/etc/newrelic-network-agent/mibs.db/LOCK":
     file: config/mibs.db/LOCK
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/mibs.db/LOG":
+  "/etc/newrelic-network-agent/mibs.db/LOG":
     file: config/mibs.db/LOG
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
-  "/etc/ktranslate/mibs.db/MANIFEST-001159":
+  "/etc/newrelic-network-agent/mibs.db/MANIFEST-001159":
     file: config/mibs.db/MANIFEST-001159
     mode: "0644"
-    user: ktranslate
+    user: newrelic-network-agent
 
 dirs:
-  - "/etc/ktranslate"
-  - "/etc/ktranslate/mibs.db"
+  - "/etc/newrelic-network-agent"
+  - "/etc/newrelic-network-agent/mibs.db"
 
 units:
-  - ktranslate.service
-  - ktranslate@.service
+  - newrelic-network-agent.service
+  - newrelic-network-agent@.service
 
 scripts:
   "post-install": scripts/post-install
 
-user: ktranslate
+user: newrelic-network-agent
