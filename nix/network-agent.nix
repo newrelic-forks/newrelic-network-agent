@@ -1,4 +1,4 @@
-# Builds the ktranslate binary via buildGoModule directly, not by shelling out to `make`
+# Builds the newrelic-network-agent binary via buildGoModule directly, not by shelling out to `make`
 # (which may go away) -- everything `make all` does is already native here. No
 # libpcap/pkg-config needed since the SYN scanner is pure Go (upstream #14).
 #
@@ -29,12 +29,12 @@ let
 in
 
 pkgs.buildGoModule {
-  pname = "ktranslate";
+  pname = "newrelic-network-agent";
   src = goSrc;
   inherit version;
 
   vendorHash = "sha256-ZQUnUlWTspAZMO90kEJ6+xukw3gX10+IwTegaCUtEo0=";
-  subPackages = [ "cmd/ktranslate" ];
+  subPackages = [ "cmd/newrelic-network-agent" ];
   env.CGO_ENABLED = "0";
   ldflags = [ "-X=github.com/newrelic-forks/newrelic-network-agent/pkg/version.versionStr=${version}" ];
 
