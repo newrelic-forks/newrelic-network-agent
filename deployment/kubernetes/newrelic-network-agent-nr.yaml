@@ -4,30 +4,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ktranslate
+  name: newrelic-network-agent
 spec:
   selector:
     matchLabels:
-      app: ktranslate
+      app: newrelic-network-agent
   template:
     metadata:
       labels:
-        app: ktranslate
+        app: newrelic-network-agent
     spec:
       containers:
-      - name: ktranslate
-        image: docker.io/kentik/ktranslate:v2
+      - name: newrelic-network-agent
+        image: newrelic/network-agent:latest
         imagePullPolicy: Always
         env:
         - name: NEW_RELIC_API_KEY
           valueFrom:
             secretKeyRef:
-              name: ktranslate-secret
+              name: newrelic-network-agent-secret
               key: nr_api_key
         - name: NR_ACCOUNT_ID
           valueFrom:
             secretKeyRef:
-              name: ktranslate-secret
+              name: newrelic-network-agent-secret
               key: nr_account_id
         args:
           - --metalisten=0.0.0.0:8083
@@ -63,10 +63,10 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 5
         volumeMounts:
-          - name: ktranslate-config-claim
+          - name: newrelic-network-agent-config-claim
             mountPath: /data
       volumes:
-        - name: ktranslate-config-claim
+        - name: newrelic-network-agent-config-claim
           hostPath:
             path: /mnt/data/
 
@@ -74,9 +74,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ktranslate-metadata
+  name: newrelic-network-agent-metadata
   labels:
-    app: ktranslate
+    app: newrelic-network-agent
 spec:
   ports:
   - port: 8083
@@ -84,15 +84,15 @@ spec:
     targetPort: 8083
     protocol: TCP
   selector:
-    app: ktranslate
+    app: newrelic-network-agent
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ktranslate-snmp
+  name: newrelic-network-agent-snmp
   labels:
-    app: ktranslate
+    app: newrelic-network-agent
 spec:
   ports:
   - port: 1620
@@ -100,13 +100,13 @@ spec:
     targetPort: 1620
     protocol: UDP
   selector:
-    app: ktranslate
+    app: newrelic-network-agent
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: ktranslate-config-claim
+  name: newrelic-network-agent-config-claim
 spec:
   storageClassName: manual
   accessModes:
@@ -119,7 +119,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: ktranslate-pv-volume
+  name: newrelic-network-agent-pv-volume
   labels:
     type: local
 spec:
@@ -135,7 +135,7 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: ktranslate-secret
+  name: newrelic-network-agent-secret
 data:
   nr_account_id: $NR_ACCOUNT_ID
   nr_api_key: $NR_API_KEY

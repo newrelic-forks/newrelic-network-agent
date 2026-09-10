@@ -40,17 +40,17 @@ services:
     depends_on:
       - elasticsearch
 
-  ktranslate:
-    image: kentik/ktranslate:latest
+  newrelic-network-agent:
+    image: newrelic/network-agent:latest
     entrypoint:
       - sh
       - -euc
       - |
-        cat <<EOF > /tmp/ktranslate.yaml
+        cat <<EOF > /tmp/newrelic-network-agent.yaml
         listenaddr: "127.0.0.1:8081"
-        udrsfile: "/etc/ktranslate/udr.csv"
-        geofile: "/etc/ktranslate/GeoLite2-Country.mmdb"
-        asnfile: "/etc/ktranslate/GeoLite2-ASN.mmdb"
+        udrsfile: "/etc/newrelic-network-agent/udr.csv"
+        geofile: "/etc/newrelic-network-agent/GeoLite2-Country.mmdb"
+        asnfile: "/etc/newrelic-network-agent/GeoLite2-ASN.mmdb"
         processingthreads: 1
         inputthreads: 1
         maxthreads: 1
@@ -88,7 +88,7 @@ services:
           ollywritekey: ""
 
         api:
-          devicefile: "/etc/ktranslate/devices.json"
+          devicefile: "/etc/newrelic-network-agent/devices.json"
 
         flowinput:
           enable: true
@@ -101,7 +101,7 @@ services:
           prometheuslistenaddr: ""
           mappingfile: ""
         EOF
-        ktranslate --config /tmp/ktranslate.yaml
+        newrelic-network-agent --config /tmp/newrelic-network-agent.yaml
     restart: always
     ports:
       - 8081:8081
@@ -115,8 +115,8 @@ services:
     restart: always
     command:
       - -t
-      - ktranslate
+      - newrelic-network-agent
       - -p
       - "9995"
     depends_on:
-      - ktranslate
+      - newrelic-network-agent

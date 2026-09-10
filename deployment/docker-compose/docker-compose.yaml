@@ -1,11 +1,11 @@
 version: "3.9"
 services:
-  ktranslate:
-    image: kentik/ktranslate:v2
-    container_name: ktranslate
+  newrelic-network-agent:
+    image: newrelic/network-agent:latest
+    container_name: newrelic-network-agent
     restart: unless-stopped
     volumes:
-      - ${KT_SNMP_PATH}:/snmp.yaml ## Make KT_SNMP_PATH a path to your local snmp.yaml config.
+      - ${SNMP_PATH}:/snmp.yaml ## Make SNMP_PATH a path to your local snmp.yaml config.
     environment: ## Set these env vars
       - NEW_RELIC_API_KEY=${NEW_RELIC_API_KEY}
       - NR_ACCOUNT_ID=${NR_ACCOUNT_ID}

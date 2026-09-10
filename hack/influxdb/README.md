@@ -1,6 +1,6 @@
-# InfluxDB with ktranslate
+# InfluxDB with newrelic-network-agent
 This is a Docker compose setup that will create an InfluxDB stack and setup
-ktranslate to listen to a NetFlow generator.
+newrelic-network-agent to listen to a NetFlow generator.
 
 # Run
 
