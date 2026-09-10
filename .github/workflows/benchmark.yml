@@ -5,7 +5,7 @@ name: Benchmark (Tier A)
 # workflow_dispatch), plus pull_request so a PR touching Go source or the baseline
 # gets the comparison as a sticky comment automatically -- this is the one trigger
 # type that doesn't need the workflow file registered on the repo's default branch
-# (main, deliberately kept pristine per docs/PLAYGROUND.md), since pull_request events use
+# (main, deliberately kept pristine), since pull_request events use
 # the workflow as it exists on the PR's own head ref. Reports the diff for humans to
 # judge -- doesn't fail the build on a threshold yet (docs/BENCHMARKING_PLAN.md #3:
 # "tighten later once the numbers are trusted").

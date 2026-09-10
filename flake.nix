@@ -1,5 +1,5 @@
 {
-  description = "ktranslate investigation playground -- dev tooling only";
+  description = "newrelic-network-agent dev tooling and benchmarking flake";
 
   # Scope (see docs/BENCHMARKING_PLAN.md "Nix usage" section):
   #   - a devShell with the tools needed to develop and benchmark this repo

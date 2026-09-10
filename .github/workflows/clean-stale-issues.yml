@@ -1,7 +1,7 @@
 name: 'Close stale issues and PRs'
 
 on:
-  workflow_dispatch:  # auto-triggers disabled for playground; run manually
+  workflow_dispatch:  # scheduled auto-trigger disabled; run manually
 
 jobs:
   stale:

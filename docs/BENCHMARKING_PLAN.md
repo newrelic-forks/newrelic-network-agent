@@ -273,7 +273,7 @@ consistently.
 
 This repo's CI on `investigation` is deliberately manual/opt-in
 (`.github/workflows/test-on-pr.yml` is `workflow_dispatch`-only; auto-triggers were
-disabled per `docs/PLAYGROUND.md`; `.github/workflows/ci-build.yml` runs on
+disabled; `.github/workflows/ci-build.yml` runs on
 `push: [investigation]` + `pull_request`). A new benchmark workflow should match that
 convention rather than gate every push:
 
