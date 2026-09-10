@@ -66,21 +66,9 @@ type SnmpFormatConfig struct {
 	ConfigFile string
 }
 
-// PrometheusSinkConfig is config for the prometheus sink
-type PrometheusSinkConfig struct {
-	ListenAddr     string
-	RemoteWriteUrl string
-}
-
-// GCloudSinkConfig is the config for GCP
-type GCloudSinkConfig struct {
-	Bucket               string
-	Prefix               string
-	ContentType          string
-	FlushIntervalSeconds int
-}
-
-// S3SinkConfig is the config for the S3 sink
+// S3SinkConfig is the config for the S3-backed object store, used to
+// dereference large out-of-band objects (e.g. HAR files) referenced by path.
+// Not a selectable --sinks destination — see pkg/cat/kkc.go's objmgr wiring.
 type S3SinkConfig struct {
 	Bucket                                     string
 	Prefix                                     string
@@ -94,10 +82,13 @@ type S3SinkConfig struct {
 	SigningRegion                              string
 }
 
-// NetSinkConfig is the config for the net sink
-type NetSinkConfig struct {
-	Endpoint string
-	Protocol string
+// HTTPSinkConfig is the config for the HTTP sink
+type HTTPSinkConfig struct {
+	Target             string
+	TargetLogs         string
+	Headers            []string
+	InsecureSkipVerify bool
+	TimeoutInSeconds   int
 }
 
 // NewRelicSinkConfig is the config for the NewRelic sink
@@ -117,69 +108,6 @@ type NewRelicMultiSinkConfig struct {
 type NRCred struct {
 	NRAccount  string
 	NRApiToken string
-}
-
-// FileSinkConfig is the config for the file sink
-type FileSinkConfig struct {
-	Path                 string
-	EnableImmediateWrite bool
-	FlushIntervalSeconds int
-}
-
-// GCloudPubSubSinkConfig is the config for GCP PubSub
-type GCloudPubSubSinkConfig struct {
-	ProjectID string
-	Topic     string
-}
-
-// HTTPSinkConfig is the config for the HTTP sink
-type HTTPSinkConfig struct {
-	Target             string
-	TargetLogs         string
-	Headers            []string
-	InsecureSkipVerify bool
-	TimeoutInSeconds   int
-}
-
-// KafkaSinkConfig is the config for the Kafka sink
-type KafkaSinkConfig struct {
-	Topic            string
-	BootstrapServers string
-	// Security settings
-	SecurityProtocol string // PLAINTEXT, SASL_PLAINTEXT, SASL_SSL, SSL
-	SASLMechanism    string // PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, GSSAPI (Kerberos), OAUTHBEARER
-	SASLUsername     string
-	SASLPassword     string
-	// Kerberos (GSSAPI) settings
-	KerberosServiceName     string // Usually "kafka"
-	KerberosRealm           string
-	KerberosConfigPath      string // Path to krb5.conf
-	KerberosKeytabPath      string // Path to keytab file
-	KerberosPrincipal       string // Kerberos principal
-	KerberosDisablePAFXFAST bool   // Disable PA-FX-FAST
-	// SSL/TLS settings
-	SSLCAFile   string // CA certificate file
-	SSLCertFile string // Client certificate file
-	SSLKeyFile  string // Client private key file
-	SSLInsecure bool   // Skip certificate verification
-	// Producer settings
-	RequiredAcks    int    // 0=NoResponse, 1=WaitForLocal, -1=WaitForAll
-	Compression     string // none, gzip, snappy, lz4, zstd
-	MaxMessageBytes int    // Maximum message size
-	RetryMax        int    // Maximum retries
-	FlushFrequency  int    // Flush frequency in milliseconds
-	FlushMessages   int    // Flush after this many messages
-	FlushBytes      int    // Flush after this many bytes
-}
-
-// KentikSinkConfig is the config for the Kentik sink
-type KentikSinkConfig struct {
-	RelayURL string
-}
-
-// DDogSinkConfig is config for the ddog sink
-type DDogSinkConfig struct {
-	URL string
 }
 
 // RollupConfig is the config for rollups
@@ -205,8 +133,6 @@ type ServerConfig struct {
 	LogToStdout     bool
 	MetricsEndpoint string
 	MetaListenAddr  string
-	OllyDataset     string
-	OllyWriteKey    string
 	CfgPath         string `yaml:"-"` // We don't want to read this directly because it comes from a flag but saved here for internal use.
 }
 
@@ -355,30 +281,14 @@ type Config struct {
 	// pkg/formats/elasticsearch
 	ElasticFormat *ElasticFormatConfig
 
-	// pkg/sinks/prom
-	PrometheusSink *PrometheusSinkConfig
-	// pkg/sinks/gcloud
-	GCloudSink *GCloudSinkConfig
-	// pkg/sinks/s3
+	// pkg/sinks/s3 (object store backing for out-of-band object dereferencing, not a --sinks option)
 	S3Sink *S3SinkConfig
-	// pkg/sinks/net
-	NetSink *NetSinkConfig
+	// pkg/sinks/http
+	HTTPSink *HTTPSinkConfig
 	// pkg/sinks/nr
 	NewRelicSink *NewRelicSinkConfig
 	// pkg/sinks/nrmulti
 	NewRelicMultiSink *NewRelicMultiSinkConfig
-	// pkg/sinks/file
-	FileSink *FileSinkConfig
-	// pkg/sinks/gcppubsub
-	GCloudPubSubSink *GCloudPubSubSinkConfig
-	// pkg/sinks/http
-	HTTPSink *HTTPSinkConfig
-	// pkg/sinks/kafka
-	KafkaSink *KafkaSinkConfig
-	// pkg/sinks/kentik
-	KentikSink *KentikSinkConfig
-	// pkg/sinks/ddog
-	DDogSink *DDogSinkConfig
 
 	// pkg/rollup
 	Rollup *RollupConfig
@@ -473,16 +383,6 @@ func DefaultConfig() *Config {
 			MeasurementPrefix: "",
 			NamespaceToken:    ":",
 		},
-		PrometheusSink: &PrometheusSinkConfig{
-			ListenAddr:     ":8082",
-			RemoteWriteUrl: "",
-		},
-		GCloudSink: &GCloudSinkConfig{
-			Bucket:               "",
-			Prefix:               "/kentik",
-			ContentType:          "application/json",
-			FlushIntervalSeconds: 60,
-		},
 		S3Sink: &S3SinkConfig{
 			Bucket:               "",
 			Prefix:               "/kentik",
@@ -495,9 +395,12 @@ func DefaultConfig() *Config {
 			Endpoint:      "",
 			SigningRegion: "",
 		},
-		NetSink: &NetSinkConfig{
-			Endpoint: "",
-			Protocol: "udp",
+		HTTPSink: &HTTPSinkConfig{
+			Target:             "http://localhost:8086/write?db=kentik",
+			TargetLogs:         "http://localhost:8088/services/collector/event",
+			Headers:            []string{},
+			InsecureSkipVerify: false,
+			TimeoutInSeconds:   30,
 		},
 		NewRelicSink: &NewRelicSinkConfig{
 			Account:      "",
@@ -507,53 +410,6 @@ func DefaultConfig() *Config {
 		},
 		NewRelicMultiSink: &NewRelicMultiSinkConfig{
 			CredMap: nil,
-		},
-		DDogSink: &DDogSinkConfig{
-			URL: "",
-		},
-		FileSink: &FileSinkConfig{
-			Path:                 "./",
-			EnableImmediateWrite: false,
-			FlushIntervalSeconds: 60,
-		},
-		GCloudPubSubSink: &GCloudPubSubSinkConfig{
-			ProjectID: "",
-			Topic:     "",
-		},
-		HTTPSink: &HTTPSinkConfig{
-			Target:             "http://localhost:8086/write?db=kentik",
-			TargetLogs:         "http://localhost:8088/services/collector/event",
-			Headers:            []string{},
-			InsecureSkipVerify: false,
-			TimeoutInSeconds:   30,
-		},
-		KafkaSink: &KafkaSinkConfig{
-			Topic:                   "",
-			BootstrapServers:        "",
-			SecurityProtocol:        "PLAINTEXT",
-			SASLMechanism:           "",
-			SASLUsername:            "",
-			SASLPassword:            "",
-			KerberosServiceName:     "kafka",
-			KerberosRealm:           "",
-			KerberosConfigPath:      "/etc/krb5.conf",
-			KerberosKeytabPath:      "",
-			KerberosPrincipal:       "",
-			KerberosDisablePAFXFAST: false,
-			SSLCAFile:               "",
-			SSLCertFile:             "",
-			SSLKeyFile:              "",
-			SSLInsecure:             false,
-			RequiredAcks:            1,
-			Compression:             "none",
-			MaxMessageBytes:         1000000,
-			RetryMax:                3,
-			FlushFrequency:          100,
-			FlushMessages:           100,
-			FlushBytes:              64 * 1024,
-		},
-		KentikSink: &KentikSinkConfig{
-			RelayURL: "",
 		},
 		Rollup: &RollupConfig{
 			JoinKey:          "^",
@@ -573,8 +429,6 @@ func DefaultConfig() *Config {
 			LogToStdout:     false,
 			MetricsEndpoint: "none",
 			MetaListenAddr:  "localhost:0",
-			OllyDataset:     "",
-			OllyWriteKey:    "",
 			CfgPath:         "",
 		},
 		API: &APIConfig{
