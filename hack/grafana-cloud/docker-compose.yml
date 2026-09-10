@@ -1,6 +1,6 @@
 services:
-  ktranslate:
-    image: kentik/ktranslate:latest
+  newrelic-network-agent:
+    image: newrelic/network-agent:latest
     restart: always
     pull_policy: always
     environment:
