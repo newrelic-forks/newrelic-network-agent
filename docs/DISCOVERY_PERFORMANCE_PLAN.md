@@ -255,7 +255,7 @@ The bottleneck is downstream, in `pkg/cat/kkc.go`:
           }
   ```
   `kc.config.InputThreads` (`config.go:308`) **defaults to `1`** (`config.go:420`). Unless a
-  deployment explicitly passes `-input_threads N` (wired at `cmd/ktranslate/main.go:289`),
+  deployment explicitly passes `-input_threads N` (wired at `cmd/newrelic-network-agent/main.go:289`),
   **exactly one goroutine** (`monitorInput`, `pkg/cat/kkc.go:776–787`) drains the channel
   that every one of the 5,000 devices' pollers writes into, calling `kc.handleInput`
   (line 511) synchronously per batch — which does enrichment, filtering, rollups, and
@@ -269,7 +269,7 @@ The bottleneck is downstream, in `pkg/cat/kkc.go`:
   if `kc.config.InputThreads < kc.config.MaxThreads` (line 565), launches one more
   `monitorInput` consumer and increments `InputThreads` (lines 568–569).
 - `MaxThreads` (`config.go:309`) **also defaults to `1`** (`config.go:421`), set via
-  `-max_threads` (`cmd/ktranslate/main.go:300`). With both defaults at 1, the condition at
+  `-max_threads` (`cmd/newrelic-network-agent/main.go:300`). With both defaults at 1, the condition at
   line 565 (`1 < 1`) is always false — **this autoscaler is inert unless an operator
   explicitly overrides both flags.**
 - Even when active: it only ever *adds* consumers (never removes them as load drops), it
@@ -350,7 +350,7 @@ of a config knob defaulting to 4.
   `github.com/google/gopacket/pcap` (a cgo binding requiring `libpcap` at link time) purely
   to support the SYN-scanner variant we don't use. Go links cgo at package granularity, so
   merely importing `furious/scan` for the scanner we do use drags in `libpcap` for the one we
-  don't. Confirmed via `go list -deps -json ./cmd/ktranslate` filtered for `.CgoFiles`: of the
+  don't. Confirmed via `go list -deps -json ./cmd/newrelic-network-agent` filtered for `.CgoFiles`: of the
   three cgo-requiring packages in the whole build graph, `gopacket/pcap` is the only one that
   both needs a real external system library and has no pure-Go fallback (`DataDog/zstd`
   statically vendors its own C source by default; `prometheus/client_golang`'s cgo file is
@@ -569,7 +569,7 @@ Before landing fixes, consider adding (temporary or permanent) timing logs aroun
 | A44 | `pkg/cat/kkc.go` | 565-566 | Autoscale trigger condition |
 | A45 | `pkg/cat/kkc.go` | 511-553 | `handleInput` — per-batch consumer work |
 | A46 | `config.go` | 308-309, 420-421 | `InputThreads`/`MaxThreads` fields + defaults (1, 1) |
-| A47 | `cmd/ktranslate/main.go` | 149, 289, 300 | `metricsChan` creation; `-input_threads`/`-max_threads` flags |
+| A47 | `cmd/newrelic-network-agent/main.go` | 149, 289, 300 | `metricsChan` creation; `-input_threads`/`-max_threads` flags |
 | A48 | `pkg/kt/snmp.go` | 258, 261-262, 294-295 | `Threads`, `CheckAll`, `CheckAllVersions`, global `TimeoutMS`/`Retries` fields |
 | A49 | `config/snmp-base.yaml` | 18, 27-28 | Shipped `threads: 4`, `timeout_ms: 3000`, `retries: 0` |
 | A50 | `deployment/docker/snmp-base-nr.yaml` | 18, 20, 26-27 | Shipped `threads: 4`, `check_all_ips: true`, `timeout_ms: 3000`, `retries: 0` |

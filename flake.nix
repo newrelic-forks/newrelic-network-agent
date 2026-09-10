@@ -1,9 +1,9 @@
 {
-  description = "ktranslate investigation playground -- dev tooling only";
+  description = "newrelic-network-agent investigation playground -- dev tooling only";
 
   # Scope (see docs/BENCHMARKING_PLAN.md "Nix usage" section):
   #   - a devShell with the tools needed to develop and benchmark this repo
-  #   - packages.*.network-agent (nix/network-agent.nix): a real ktranslate binary, built
+  #   - packages.*.network-agent (nix/network-agent.nix): a real newrelic-network-agent binary, built
   #     directly via buildGoModule's own go build (no dependency on the Makefile, which
   #     is Kentik-era tooling that may go away). This is an additional distribution path
   #     and dev convenience, not a replacement: the Makefile, Dockerfile, and
