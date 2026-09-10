@@ -1,12 +1,12 @@
 .PHONY: all
 all:
 	go generate ./pkg/version
-	CGO_ENABLED=0 go build -tags dynamic -o bin/ktranslate ./cmd/ktranslate
+	CGO_ENABLED=0 go build -o bin/ktranslate ./cmd/ktranslate
 
 .PHONY: windows
 windows:
 	go generate ./cmd/version
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -tags dynamic -o bin/ktranslate.exe ./cmd/ktranslate
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o bin/ktranslate.exe ./cmd/ktranslate
 
 .PHONY: arm
 arm:
