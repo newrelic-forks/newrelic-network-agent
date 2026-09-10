@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ktranslate-discovery
+  name: newrelic-network-agent-discovery
 spec:
   selector:
     matchLabels:
-      app: ktranslate-discovery
+      app: newrelic-network-agent-discovery
   template:
     metadata:
       labels:
-        app: ktranslate-discovery
+        app: newrelic-network-agent-discovery
     spec:
       containers:
       - name: discovery
-        image: docker.io/kentik/ktranslate:v2
+        image: newrelic/network-agent:latest
         imagePullPolicy: Always
         args:
           - -snmp
@@ -28,10 +28,10 @@ spec:
             cpu: 500m
             memory: 128Mi
         volumeMounts:
-          - name: ktranslate-discovery-claim
+          - name: newrelic-network-agent-discovery-claim
             mountPath: /data
       volumes:
-        - name: ktranslate-discovery-claim
+        - name: newrelic-network-agent-discovery-claim
           hostPath:
             path: /mnt/data/
 
@@ -39,19 +39,19 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ktranslate
+  name: newrelic-network-agent
 spec:
   selector:
     matchLabels:
-      app: ktranslate
+      app: newrelic-network-agent
   template:
     metadata:
       labels:
-        app: ktranslate
+        app: newrelic-network-agent
     spec:
       containers:
-      - name: ktranslate
-        image: docker.io/kentik/ktranslate:v2
+      - name: newrelic-network-agent
+        image: newrelic/network-agent:latest
         imagePullPolicy: Always
         args:
           - --listen=0.0.0.0:8082
@@ -94,10 +94,10 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 5
         volumeMounts:
-          - name: ktranslate-discovery-claim
+          - name: newrelic-network-agent-discovery-claim
             mountPath: /data
       volumes:
-        - name: ktranslate-discovery-claim
+        - name: newrelic-network-agent-discovery-claim
           hostPath:
             path: /mnt/data/
 
@@ -105,9 +105,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ktranslate-firehose
+  name: newrelic-network-agent-firehose
   labels:
-    app: ktranslate
+    app: newrelic-network-agent
 spec:
   ports:
   - port: 8082
@@ -115,15 +115,15 @@ spec:
     targetPort: 8082
     protocol: TCP
   selector:
-    app: ktranslate
+    app: newrelic-network-agent
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ktranslate-metadata
+  name: newrelic-network-agent-metadata
   labels:
-    app: ktranslate
+    app: newrelic-network-agent
 spec:
   ports:
   - port: 8083
@@ -131,15 +131,15 @@ spec:
     targetPort: 8083
     protocol: TCP
   selector:
-    app: ktranslate
+    app: newrelic-network-agent
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ktranslate-prom
+  name: newrelic-network-agent-prom
   labels:
-    app: ktranslate
+    app: newrelic-network-agent
 spec:
   ports:
   - port: 8084
@@ -147,14 +147,14 @@ spec:
     targetPort: 8084
     protocol: TCP
   selector:
-    app: ktranslate
+    app: newrelic-network-agent
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ktranslate-sflow
+  name: newrelic-network-agent-sflow
   labels:
-    app: ktranslate
+    app: newrelic-network-agent
 spec:
   ports:
   - port: 6343
@@ -162,24 +162,24 @@ spec:
     targetPort: 6343
     protocol: UDP
   selector:
-    app: ktranslate
+    app: newrelic-network-agent
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: ktranslate-discovery-claim
+  name: newrelic-network-agent-discovery-claim
 spec:
   storageClassName: "" # Empty string must be explicitly set otherwise default StorageClass will be set
-  volumeName: ktranslate-pv-volume
+  volumeName: newrelic-network-agent-pv-volume
 metadata:
-  name: ktranslate-discovery-claim
+  name: newrelic-network-agent-discovery-claim
 
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: ktranslate-pv-volume
+  name: newrelic-network-agent-pv-volume
   labels:
     type: local
 spec:

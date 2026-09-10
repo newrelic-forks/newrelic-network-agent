@@ -5,11 +5,11 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/kentik/ktranslate/pkg/rollup"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
 	"github.com/linkedin/goavro/v2"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 type AvroFormat struct {

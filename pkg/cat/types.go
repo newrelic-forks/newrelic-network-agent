@@ -4,30 +4,30 @@ import (
 	"database/sql"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
 
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/cat/auth"
-	"github.com/kentik/ktranslate/pkg/config"
-	"github.com/kentik/ktranslate/pkg/filter"
-	"github.com/kentik/ktranslate/pkg/formats"
-	"github.com/kentik/ktranslate/pkg/inputs/flow"
-	"github.com/kentik/ktranslate/pkg/inputs/http"
-	"github.com/kentik/ktranslate/pkg/inputs/syslog"
-	"github.com/kentik/ktranslate/pkg/inputs/vpc"
-	"github.com/kentik/ktranslate/pkg/km"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/maps"
-	"github.com/kentik/ktranslate/pkg/rollup"
-	"github.com/kentik/ktranslate/pkg/sinks"
-	"github.com/kentik/ktranslate/pkg/stitch"
-	"github.com/kentik/ktranslate/pkg/util/enrich"
-	"github.com/kentik/ktranslate/pkg/util/gopatricia/patricia"
-	"github.com/kentik/ktranslate/pkg/util/resolv"
-	"github.com/kentik/ktranslate/pkg/util/rule"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/cat/auth"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/config"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/filter"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/flow"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/http"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/syslog"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/vpc"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/km"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/maps"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/sinks"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/stitch"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/enrich"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/gopatricia/patricia"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/resolv"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/rule"
 
-	model "github.com/kentik/ktranslate/pkg/util/kflow2"
+	model "github.com/newrelic-forks/newrelic-network-agent/pkg/util/kflow2"
 )
 
 const (
@@ -46,9 +46,9 @@ const (
 	UDR_TYPE                    = "application_type"
 )
 
-type KTranslate struct {
+type NetworkAgent struct {
 	log          logger.ContextL
-	config       *ktranslate.Config
+	config       *networkagent.Config
 	registry     go_metrics.Registry
 	metrics      *KKCMetric
 	alphaChans   []chan *Flow

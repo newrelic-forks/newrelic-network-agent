@@ -1,11 +1,11 @@
-package ktranslate
+package networkagent
 
 import (
 	"context"
 	yaml "gopkg.in/yaml.v3"
 	"io/fs"
 
-	snmp_util "github.com/kentik/ktranslate/pkg/inputs/snmp/util"
+	snmp_util "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/util"
 )
 
 const (
@@ -227,9 +227,9 @@ type StitchConfig struct {
 	BufLen int
 }
 
-// Config is the ktranslate configuration
+// Config is the newrelic-network-agent configuration
 type Config struct {
-	// ktranslate
+	// newrelic-network-agent
 	ListenAddr          string
 	MappingFile         string
 	UDRSFile            string
@@ -326,7 +326,7 @@ type Config struct {
 	Lilo *StitchConfig
 }
 
-// DefaultConfig returns a ktranslate configuration with defaults applied
+// DefaultConfig returns a newrelic-network-agent configuration with defaults applied
 func DefaultConfig() *Config {
 	return &Config{
 		ListenAddr:          "127.0.0.1:8081",
@@ -507,7 +507,7 @@ func DefaultConfig() *Config {
 	}
 }
 
-// LoadConfig returns a ktranslate configuration from the specified path
+// LoadConfig returns a newrelic-network-agent configuration from the specified path
 func LoadConfig(ctx context.Context, configPath string) (*Config, error) {
 	confBytes, err := snmp_util.LoadFile(ctx, configPath)
 	if err != nil {
@@ -526,7 +526,7 @@ func LoadConfig(ctx context.Context, configPath string) (*Config, error) {
 	return &cfg, nil
 }
 
-// SaveConfig saves the ktranslate configuration to the specified path
+// SaveConfig saves the newrelic-network-agent configuration to the specified path
 func (c *Config) SaveConfig() error {
 	t, err := yaml.Marshal(c)
 	if err != nil {

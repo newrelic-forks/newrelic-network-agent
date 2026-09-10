@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/util/netflow/read"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/read"
 )
 
 const (

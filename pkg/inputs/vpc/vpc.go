@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
+	"github.com/newrelic-forks/newrelic-network-agent"
 
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/vpc/aws"
-	"github.com/kentik/ktranslate/pkg/inputs/vpc/gcp"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/vpc/aws"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/vpc/gcp"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 type VpcImpl interface {
@@ -28,7 +28,7 @@ const (
 )
 
 func NewVpc(ctx context.Context, cloud CloudSource, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF,
-	apic *api.KentikApi, maxBatchSize int, lambdaHandler func([]*kt.JCHF, func(error)), cfg *ktranslate.Config) (VpcImpl, error) {
+	apic *api.KentikApi, maxBatchSize int, lambdaHandler func([]*kt.JCHF, func(error)), cfg *networkagent.Config) (VpcImpl, error) {
 	switch cloud {
 	case Aws:
 		return aws.NewVpc(ctx, log, registry, jchfChan, apic, lambdaHandler, cfg.AWSVPCInput)

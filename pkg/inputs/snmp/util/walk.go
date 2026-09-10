@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
 
 	"github.com/gosnmp/gosnmp"
 )

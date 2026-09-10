@@ -3,7 +3,7 @@ package netflow6
 import (
 	"fmt"
 
-	"github.com/kentik/ktranslate/pkg/util/netflow/read"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/read"
 )
 
 func Dump(p *Packet) {

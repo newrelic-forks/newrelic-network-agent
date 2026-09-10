@@ -12,13 +12,13 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/formats/nrm/events"
-	"github.com/kentik/ktranslate/pkg/formats/util"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/rollup"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/nrm/events"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
 )
 
 var customAttributes string
@@ -52,7 +52,7 @@ type NRMFormat struct {
 	mux          sync.RWMutex
 	demo         *Demozer
 	seenInvalid  bool
-	config       *ktranslate.NRMFormatConfig
+	config       *networkagent.NRMFormatConfig
 
 	EventChan chan []byte
 }
@@ -76,7 +76,7 @@ type NRMetric struct {
 	Attributes map[string]interface{} `json:"attributes"`
 }
 
-func NewFormat(log logger.Underlying, compression kt.Compression, cfg *ktranslate.NRMFormatConfig) (*NRMFormat, error) {
+func NewFormat(log logger.Underlying, compression kt.Compression, cfg *networkagent.NRMFormatConfig) (*NRMFormat, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("new_relic_metric format cannot be nil")
 	}

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -41,7 +41,7 @@ func TestSanitizeMetricsUTF8(t *testing.T) {
 func TestToSanitizesInvalidUTF8(t *testing.T) {
 	assert := assert.New(t)
 
-	f, err := NewFormat(nil, kt.CompressionNone, &ktranslate.NRMFormatConfig{CustomAttributes: map[string]string{}})
+	f, err := NewFormat(nil, kt.CompressionNone, &networkagent.NRMFormatConfig{CustomAttributes: map[string]string{}})
 	assert.NoError(err)
 
 	in := kt.NewJCHF()
@@ -76,7 +76,7 @@ func TestToSanitizesInvalidUTF8(t *testing.T) {
 func TestNewNRCommonMergesCustomAttributes(t *testing.T) {
 	assert := assert.New(t)
 
-	f, err := NewFormat(nil, kt.CompressionNone, &ktranslate.NRMFormatConfig{
+	f, err := NewFormat(nil, kt.CompressionNone, &networkagent.NRMFormatConfig{
 		CustomAttributes: map[string]string{"install_id": "test-instance-123"},
 	})
 	assert.NoError(err)
@@ -111,7 +111,7 @@ func TestNewNRCommonMergesCustomAttributes(t *testing.T) {
 func TestNewNRCommonWithNoCustomAttributes(t *testing.T) {
 	assert := assert.New(t)
 
-	f, err := NewFormat(nil, kt.CompressionNone, &ktranslate.NRMFormatConfig{CustomAttributes: map[string]string{}})
+	f, err := NewFormat(nil, kt.CompressionNone, &networkagent.NRMFormatConfig{CustomAttributes: map[string]string{}})
 	assert.NoError(err)
 
 	common := f.newNRCommon()

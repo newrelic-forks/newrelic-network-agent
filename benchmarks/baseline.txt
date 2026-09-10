@@ -1,6 +1,6 @@
 goos: linux
 goarch: amd64
-pkg: github.com/kentik/ktranslate/pkg/inputs/snmp/mibs
+pkg: github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/mibs
 cpu: AMD EPYC 9V45 96-Core Processor                
 BenchmarkFindProfile_MatchesList/patterns=0-2         	 3182210	       567.6 ns/op	     232 B/op	       3 allocs/op
 BenchmarkFindProfile_MatchesList/patterns=0-2         	 2123239	       576.3 ns/op	     232 B/op	       3 allocs/op
@@ -38,11 +38,11 @@ BenchmarkFindProfile_FleetParse/devices=5000-2        	       5	 222830024 ns/op
 BenchmarkFindProfile_FleetParse/devices=5000-2        	       5	 224566724 ns/op	370389064 B/op	 4265214 allocs/op
 BenchmarkFindProfile_FleetParse/devices=5000-2        	       5	 225213106 ns/op	370389152 B/op	 4265215 allocs/op
 PASS
-ok  	github.com/kentik/ktranslate/pkg/inputs/snmp/mibs	61.425s
-?   	github.com/kentik/ktranslate/pkg/inputs/snmp/mibs/apc	[no test files]
+ok  	github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/mibs	61.425s
+?   	github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/mibs/apc	[no test files]
 goos: linux
 goarch: amd64
-pkg: github.com/kentik/ktranslate/pkg/inputs/snmp
+pkg: github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp
 cpu: AMD EPYC 9V45 96-Core Processor                
 BenchmarkPreScanFanOut/unbounded-2         	       5	 230229847 ns/op	10460532 B/op	  139499 allocs/op
 BenchmarkPreScanFanOut/unbounded-2         	       5	 231921126 ns/op	10449579 B/op	  139401 allocs/op
@@ -100,10 +100,10 @@ BenchmarkDeviceInitLoop/devices=5000-2     	       5	 245984564 ns/op	681120499 
 BenchmarkDeviceInitLoop/devices=5000-2     	       5	 241771644 ns/op	693734416 B/op	  430015 allocs/op
 BenchmarkDeviceInitLoop/devices=5000-2     	       5	 241461580 ns/op	681120276 B/op	  430014 allocs/op
 PASS
-ok  	github.com/kentik/ktranslate/pkg/inputs/snmp	100.209s
+ok  	github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp	100.209s
 goos: linux
 goarch: amd64
-pkg: github.com/kentik/ktranslate/pkg/cat
+pkg: github.com/newrelic-forks/newrelic-network-agent/pkg/cat
 cpu: AMD EPYC 9V45 96-Core Processor                
 BenchmarkConsumerThroughput/producers=100/consumers=1-2         	      10	 106127110 ns/op	  201395 B/op	     110 allocs/op
 BenchmarkConsumerThroughput/producers=100/consumers=1-2         	      10	 106421529 ns/op	  200033 B/op	     107 allocs/op
@@ -151,5 +151,5 @@ BenchmarkConsumerThroughput/producers=5000/consumers=16-2       	       4	 32486
 BenchmarkConsumerThroughput/producers=5000/consumers=16-2       	       4	 326086244 ns/op	  318672 B/op	    5036 allocs/op
 BenchmarkConsumerThroughput/producers=5000/consumers=16-2       	       4	 324856204 ns/op	  318672 B/op	    5036 allocs/op
 PASS
-ok  	github.com/kentik/ktranslate/pkg/cat	90.323s
-?   	github.com/kentik/ktranslate/pkg/cat/auth	[no test files]
+ok  	github.com/newrelic-forks/newrelic-network-agent/pkg/cat	90.323s
+?   	github.com/newrelic-forks/newrelic-network-agent/pkg/cat/auth	[no test files]

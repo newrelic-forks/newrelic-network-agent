@@ -8,32 +8,32 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/cat/auth"
-	cfgMngr "github.com/kentik/ktranslate/pkg/config"
-	"github.com/kentik/ktranslate/pkg/eggs/baseserver"
-	"github.com/kentik/ktranslate/pkg/eggs/kmux"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/filter"
-	"github.com/kentik/ktranslate/pkg/formats"
-	"github.com/kentik/ktranslate/pkg/inputs/flow"
-	ihttp "github.com/kentik/ktranslate/pkg/inputs/http"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp"
-	"github.com/kentik/ktranslate/pkg/inputs/syslog"
-	"github.com/kentik/ktranslate/pkg/inputs/vpc"
-	"github.com/kentik/ktranslate/pkg/km"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/maps"
-	"github.com/kentik/ktranslate/pkg/rollup"
-	ss "github.com/kentik/ktranslate/pkg/sinks"
-	"github.com/kentik/ktranslate/pkg/sinks/relay"
-	"github.com/kentik/ktranslate/pkg/sinks/s3"
-	"github.com/kentik/ktranslate/pkg/stitch"
-	"github.com/kentik/ktranslate/pkg/util/enrich"
-	"github.com/kentik/ktranslate/pkg/util/gopatricia/patricia"
-	"github.com/kentik/ktranslate/pkg/util/resolv"
-	"github.com/kentik/ktranslate/pkg/util/rule"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/cat/auth"
+	cfgMngr "github.com/newrelic-forks/newrelic-network-agent/pkg/config"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/baseserver"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/kmux"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/filter"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/flow"
+	ihttp "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/http"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/syslog"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/vpc"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/km"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/maps"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
+	ss "github.com/newrelic-forks/newrelic-network-agent/pkg/sinks"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/sinks/relay"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/sinks/s3"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/stitch"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/enrich"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/gopatricia/patricia"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/resolv"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/rule"
 
 	"github.com/judwhite/go-svc"
 	go_metrics "github.com/kentik/go-metrics"
@@ -54,9 +54,9 @@ var (
 	RollupsSendDuration = 15 * time.Second
 )
 
-func NewKTranslate(config *ktranslate.Config, log logger.ContextL, registry go_metrics.Registry, version string, sinks []string, serviceName string,
-	logTee chan string, metricsChan chan []*kt.JCHF, shutdown func(string)) (*KTranslate, error) {
-	kc := &KTranslate{
+func NewNetworkAgent(config *networkagent.Config, log logger.ContextL, registry go_metrics.Registry, version string, sinks []string, serviceName string,
+	logTee chan string, metricsChan chan []*kt.JCHF, shutdown func(string)) (*NetworkAgent, error) {
+	kc := &NetworkAgent{
 		log:      log,
 		registry: registry,
 		config:   config,
@@ -288,7 +288,7 @@ func NewKTranslate(config *ktranslate.Config, log logger.ContextL, registry go_m
 }
 
 // nolint: errcheck
-func (kc *KTranslate) cleanup() {
+func (kc *NetworkAgent) cleanup() {
 	snmp.Close()
 	for _, sink := range kc.sinks {
 		sink.Close()
@@ -320,16 +320,16 @@ func (kc *KTranslate) cleanup() {
 }
 
 // GetStatus implements the baseserver.Service interface.
-func (kc *KTranslate) GetStatus() []byte {
+func (kc *NetworkAgent) GetStatus() []byte {
 	return []byte("OK")
 }
 
 // RunHealthCheck implements the baseserver.Service interface.
-func (kc *KTranslate) RunHealthCheck(ctx context.Context, result *baseserver.HealthCheckResult) {
+func (kc *NetworkAgent) RunHealthCheck(ctx context.Context, result *baseserver.HealthCheckResult) {
 }
 
 // HttpInfo implements the baseserver.Service interface.
-func (kc *KTranslate) HttpInfo(w http.ResponseWriter, r *http.Request) {
+func (kc *NetworkAgent) HttpInfo(w http.ResponseWriter, r *http.Request) {
 	total := 0
 	for _, c := range kc.alphaChans {
 		total += len(c)
@@ -394,8 +394,8 @@ func (kc *KTranslate) HttpInfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (kc *KTranslate) doSend(ctx context.Context) {
-	kc.log.Infof("do sendToKTranslate Starting")
+func (kc *NetworkAgent) doSend(ctx context.Context) {
+	kc.log.Infof("do sendToNetworkAgent Starting")
 
 	for {
 		select {
@@ -409,13 +409,13 @@ func (kc *KTranslate) doSend(ctx context.Context) {
 			}
 
 		case <-ctx.Done():
-			kc.log.Infof("do sendToKTranslate Done")
+			kc.log.Infof("do sendToNetworkAgent Done")
 			return
 		}
 	}
 }
 
-func (kc *KTranslate) sendToSinks(ctx context.Context) error {
+func (kc *NetworkAgent) sendToSinks(ctx context.Context) error {
 
 	metricsTicker := time.NewTicker(MetricsCheckDuration)
 	defer metricsTicker.Stop()
@@ -505,7 +505,7 @@ func jchfExportSliceBounds(batchSize, keep int) [][2]int {
 
 // exportJchfBatches serializes msgs and enqueues Outputs, honoring MaxFlowsPerMessage.
 // cb is attached when non-nil (flow path); internal metrics pass nil.
-func (kc *KTranslate) exportJchfBatches(msgs []*kt.JCHF, keep int, serBuf []byte, cb func(error), seri func([]*kt.JCHF, []byte) (*kt.Output, error), logLabel string) {
+func (kc *NetworkAgent) exportJchfBatches(msgs []*kt.JCHF, keep int, serBuf []byte, cb func(error), seri func([]*kt.JCHF, []byte) (*kt.Output, error), logLabel string) {
 	for _, span := range jchfExportSliceBounds(kc.config.MaxFlowsPerMessage, keep) {
 		ser, err := seri(msgs[span[0]:span[1]], serBuf)
 		if err != nil {
@@ -518,7 +518,7 @@ func (kc *KTranslate) exportJchfBatches(msgs []*kt.JCHF, keep int, serBuf []byte
 }
 
 // This processes data from the non-kentik input sets.
-func (kc *KTranslate) handleInput(ctx context.Context, msgs []*kt.JCHF, serBuf []byte, cb func(error), seri func([]*kt.JCHF, []byte) (*kt.Output, error)) {
+func (kc *NetworkAgent) handleInput(ctx context.Context, msgs []*kt.JCHF, serBuf []byte, cb func(error), seri func([]*kt.JCHF, []byte) (*kt.Output, error)) {
 	if kc.geo != nil || kc.asn != nil || kc.enricher != nil {
 		msgs = kc.doEnrichments(ctx, msgs)
 	}
@@ -564,7 +564,7 @@ func (kc *KTranslate) handleInput(ctx context.Context, msgs []*kt.JCHF, serBuf [
 	kc.metrics.InputQ.Mark(int64(len(msgs)))
 }
 
-func (kc *KTranslate) watchInput(ctx context.Context, seri func([]*kt.JCHF, []byte) (*kt.Output, error)) {
+func (kc *NetworkAgent) watchInput(ctx context.Context, seri func([]*kt.JCHF, []byte) (*kt.Output, error)) {
 	kc.log.Infof("watchInput running")
 	checkTicker := time.NewTicker(60 * time.Second)
 	defer checkTicker.Stop()
@@ -588,7 +588,7 @@ func (kc *KTranslate) watchInput(ctx context.Context, seri func([]*kt.JCHF, []by
 	}
 }
 
-func (kc *KTranslate) monitorInput(ctx context.Context, num int, seri func([]*kt.JCHF, []byte) (*kt.Output, error)) {
+func (kc *NetworkAgent) monitorInput(ctx context.Context, num int, seri func([]*kt.JCHF, []byte) (*kt.Output, error)) {
 	kc.log.Infof("monitorInput %d Starting", num)
 	serBuf := make([]byte, 0)
 
@@ -603,7 +603,7 @@ func (kc *KTranslate) monitorInput(ctx context.Context, num int, seri func([]*kt
 	}
 }
 
-func (kc *KTranslate) monitorMetricsInput(ctx context.Context, seri func([]*kt.JCHF, []byte) (*kt.Output, error)) {
+func (kc *NetworkAgent) monitorMetricsInput(ctx context.Context, seri func([]*kt.JCHF, []byte) (*kt.Output, error)) {
 	kc.log.Infof("monitorMetricsInput Starting")
 	serBuf := make([]byte, 0)
 
@@ -630,7 +630,7 @@ func (kc *KTranslate) monitorMetricsInput(ctx context.Context, seri func([]*kt.J
 
 // Removes any flows which don't pass the filters.
 // This is On*f -- is there a better way?
-func (kc *KTranslate) reduce(in []*kt.JCHF) []*kt.JCHF {
+func (kc *NetworkAgent) reduce(in []*kt.JCHF) []*kt.JCHF {
 	out := make([]*kt.JCHF, 0, len(in))
 	for _, msg := range in {
 		keep := true
@@ -648,7 +648,7 @@ func (kc *KTranslate) reduce(in []*kt.JCHF) []*kt.JCHF {
 	return out
 }
 
-func (kc *KTranslate) getRouter() http.Handler {
+func (kc *NetworkAgent) getRouter() http.Handler {
 	r := kmux.NewRouter()
 	r.HandleFunc(HttpAlertInboundPath, kc.handleFlow)
 	r.HandleFunc(HttpInfoPath, kc.HttpInfo)
@@ -665,7 +665,7 @@ func (kc *KTranslate) getRouter() http.Handler {
 	return r
 }
 
-func (kc *KTranslate) listenHTTP() {
+func (kc *NetworkAgent) listenHTTP() {
 	if kc.config.ListenAddr == "off" {
 		kc.log.Infof("Turning off HTTP server.")
 		return
@@ -689,7 +689,7 @@ func (kc *KTranslate) listenHTTP() {
 	kc.log.Infof("HTTP server shut down on %s -- %v", kc.config.ListenAddr, err)
 }
 
-func (kc *KTranslate) Run(ctx context.Context) error {
+func (kc *NetworkAgent) Run(ctx context.Context) error {
 	defer kc.cleanup()
 
 	if kc.confMgr != nil {
@@ -896,16 +896,16 @@ func (kc *KTranslate) Run(ctx context.Context) error {
 }
 
 // These are needed in case we are running under windows.
-func (kc *KTranslate) Init(env svc.Environment) error {
+func (kc *NetworkAgent) Init(env svc.Environment) error {
 	return nil
 }
 
-func (kc *KTranslate) Start() error {
+func (kc *NetworkAgent) Start() error {
 	go kc.Run(context.Background())
 	return nil
 }
 
-func (kc *KTranslate) Stop() error {
+func (kc *NetworkAgent) Stop() error {
 	kc.cleanup()
 	return nil
 }

@@ -11,11 +11,11 @@ import (
 	ptime "github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/prompb"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/formats/util"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/rollup"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
 )
 
 type RemotePromFormat struct {
@@ -24,13 +24,13 @@ type RemotePromFormat struct {
 	doSnappy     bool
 	lastMetadata map[string]*kt.LastMetadata
 	invalids     map[string]bool
-	config       *ktranslate.PrometheusFormatConfig
+	config       *networkagent.PrometheusFormatConfig
 	seenInvalid  bool
 
 	sync.RWMutex
 }
 
-func NewRemoteFormat(log logger.Underlying, compression kt.Compression, cfg *ktranslate.PrometheusFormatConfig) (*RemotePromFormat, error) {
+func NewRemoteFormat(log logger.Underlying, compression kt.Compression, cfg *networkagent.PrometheusFormatConfig) (*RemotePromFormat, error) {
 	jf := &RemotePromFormat{
 		compression:  compression,
 		ContextL:     logger.NewContextLFromUnderlying(logger.SContext{S: "remotePromFormat"}, log),

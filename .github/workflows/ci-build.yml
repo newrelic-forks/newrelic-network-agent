@@ -43,10 +43,10 @@ jobs:
         with:
           context: .
           platforms: ${{ env.PLATFORM }}
-          tags: ntranslate:ci
+          tags: newrelic-network-agent:ci
           # Export a `docker load`-compatible archive instead of pushing to a registry.
           # type=docker is single-platform, which is why the platform is fixed per run.
-          outputs: type=docker,dest=/tmp/ntranslate-image.tar
+          outputs: type=docker,dest=/tmp/newrelic-network-agent-image.tar
           # No NETWORK_AGENT_VERSION here -- Make's own default (the VERSION file) stands,
           # same as any other build. NETWORK_AGENT_BUILD identifies this specific CI run.
           build-args: |
@@ -63,25 +63,25 @@ jobs:
       # which is subject to storage quotas), so a missing/misplaced file fails CI loudly.
       - name: Verify third-party notices are present in the image
         run: |
-          docker load -i /tmp/ntranslate-image.tar
-          docker run --rm --entrypoint cat ntranslate:ci /usr/share/doc/ktranslate/THIRD_PARTY_NOTICES.md | head -5
+          docker load -i /tmp/newrelic-network-agent-image.tar
+          docker run --rm --entrypoint cat newrelic-network-agent:ci /usr/share/doc/newrelic-network-agent/THIRD_PARTY_NOTICES.md | head -5
 
       - name: Upload image artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: ntranslate-image-${{ env.PLATFORM_TAG }}-${{ env.CI_BUILD }}
-          path: /tmp/ntranslate-image.tar
+          name: newrelic-network-agent-image-${{ env.PLATFORM_TAG }}-${{ env.CI_BUILD }}
+          path: /tmp/newrelic-network-agent-image.tar
           retention-days: 7
           if-no-files-found: error
 
       - name: How to load it
         run: |
           {
-            echo "## ntranslate image artifact"
-            echo "Built \`ntranslate:ci\` for **$PLATFORM**. Download the artifact, unzip, then:"
+            echo "## newrelic-network-agent image artifact"
+            echo "Built \`newrelic-network-agent:ci\` for **$PLATFORM**. Download the artifact, unzip, then:"
             echo '```bash'
-            echo "docker load -i ntranslate-image.tar"
-            echo "docker image ls | grep ntranslate       # now visible"
-            echo "docker run --rm --entrypoint ktranslate ntranslate:ci -h    # prints usage"
+            echo "docker load -i newrelic-network-agent-image.tar"
+            echo "docker image ls | grep newrelic-network-agent       # now visible"
+            echo "docker run --rm --entrypoint newrelic-network-agent newrelic-network-agent:ci -h    # prints usage"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/cdn"
-	patricia "github.com/kentik/ktranslate/pkg/util/gopatricia/patricia"
-	"github.com/kentik/ktranslate/pkg/util/ic"
-	model "github.com/kentik/ktranslate/pkg/util/kflow2"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/cdn"
+	patricia "github.com/newrelic-forks/newrelic-network-agent/pkg/util/gopatricia/patricia"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/ic"
+	model "github.com/newrelic-forks/newrelic-network-agent/pkg/util/kflow2"
 )
 
 var (
@@ -22,7 +22,7 @@ var (
 	defaultProvider = kt.ProviderFlowDevice
 )
 
-func (kc *KTranslate) getEventType(dst *kt.JCHF) string {
+func (kc *NetworkAgent) getEventType(dst *kt.JCHF) string {
 
 	// if app_proto is 12, this is snmp and return as such.
 	if dst.CustomInt[APP_PROTOCOL_COL] == 12 {
@@ -45,7 +45,7 @@ func (kc *KTranslate) getEventType(dst *kt.JCHF) string {
 	return kt.KENTIK_EVENT_TYPE
 }
 
-func (kc *KTranslate) getProviderType(dst *kt.JCHF) kt.Provider {
+func (kc *NetworkAgent) getProviderType(dst *kt.JCHF) kt.Provider {
 
 	udr, ok := dst.CustomStr[UDR_TYPE]
 	if !ok { // Return this right away.
@@ -71,7 +71,7 @@ func (kc *KTranslate) getProviderType(dst *kt.JCHF) kt.Provider {
 	return defaultProvider
 }
 
-func (kc *KTranslate) flowToJCHF(ctx context.Context, dst *kt.JCHF, src *Flow, currentTS int64, tagcache map[uint64]string) error {
+func (kc *NetworkAgent) flowToJCHF(ctx context.Context, dst *kt.JCHF, src *Flow, currentTS int64, tagcache map[uint64]string) error {
 
 	dst.CustomStr = make(map[string]string)
 	dst.CustomInt = make(map[string]int32)
@@ -522,7 +522,7 @@ var (
 )
 
 // Updates asn and geo if set for any of these inputs.
-func (kc *KTranslate) doEnrichments(ctx context.Context, msgs []*kt.JCHF) []*kt.JCHF {
+func (kc *NetworkAgent) doEnrichments(ctx context.Context, msgs []*kt.JCHF) []*kt.JCHF {
 	for _, msg := range msgs {
 		sip := net.ParseIP(msg.SrcAddr)
 		dip := net.ParseIP(msg.DstAddr)
@@ -665,7 +665,7 @@ func (kc *KTranslate) doEnrichments(ctx context.Context, msgs []*kt.JCHF) []*kt.
 }
 
 // Pulls in a har file if possible.
-func (kc *KTranslate) getHar(ctx context.Context, path string, msg *kt.JCHF) {
+func (kc *NetworkAgent) getHar(ctx context.Context, path string, msg *kt.JCHF) {
 	if kc.objmgr != nil {
 		data, err := kc.objmgr.Get(ctx, path)
 		if err != nil {

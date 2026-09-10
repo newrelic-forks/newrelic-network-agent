@@ -3,8 +3,8 @@ package netflow9
 import (
 	"fmt"
 
-	"github.com/kentik/ktranslate/pkg/util/netflow/session"
-	"github.com/kentik/ktranslate/pkg/util/netflow/translate"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/session"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/translate"
 )
 
 type TranslatedField struct {

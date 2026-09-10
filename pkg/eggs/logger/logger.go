@@ -6,7 +6,7 @@ import (
 
 // At the lowest level we have a logger.Underlying.
 
-// Implemented by github.com/kentik/ktranslate/pkg/util/logger
+// Implemented by github.com/newrelic-forks/newrelic-network-agent/pkg/util/logger
 // Don't use this directly.
 type Underlying interface {
 	Debugf(lp string, f string, params ...interface{})

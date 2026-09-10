@@ -7,7 +7,7 @@ import (
 	sfmt "github.com/kentik/the-library-formally-known-as-go-syslog/format"
 
 	"fmt"
-	"github.com/kentik/ktranslate/pkg/util/ic"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/ic"
 	"net"
 	"strconv"
 )

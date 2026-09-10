@@ -12,9 +12,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     network_mode: host
 
-  ktranslate:
-    image: kentik/ktranslate:v2
-    container_name: ktranslate
+  newrelic-network-agent:
+    image: newrelic/network-agent:latest
+    container_name: newrelic-network-agent
     restart: unless-stopped
     environment:
       - NEW_RELIC_API_KEY=${NR_LICENSE_KEY}

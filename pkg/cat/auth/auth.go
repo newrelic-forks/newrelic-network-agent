@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/kentik/ktranslate/pkg/eggs/kmux"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/kmux"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 type Server struct {

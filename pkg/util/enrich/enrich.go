@@ -17,8 +17,8 @@ import (
 	"go.starlark.net/starlark"
 	"go.starlark.net/starlarkjson"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 const (

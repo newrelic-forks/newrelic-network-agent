@@ -8,11 +8,11 @@ import (
 	jsoniter "github.com/json-iterator/go"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/formats"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/sinks/nr"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/sinks/nr"
 )
 
 var json = jsoniter.ConfigFastest
@@ -23,16 +23,16 @@ type NRMultiSink struct {
 	sinks       map[kt.Cid]*nr.NRSink
 	registry    go_metrics.Registry
 	tooBig      chan int
-	configMult  *ktranslate.NewRelicMultiSinkConfig
-	config      *ktranslate.NewRelicSinkConfig
+	configMult  *networkagent.NewRelicMultiSinkConfig
+	config      *networkagent.NewRelicSinkConfig
 	ctx         context.Context
 	format      formats.Format
 	compression kt.Compression
 	fmtr        formats.Formatter
-	creds       map[kt.Cid]ktranslate.NRCred
+	creds       map[kt.Cid]networkagent.NRCred
 }
 
-func NewSink(log logger.Underlying, registry go_metrics.Registry, tooBig chan int, logTee chan string, cfg *ktranslate.NewRelicSinkConfig, cfgMult *ktranslate.NewRelicMultiSinkConfig) (*NRMultiSink, error) {
+func NewSink(log logger.Underlying, registry go_metrics.Registry, tooBig chan int, logTee chan string, cfg *networkagent.NewRelicSinkConfig, cfgMult *networkagent.NewRelicMultiSinkConfig) (*NRMultiSink, error) {
 	return &NRMultiSink{
 		ContextL:   logger.NewContextLFromUnderlying(logger.SContext{S: "nrMultiSink"}, log),
 		sinks:      map[kt.Cid]*nr.NRSink{},
@@ -50,7 +50,7 @@ func (s *NRMultiSink) Init(ctx context.Context, format formats.Format, compressi
 	s.fmtr = fmtr
 
 	// Load the config map.
-	m := map[kt.Cid]ktranslate.NRCred{}
+	m := map[kt.Cid]networkagent.NRCred{}
 	for cid, cl := range s.configMult.CredMap {
 		m[kt.Cid(cid)] = cl
 	}

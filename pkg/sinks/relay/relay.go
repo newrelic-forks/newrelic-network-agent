@@ -12,10 +12,10 @@ import (
 	"time"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/formats"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 const (
@@ -24,7 +24,7 @@ const (
 	DefaultSendTimeout = 30 * time.Second
 )
 
-// RelaySink forwards a copy of outbound flow to another ktranslate instance's
+// RelaySink forwards a copy of outbound flow to another newrelic-network-agent instance's
 // http.source listener, for chaining instances together. It's only ever
 // instantiated when Config.TeeFlow is set (see pkg/cat/kkc.go) — it isn't a
 // selectable --sinks destination.
@@ -35,7 +35,7 @@ type RelaySink struct {
 	relayUrl        string
 	client          *http.Client
 	tr              *http.Transport
-	config          *ktranslate.Config
+	config          *networkagent.Config
 	sendMaxDuration time.Duration
 	compression     kt.Compression
 }
@@ -45,7 +45,7 @@ type RelayMetric struct {
 	DeliveryWin go_metrics.Meter
 }
 
-func NewSink(log logger.Underlying, registry go_metrics.Registry, cfg *ktranslate.Config) (*RelaySink, error) {
+func NewSink(log logger.Underlying, registry go_metrics.Registry, cfg *networkagent.Config) (*RelaySink, error) {
 	return &RelaySink{
 		registry: registry,
 		ContextL: logger.NewContextLFromUnderlying(logger.SContext{S: "relaySink"}, log),

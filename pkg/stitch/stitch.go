@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/stitch/ringbuffer"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/stitch/ringbuffer"
 )
 
 var (
@@ -41,7 +41,7 @@ type StitchMetric struct {
 	FlowsMatched go_metrics.Meter
 }
 
-func NewStitcher(log logger.Underlying, cfg *ktranslate.StitchConfig, registry go_metrics.Registry) (*Stitcher, error) {
+func NewStitcher(log logger.Underlying, cfg *networkagent.StitchConfig, registry go_metrics.Registry) (*Stitcher, error) {
 	if !cfg.Enable {
 		return nil, nil
 	}

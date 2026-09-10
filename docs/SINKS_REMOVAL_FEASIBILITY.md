@@ -22,7 +22,7 @@ Removing every sink except `new_relic`, `new_relic_multi`, and `otel` deletes:
 - **~2,150 lines** across 11 whole package directories (`pkg/sinks/{ddog,file,gcloud,
   gcppubsub,http,kafka,kentik,net,prom,s3,stdout}`)
 - **~140 lines** of config structs/defaults in `config.go`
-- **~280 lines** of flag-wiring `case` arms in `cmd/ktranslate/main.go`
+- **~280 lines** of flag-wiring `case` arms in `cmd/newrelic-network-agent/main.go`
 - **~20 lines** of special-cased wiring in `pkg/cat/kkc.go` (§4)
 
 **Total: ~2,600 lines of Go**, plus doc/example touch-ups (README flag help text,
@@ -70,7 +70,7 @@ Each removable sink registers its own flags in its own `init()`, e.g.
 `pkg/sinks/kafka/kafa.go:47-52`, `pkg/sinks/s3/s3.go:42-47`,
 `pkg/sinks/gcloud/gcloud.go:27-32`, `pkg/sinks/ddog/ddog.go:41-43`. Deleting the package
 deletes the flag registration for free. What doesn't come for free is
-`cmd/ktranslate/main.go`'s `applyFlags` (`main.go:238-`), which has one hand-written `case`
+`cmd/newrelic-network-agent/main.go`'s `applyFlags` (`main.go:238-`), which has one hand-written `case`
 per flag name mapping it onto `cfg.<Sink>.<Field>` — that's real, reachable code (confirmed
 via `flag.VisitAll`, not dead), and every arm for a removed sink needs deleting alongside
 its config struct in `config.go`.
@@ -107,7 +107,7 @@ about picking a shipping destination:
 
 - **`kentik` as a tee, independent of `--sinks`** (`kkc.go:219-228`): if
   `config.TeeFlow != ""`, a `kentik`-type sink is instantiated regardless of what's in the
-  main `sinks` list, to forward a copy of flow to another ktranslate instance. Removing the
+  main `sinks` list, to forward a copy of flow to another newrelic-network-agent instance. Removing the
   `kentik` package breaks this unless the tee target is re-pointed at a different transport
   (e.g. `http`/`net` if kept, or a NR/OTel-flavored tee is built to replace it) — or the
   `tee_flow` feature is dropped too.
@@ -129,7 +129,7 @@ this either way.
 1. **Is "sinks" the right unit, or does the team also want formats?** `--format` is a
    separate, independently-selectable axis (`json|flat_json|avro|netflow|influx|carbon|
    prometheus|new_relic|new_relic_metric|splunk|elasticsearch|kflow|ddog|otel|snmp|
-   parquet`, `cmd/ktranslate/main.go:76`) and most non-NR/OTel formats
+   parquet`, `cmd/newrelic-network-agent/main.go:76`) and most non-NR/OTel formats
    (`pkg/formats/{avro,carbon,ddog,elasticsearch,influx,netflow,parquet,prom,redis,splunk}`,
    ~5,200 lines total) have no code-level tie to which sink ships them. If only sinks are
    removed, `--format=splunk` (etc.) becomes dead weight with nowhere sensible to go — it's
@@ -168,7 +168,7 @@ To bring one back:
   (swap the path for any other removed sink).
 - **Restore just that sink's files:** `git checkout archive/pre-sink-removal -- pkg/sinks/kafka`,
   then re-add its `case` arm in `pkg/sinks/sinks.go`, its config struct + default block in
-  `config.go`, and its flag-override `case` arms in `cmd/ktranslate/main.go` — diff
+  `config.go`, and its flag-override `case` arms in `cmd/newrelic-network-agent/main.go` — diff
   `99ff54b` against `archive/pre-sink-removal` for the exact lines that came out for that
   sink.
 - **Restore everything this commit removed:** `git revert 99ff54b` (this also brings back

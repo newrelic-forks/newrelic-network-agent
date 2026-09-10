@@ -16,21 +16,21 @@
 <?define Win64 = "yes" ?>
 <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
 <?define UpgradeCode = "9f8c4b67-4ea7-4273-a9c7-e62a97989a49" ?>
-<?define CommonServiceArgs = '-listen=off -geo="c:\Program Files\KTranslate\config\GeoLite2-Country.mmdb" -asn="c:\Program Files\KTranslate\config\GeoLite2-ASN.mmdb" -snmp="c:\Program Files\KTranslate\snmp-win.yaml" -metrics=jchf -tee_logs=true' ?>
+<?define CommonServiceArgs = '-listen=off -geo="c:\Program Files\NewRelicNetworkAgent\config\GeoLite2-Country.mmdb" -asn="c:\Program Files\NewRelicNetworkAgent\config\GeoLite2-ASN.mmdb" -snmp="c:\Program Files\NewRelicNetworkAgent\snmp-win.yaml" -metrics=jchf -tee_logs=true' ?>
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Product Id="$(env.ProductCode)"
-        UpgradeCode="$(var.UpgradeCode)" 
-        Name="ktranslate" 
-        Version="$(var.Version)" 
-        Manufacturer="Kentik Technologies, Inc." 
+        UpgradeCode="$(var.UpgradeCode)"
+        Name="New Relic Network Agent"
+        Version="$(var.Version)"
+        Manufacturer="New Relic, Inc."
         Language="1033">
 
         <Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package" Platform="x64" InstallScope="perMachine" />
-        
+
         <MajorUpgrade AllowDowngrades="no" DowngradeErrorMessage="A newer version of [ProductName] is already installed" AllowSameVersionUpgrades="no" />
-        <Media Id="1" Cabinet="ktranslate.cab" EmbedCab="yes" />
+        <Media Id="1" Cabinet="newrelic-network-agent.cab" EmbedCab="yes" />
 
         <!-- Set properties  -->
 
@@ -48,27 +48,27 @@
         <!-- Step 1: Define the directory structure -->
         <Directory Id="TARGETDIR" Name="SourceDir">
             <Directory Id="$(var.PlatformProgramFilesFolder)">
-                <Directory Id="APPLICATIONROOTDIRECTORY" Name="KTranslate"/>
+                <Directory Id="APPLICATIONROOTDIRECTORY" Name="NewRelicNetworkAgent"/>
             </Directory>
         </Directory>
         <!-- Step 2: Add files to your installer package -->
         <DirectoryRef Id="APPLICATIONROOTDIRECTORY">
-            <Component Win64="$(var.Win64)" Id="ktranslate.exe" Guid="c52f95af-35e2-4c2c-9d3d-a375b7ecdea2">
-                <File Id="ktranslate.exe" Source="$(var.Path)/bin/ktranslate.exe" KeyPath="yes"/>
+            <Component Win64="$(var.Win64)" Id="newrelic-network-agent.exe" Guid="c52f95af-35e2-4c2c-9d3d-a375b7ecdea2">
+                <File Id="newrelic-network-agent.exe" Source="$(var.Path)/bin/newrelic-network-agent.exe" KeyPath="yes"/>
                 <!-- Set environment variables -->
                 <Environment Id="NewReLicApiKeyEnv" Name="NEW_RELIC_API_KEY" Value="[NEW_RELIC_API_KEY]" Action="set" Part="all" System="yes" Permanent="no" />
                 <Environment Id="NewReLicAccountIdEnv" Name="NR_ACCOUNT_ID" Value="[NR_ACCOUNT_ID]" Action="set" Part="all" System="yes" Permanent="no" />
                 <Environment Id="NewReLicRegionEnv" Name="NR_REGION" Value="[NR_REGION]" Action="set" Part="all" System="yes" Permanent="no" />
                 <ServiceInstall Id="ServiceInstaller"
                                 Type="ownProcess"
-                                Name="ktranslate"
-                                DisplayName="Ktranslate"
-                                Description="KTranslate - Kentik data to the world"
+                                Name="newrelic-network-agent"
+                                DisplayName="New Relic Network Agent"
+                                Description="New Relic Network Agent - network telemetry for New Relic"
                                 Start="auto"
                                 Account="NT AUTHORITY\LocalService"
                                 ErrorControl="normal"
                                 Arguments="[ServiceArgs]" />
-                <ServiceControl Id="StartService" Start="install" Stop="both" Remove="uninstall" Name="ktranslate" Wait="no" />
+                <ServiceControl Id="StartService" Start="install" Stop="both" Remove="uninstall" Name="newrelic-network-agent" Wait="no" />
             </Component>
         </DirectoryRef>
         <DirectoryRef Id="APPLICATIONROOTDIRECTORY">
@@ -130,7 +130,7 @@
 
         <!-- Step 3: Tell WiX to install the files -->
         <Feature Id="MainApplication" Title="Main Application" Level="1">
-            <ComponentRef Id="ktranslate.exe" />
+            <ComponentRef Id="newrelic-network-agent.exe" />
             <ComponentRef Id="cmpB46AF4C0CF9C68FA9C458C1219F7C1D1" />
             <ComponentRef Id="cmp5DC89FB017DD270B8ABBA3EAEA6CB0D6" />
             <ComponentRef Id="cmp010B68C74E1BD336334B89C05B695C7C" />

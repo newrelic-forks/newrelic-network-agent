@@ -10,12 +10,12 @@ import (
 
 	"github.com/gosnmp/gosnmp"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/mibs"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/ping"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/mibs"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/ping"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
-	snmp_util "github.com/kentik/ktranslate/pkg/inputs/snmp/util"
+	snmp_util "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/util"
 )
 
 type DeviceMetrics struct {

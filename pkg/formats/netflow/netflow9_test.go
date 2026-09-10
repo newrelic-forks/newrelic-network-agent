@@ -3,16 +3,16 @@ package netflow
 import (
 	"testing"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	lt "github.com/kentik/ktranslate/pkg/eggs/logger/testing"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	lt "github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger/testing"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNine(t *testing.T) {
-	cfg := ktranslate.DefaultConfig().NetflowFormat
+	cfg := networkagent.DefaultConfig().NetflowFormat
 	assert := assert.New(t)
 	serBuf := make([]byte, 0)
 	l := lt.NewTestContextL(logger.NilContext, t).GetLogger().GetUnderlyingLogger()

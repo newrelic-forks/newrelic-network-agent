@@ -4,15 +4,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	lt "github.com/kentik/ktranslate/pkg/eggs/logger/testing"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	lt "github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger/testing"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 func TestCacheRollup(t *testing.T) {
 	// Create test configuration
-	cfg := &ktranslate.RollupConfig{
+	cfg := &networkagent.RollupConfig{
 		JoinKey:          "^",
 		TopK:             5,
 		KeepUndefined:    false,
@@ -104,7 +104,7 @@ func TestCacheRollup(t *testing.T) {
 
 func TestCacheRollupUnique(t *testing.T) {
 	// Create test configuration
-	cfg := &ktranslate.RollupConfig{
+	cfg := &networkagent.RollupConfig{
 		JoinKey:          "^",
 		TopK:             5,
 		KeepUndefined:    false,
@@ -173,7 +173,7 @@ func TestCacheRollupUnique(t *testing.T) {
 
 func TestCacheRollupEmergencyCleanup(t *testing.T) {
 	// Create test configuration with very small limits
-	cfg := &ktranslate.RollupConfig{
+	cfg := &networkagent.RollupConfig{
 		JoinKey:          "^",
 		TopK:             100,
 		KeepUndefined:    false,

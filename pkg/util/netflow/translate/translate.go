@@ -9,7 +9,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/util/netflow/session"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/session"
 )
 
 // Builtin dictionary of information elements

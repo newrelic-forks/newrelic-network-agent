@@ -5,16 +5,16 @@ import (
 	"fmt"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
 
-	"github.com/kentik/ktranslate/pkg/formats"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/sinks/http"
-	"github.com/kentik/ktranslate/pkg/sinks/nr"
-	"github.com/kentik/ktranslate/pkg/sinks/nrmulti"
-	"github.com/kentik/ktranslate/pkg/sinks/otel"
-	"github.com/kentik/ktranslate/pkg/sinks/stdout"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/sinks/http"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/sinks/nr"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/sinks/nrmulti"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/sinks/otel"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/sinks/stdout"
 )
 
 type SinkImpl interface {
@@ -41,7 +41,7 @@ const (
 	NullSink           = "null"
 )
 
-func NewSink(sink Sink, log logger.Underlying, registry go_metrics.Registry, tooBig chan int, logTee chan string, config *ktranslate.Config) (SinkImpl, error) {
+func NewSink(sink Sink, log logger.Underlying, registry go_metrics.Registry, tooBig chan int, logTee chan string, config *networkagent.Config) (SinkImpl, error) {
 	switch sink {
 	case StdOutSink:
 		return stdout.NewSink(log, registry, logTee)

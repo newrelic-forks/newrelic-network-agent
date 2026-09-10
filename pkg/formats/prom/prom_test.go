@@ -3,16 +3,16 @@ package prom
 import (
 	"testing"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	lt "github.com/kentik/ktranslate/pkg/eggs/logger/testing"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	lt "github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger/testing"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSeriToInflux(t *testing.T) {
-	cfg := ktranslate.DefaultConfig().PrometheusFormat
+	cfg := networkagent.DefaultConfig().PrometheusFormat
 	serBuf := make([]byte, 0)
 	assert := assert.New(t)
 	l := lt.NewTestContextL(logger.NilContext, t).GetLogger().GetUnderlyingLogger()

@@ -5,7 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/json"
 
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 const (

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 type OpenJCHFConfig struct {
