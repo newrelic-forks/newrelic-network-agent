@@ -80,7 +80,7 @@ func init() {
 	flag.StringVar(&sinks, "sinks", "stdout", "List of sinks to send data to. Options: (stdout|new_relic|new_relic_multi|otel|http)")
 	flag.IntVar(&maxFlows, "max_flows_per_message", 10000, "Max number of flows to put in each emitted message")
 	flag.IntVar(&dumpRollups, "rollup_interval", 0, "Export timer for rollups in seconds")
-	flag.StringVar(&teeFlow, "tee_flow", "", "If set, tee flow to another ktranslate instance here.")
+	flag.StringVar(&teeFlow, "tee_flow", "", "If set, tee flow to another newrelic-network-agent instance here.")
 	flag.BoolVar(&rollupAndAlpha, "rollup_and_alpha", false, "Send both rollups and alpha inputs to sinks")
 	flag.IntVar(&sample, "sample_rate", kt.LookupEnvInt("KENTIK_SAMPLE_RATE", 1), "Sampling rate to use. 1 -> 1:1 sampling, 2 -> 1:2 sampling and so on.")
 	flag.IntVar(&sampleMin, "max_before_sample", 1, "Only sample when a set of inputs is at least this many")
@@ -104,8 +104,8 @@ func init() {
 
 func main() {
 	var (
-		configFilePath = flag.String("config", "", "path to ktranslate config")
-		generateConfig = flag.Bool("generate-config", false, "generate ktranslate config and exit")
+		configFilePath = flag.String("config", "", "path to newrelic-network-agent config")
+		generateConfig = flag.Bool("generate-config", false, "generate newrelic-network-agent config and exit")
 	)
 
 	// this is needed in order to catch the config options
@@ -156,7 +156,7 @@ func main() {
 		bs.SetLogTee(logTee)
 	}
 
-	prefix := fmt.Sprintf("KTranslate")
+	prefix := fmt.Sprintf("NetworkAgent")
 	lc := logger.NewContextLFromUnderlying(logger.SContext{S: prefix}, bs.Logger)
 
 	if cfg.ListenAddr == "" {
@@ -168,9 +168,9 @@ func main() {
 		cat.RollupsSendDuration = time.Duration(dumpRollups) * time.Second
 	}
 
-	kc, err := cat.NewKTranslate(cfg, lc, go_metrics.DefaultRegistry, version.Version.Version, cfg.Sinks, bs.ServiceName, logTee, metricsChan, bs.Shutdown)
+	kc, err := cat.NewNetworkAgent(cfg, lc, go_metrics.DefaultRegistry, version.Version.Version, cfg.Sinks, bs.ServiceName, logTee, metricsChan, bs.Shutdown)
 	if err != nil {
-		bs.Fail(fmt.Sprintf("Cannot start ktranslate: %v", err))
+		bs.Fail(fmt.Sprintf("Cannot start newrelic-network-agent: %v", err))
 	}
 
 	lc.Infof("Running -- Version %s; Build %s", version.Version.Version, version.Version.Date)

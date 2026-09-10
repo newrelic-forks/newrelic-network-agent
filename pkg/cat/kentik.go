@@ -23,7 +23,7 @@ const (
 )
 
 // Handler for json data, useful for testing mostly. Requires you to set content-type: application/json
-func (kc *KTranslate) handleJson(cid kt.Cid, raw []byte) error {
+func (kc *NetworkAgent) handleJson(cid kt.Cid, raw []byte) error {
 	serBuf := make([]byte, 0)
 	select {
 	case jflow := <-kc.jchfChans[0]: // non blocking select on this chan.
@@ -116,7 +116,7 @@ func (kc *KTranslate) handleJson(cid kt.Cid, raw []byte) error {
 
 // Take flow from http requests, deserialize and pass it on to alphaChan
 // Gets called from a goroutine-per-request
-func (kc *KTranslate) handleFlow(w http.ResponseWriter, r *http.Request) {
+func (kc *NetworkAgent) handleFlow(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if r.Method != http.MethodPost {
@@ -267,7 +267,7 @@ func (kc *KTranslate) handleFlow(w http.ResponseWriter, r *http.Request) {
 	kc.metrics.DroppedFlows.Mark(dropped)
 }
 
-func (kc *KTranslate) monitorAlphaChan(ctx context.Context, i int, seri func([]*kt.JCHF, []byte) (*kt.Output, error)) {
+func (kc *NetworkAgent) monitorAlphaChan(ctx context.Context, i int, seri func([]*kt.JCHF, []byte) (*kt.Output, error)) {
 	cacheTicker := time.NewTicker(CacheInvalidateDuration)
 	defer cacheTicker.Stop()
 

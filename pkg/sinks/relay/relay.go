@@ -24,7 +24,7 @@ const (
 	DefaultSendTimeout = 30 * time.Second
 )
 
-// RelaySink forwards a copy of outbound flow to another ktranslate instance's
+// RelaySink forwards a copy of outbound flow to another newrelic-network-agent instance's
 // http.source listener, for chaining instances together. It's only ever
 // instantiated when Config.TeeFlow is set (see pkg/cat/kkc.go) — it isn't a
 // selectable --sinks destination.

@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-// The Docker image ENTRYPOINT always passes -api_devices /etc/ktranslate/devices.json.
+// The Docker image ENTRYPOINT always passes -api_devices /etc/newrelic-network-agent/devices.json.
 // After Site moved onto protobuf string IDs (#916), numeric site.id / site.company_id in
 // that file caused every container to fail at startup with:
 //

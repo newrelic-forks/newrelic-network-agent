@@ -409,7 +409,7 @@ scales with total fleet size on every discovery tick, not with the delta.
 - This requires the most design care of any phase (context lifetime per device instead of
   one shared `ctxSnmp` for the whole generation, `snmp_unix.go:22`) — recommend spiking this
   as its own design pass before implementation, since it changes a fairly central control
-  path. Suggest introducing a per-device `context.CancelFunc` map in `KTranslate`/the SNMP
+  path. Suggest introducing a per-device `context.CancelFunc` map in `NetworkAgent`/the SNMP
   package so individual devices can be torn down and relaunched independently of the global
   `ctxSnmp`.
 - Verification: with a lab config of ~500+ devices and periodic discovery enabled

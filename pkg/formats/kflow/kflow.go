@@ -20,8 +20,8 @@ import (
 
 const (
 	MSG_KEY_PREFIX                    = 80 // This many bytes in every rcv message are for the key.
-	KTRANSLATE_PROTO                  = 0
-	KTRANSLATE_MAP_PROTO              = 101
+	NETWORK_AGENT_PROTO               = 0
+	NETWORK_AGENT_MAP_PROTO           = 101
 	kentikDefaultCapnprotoDecodeLimit = 128 << 20 // 128 MiB
 )
 
@@ -143,7 +143,7 @@ func (f *KflowFormat) From(raw *kt.Output) ([]map[string]interface{}, error) {
 	for i := 0; i < messages.Len(); i++ {
 		msg := messages.At(i)
 		switch msg.AppProtocol() {
-		case KTRANSLATE_PROTO:
+		case NETWORK_AGENT_PROTO:
 			flow := map[string]interface{}{
 				"timestamp": msg.Timestamp(),
 				"protocol":  ic.PROTO_NAMES[uint16(msg.Protocol())],
@@ -189,7 +189,7 @@ func (f *KflowFormat) From(raw *kt.Output) ([]map[string]interface{}, error) {
 			}
 			out = append(out, flow)
 
-		case KTRANSLATE_MAP_PROTO:
+		case NETWORK_AGENT_MAP_PROTO:
 			customs, _ := msg.Custom()
 			for i, customsLen := 0, customs.Len(); i < customsLen; i++ {
 				cust := customs.At(i)
@@ -208,7 +208,7 @@ func (f *KflowFormat) Rollup(rolls []rollup.Rollup) (*kt.Output, error) {
 }
 
 func (ff *KflowFormat) pack(f *kt.JCHF, kflow model.CHF, list model.Custom_List, ids map[string]uint32) error {
-	kflow.SetAppProtocol(KTRANSLATE_PROTO)
+	kflow.SetAppProtocol(NETWORK_AGENT_PROTO)
 	kflow.SetTimestamp(f.Timestamp)
 	kflow.SetDstAs(f.DstAs)
 	kflow.SetDstGeo(patricia.PackGeo([]byte(f.DstGeo)))
@@ -316,7 +316,7 @@ func (ff *KflowFormat) getIds(flows []*kt.JCHF, kflow model.CHF, seg *capn.Segme
 		return nil, err
 	}
 
-	kflow.SetAppProtocol(KTRANSLATE_MAP_PROTO)
+	kflow.SetAppProtocol(NETWORK_AGENT_MAP_PROTO)
 	next := 0
 	for k, id := range ids {
 		kc := list.At(next)

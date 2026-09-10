@@ -80,7 +80,7 @@ No Nix, no new infra — pure Go, same toolchain as the rest of the repo.
 | CIDR serialization | `A6` (`disco.go:141`) | Same fake prober | `BenchmarkCIDRSerialization` (`disco_bench_test.go`): serial (current) vs. parallel across 4 CIDRs | Done |
 | Restart storm / device (re)init | `A23`-`A27` (`snmp.go:176,205,226,231,310,316`) | **No fake needed** — calls the real `snmp_util.InitSNMP` (confirmed network-free: `gosnmp.Connect()` only opens a local UDP socket) and the real, no-op `apic.EnsureDevice`; does *not* call the real `launchSnmp`, which would leak background goroutines each waiting out a real multi-second SNMP timeout | `BenchmarkDeviceInitLoop` (`snmp_bench_test.go`): devices/sec at fleet sizes 100/1,000/5,000 | Done |
 | Regex/profile matching | `A36` (`mibs/profile.go:302-337`, lines 305/322) | None — use real loaded profiles | `BenchmarkFindProfile_MatchesList`, `BenchmarkFindProfile_FleetParse` (`mibs/profile_bench_test.go`) | Done |
-| Consumer/backpressure | `A38`, `A40`-`A45` (`kkc.go:226,229,777-786,556-576,511-553`) | Fake per-batch cost in place of real `handleInput` work (constructing a real `*KTranslate` fixture wasn't worth it just for this) | `BenchmarkConsumerThroughput` (`kkc_bench_test.go`): `consumers=1` (shipped default, `A46`) vs. 4/16, at producer counts 100/1,000/5,000 | Done |
+| Consumer/backpressure | `A38`, `A40`-`A45` (`kkc.go:226,229,777-786,556-576,511-553`) | Fake per-batch cost in place of real `handleInput` work (constructing a real `*NetworkAgent` fixture wasn't worth it just for this) | `BenchmarkConsumerThroughput` (`kkc_bench_test.go`): `consumers=1` (shipped default, `A46`) vs. 4/16, at producer counts 100/1,000/5,000 | Done |
 
 All four files exist now:
 
