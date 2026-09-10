@@ -26,16 +26,12 @@
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ]; # NixOS VM tests only make sense on Linux
       forLinuxSystems = nixpkgs.lib.genAttrs linuxSystems;
 
-      # Name of the env var the devShell exports below, for interactive
-      # `make`/`docker build` -- see `make check-version-env-var`, which
+      # Env var name the devShell exports below -- `make check-version-env-var`
       # fails CI if Dockerfile's ARG ever falls out of sync with it.
       versionEnvVar = "NETWORK_AGENT_VERSION";
 
-      # Same VERSION file (repo root) the network-agent package builds with (see
-      # nix/version.nix) -- Make/Docker/CI default to it too (see Makefile), so all build
-      # paths agree on one semver source of truth whether or not they're run from inside
-      # this devShell.
-      version = import ./nix/version.nix { lib = nixpkgs.lib; root = ./.; };
+      # Same VERSION file network-agent.nix and the Makefile read, so all build paths agree.
+      version = nixpkgs.lib.strings.trim (builtins.readFile ./VERSION);
     in
     {
       devShells = forAllSystems (system:
@@ -52,10 +48,8 @@
               gopls
               delve
             ];
-            # Redundant with Make's own default (both read the same VERSION
-            # file) when NETWORK_AGENT_VERSION isn't already set -- exported
-            # anyway so `docker build --build-arg NETWORK_AGENT_VERSION` (no
-            # `=value`; Docker inherits it from the environment) works too.
+            # So `docker build --build-arg NETWORK_AGENT_VERSION` (no `=value`
+            # needed -- Docker inherits it from the environment) works too.
             "${versionEnvVar}" = version;
           };
         });
