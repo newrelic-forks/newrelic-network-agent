@@ -20,7 +20,7 @@ discovery:
   check_all_ips: true
 global:
   poll_time_sec: 300
-  mib_profile_dir: /etc/ktranslate/profiles
+  mib_profile_dir: /etc/newrelic-network-agent/profiles
   mibs_enabled:
   - IF-MIB
   timeout_ms: 3000
