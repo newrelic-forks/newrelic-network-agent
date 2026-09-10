@@ -17,10 +17,10 @@ import (
 	go_metrics "github.com/kentik/go-metrics"
 	"github.com/pkg/errors"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/formats"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 var json = jsoniter.ConfigFastest
@@ -57,7 +57,7 @@ type HttpSink struct {
 	headers         map[string]string
 	targetUrls      []string
 	sendMaxDuration time.Duration
-	config          *ktranslate.HTTPSinkConfig
+	config          *networkagent.HTTPSinkConfig
 	logTee          chan string
 	username        string
 	passwd          string
@@ -80,7 +80,7 @@ func (h *HeaderFlag) Set(value string) error {
 	return nil
 }
 
-func NewSink(log logger.Underlying, registry go_metrics.Registry, cfg *ktranslate.HTTPSinkConfig, logTee chan string) (*HttpSink, error) {
+func NewSink(log logger.Underlying, registry go_metrics.Registry, cfg *networkagent.HTTPSinkConfig, logTee chan string) (*HttpSink, error) {
 	nr := HttpSink{
 		ContextL: logger.NewContextLFromUnderlying(logger.SContext{S: "httpSink"}, log),
 		registry: registry,

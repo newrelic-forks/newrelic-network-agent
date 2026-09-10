@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/kt"
-	model "github.com/kentik/ktranslate/pkg/util/kflow2"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	model "github.com/newrelic-forks/newrelic-network-agent/pkg/util/kflow2"
 
 	capn "zombiezen.com/go/capnproto2"
 )

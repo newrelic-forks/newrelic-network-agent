@@ -36,7 +36,7 @@ pkgs.buildGoModule {
   vendorHash = "sha256-ZQUnUlWTspAZMO90kEJ6+xukw3gX10+IwTegaCUtEo0=";
   subPackages = [ "cmd/ktranslate" ];
   env.CGO_ENABLED = "0";
-  ldflags = [ "-X=github.com/kentik/ktranslate/pkg/version.versionStr=${version}" ];
+  ldflags = [ "-X=github.com/newrelic-forks/newrelic-network-agent/pkg/version.versionStr=${version}" ];
 
   doCheck = false; # only needs to run, not pass go test
 }

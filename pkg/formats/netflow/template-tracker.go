@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kentik/ktranslate/pkg/util/netflow/ipfix"
-	"github.com/kentik/ktranslate/pkg/util/netflow/netflow9"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/ipfix"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/netflow9"
 )
 
 type templateTracker map[uint32]map[uint16]string // maps observationDomainID->templateID->template-string

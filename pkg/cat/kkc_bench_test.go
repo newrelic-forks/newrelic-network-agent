@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 // simulatedBatchCost stands in for handleInput's real per-batch work (enrichment,

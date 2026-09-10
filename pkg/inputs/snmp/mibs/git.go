@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	snmp_util "github.com/kentik/ktranslate/pkg/inputs/snmp/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	snmp_util "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/util"
 
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"

@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/formats/util"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/rollup"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -21,7 +21,7 @@ type RedisFormat struct {
 	logger.ContextL
 	lastMetadata map[string]*kt.LastMetadata
 	mux          sync.RWMutex
-	config       *ktranslate.RedisFormatConfig
+	config       *networkagent.RedisFormatConfig
 	ctx          context.Context
 	invalids     map[string]bool
 	rdb          *redis.Client
@@ -49,7 +49,7 @@ func init() {
 	flag.IntVar(&keyTTLSec, "redis.ttl.sec", 60, "Expire measurements if they are not refreshed within this number of sec.")
 }
 
-func NewFormat(ctx context.Context, log logger.Underlying, cfg *ktranslate.RedisFormatConfig) (*RedisFormat, error) {
+func NewFormat(ctx context.Context, log logger.Underlying, cfg *networkagent.RedisFormatConfig) (*RedisFormat, error) {
 	jf := &RedisFormat{
 		ContextL:     logger.NewContextLFromUnderlying(logger.SContext{S: "redis"}, log),
 		lastMetadata: map[string]*kt.LastMetadata{},

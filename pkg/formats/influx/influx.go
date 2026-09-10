@@ -11,12 +11,12 @@ import (
 
 	"github.com/influxdata/line-protocol/v2/lineprotocol"
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/formats/util"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/rollup"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
 )
 
 var (
@@ -36,7 +36,7 @@ type InfluxFormat struct {
 	lastMetadata map[string]*kt.LastMetadata
 	mux          sync.RWMutex
 	metrics      *InfluxMetrics
-	config       *ktranslate.InfluxDBFormatConfig
+	config       *networkagent.InfluxDBFormatConfig
 }
 
 type InfluxMetrics struct {
@@ -257,7 +257,7 @@ func prepareTagValueMap(s string) string {
 	return s
 }
 
-func NewFormat(log logger.Underlying, registry go_metrics.Registry, compression kt.Compression, cfg *ktranslate.InfluxDBFormatConfig) (*InfluxFormat, error) {
+func NewFormat(log logger.Underlying, registry go_metrics.Registry, compression kt.Compression, cfg *networkagent.InfluxDBFormatConfig) (*InfluxFormat, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("influxdb format cannot be nil")
 	}

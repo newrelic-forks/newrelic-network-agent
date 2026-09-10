@@ -3,8 +3,8 @@ package netflow
 import (
 	"bytes"
 
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/netflow/netflow9"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/netflow9"
 )
 
 func (f *NetflowFormat) pack9(flows []*kt.JCHF, serBuf []byte) (*kt.Output, error) {

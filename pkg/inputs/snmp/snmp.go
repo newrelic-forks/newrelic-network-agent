@@ -10,17 +10,17 @@ import (
 	"time"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/config"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/metadata"
-	snmp_metrics "github.com/kentik/ktranslate/pkg/inputs/snmp/metrics"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/mibs"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/traps"
-	snmp_util "github.com/kentik/ktranslate/pkg/inputs/snmp/util"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/resolv"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/config"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/metadata"
+	snmp_metrics "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/metrics"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/mibs"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/traps"
+	snmp_util "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/resolv"
 
 	"github.com/fsnotify/fsnotify"
 	"gopkg.in/yaml.v3"
@@ -59,7 +59,7 @@ func init() {
 	flag.StringVar(&runFromWalkFile, "snmp_walk_file", "", "If set, use the walk file instead of polling.")
 }
 
-func StartSNMPPolls(ctx context.Context, jchfChan chan []*kt.JCHF, metrics *kt.SnmpMetricSet, registry go_metrics.Registry, apic *api.KentikApi, log logger.ContextL, cfg *ktranslate.SNMPInputConfig, resolv *resolv.Resolver, confMgr config.ConfigManager, logchan chan string) error {
+func StartSNMPPolls(ctx context.Context, jchfChan chan []*kt.JCHF, metrics *kt.SnmpMetricSet, registry go_metrics.Registry, apic *api.KentikApi, log logger.ContextL, cfg *networkagent.SNMPInputConfig, resolv *resolv.Resolver, confMgr config.ConfigManager, logchan chan string) error {
 	snmpFile := cfg.SNMPFile
 	// Do this once here just to see if we need to exit right away.
 	conf, connectTimeout, retries, err := initSnmp(ctx, snmpFile, log)
@@ -156,7 +156,7 @@ func initSnmp(ctx context.Context, snmpFile string, log logger.ContextL) (*kt.Sn
 	return conf, connectTimeout, retries, nil
 }
 
-func runSnmpPolling(ctx context.Context, snmpFile string, jchfChan chan []*kt.JCHF, metrics *kt.SnmpMetricSet, registry go_metrics.Registry, apic *api.KentikApi, log logger.ContextL, restartCount int, cfg *ktranslate.SNMPInputConfig, logchan chan string, changeSig chan os.Signal) error {
+func runSnmpPolling(ctx context.Context, snmpFile string, jchfChan chan []*kt.JCHF, metrics *kt.SnmpMetricSet, registry go_metrics.Registry, apic *api.KentikApi, log logger.ContextL, restartCount int, cfg *networkagent.SNMPInputConfig, logchan chan string, changeSig chan os.Signal) error {
 	// Parse again to make sure nothing's changed.
 	conf, connectTimeout, retries, err := initSnmp(ctx, snmpFile, log)
 	if err != nil || conf == nil || conf.Global == nil {

@@ -4,23 +4,23 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
 
-	"github.com/kentik/ktranslate/pkg/formats/avro"
-	"github.com/kentik/ktranslate/pkg/formats/carbon"
-	"github.com/kentik/ktranslate/pkg/formats/elasticsearch"
-	"github.com/kentik/ktranslate/pkg/formats/influx"
-	"github.com/kentik/ktranslate/pkg/formats/json"
-	"github.com/kentik/ktranslate/pkg/formats/kflow"
-	"github.com/kentik/ktranslate/pkg/formats/netflow"
-	"github.com/kentik/ktranslate/pkg/formats/nrm"
-	"github.com/kentik/ktranslate/pkg/formats/otel"
-	"github.com/kentik/ktranslate/pkg/formats/prom"
-	"github.com/kentik/ktranslate/pkg/formats/redis"
-	"github.com/kentik/ktranslate/pkg/formats/snmp"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/rollup"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/avro"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/carbon"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/elasticsearch"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/influx"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/json"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/kflow"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/netflow"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/nrm"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/otel"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/prom"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/redis"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/snmp"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
 
 	go_metrics "github.com/kentik/go-metrics"
 )
@@ -51,7 +51,7 @@ const (
 	FORMAT_REDIS                = "redis"
 )
 
-func NewFormat(ctx context.Context, format Format, log logger.Underlying, registry go_metrics.Registry, compression kt.Compression, cfg *ktranslate.Config, logTee chan string) (Formatter, error) {
+func NewFormat(ctx context.Context, format Format, log logger.Underlying, registry go_metrics.Registry, compression kt.Compression, cfg *networkagent.Config, logTee chan string) (Formatter, error) {
 	switch format {
 	case FORMAT_AVRO:
 		return avro.NewFormat(log, compression)

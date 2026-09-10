@@ -9,15 +9,15 @@ import (
 	"time"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
 	syslog "github.com/kentik/the-library-formally-known-as-go-syslog"
 	sfmt "github.com/kentik/the-library-formally-known-as-go-syslog/format"
+	"github.com/newrelic-forks/newrelic-network-agent"
 
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/resolv"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/resolv"
 )
 
 var (
@@ -46,7 +46,7 @@ type KentikSyslog struct {
 	apic     *api.KentikApi
 	devices  map[string]*kt.Device
 	resolver *resolv.Resolver
-	config   *ktranslate.SyslogInputConfig
+	config   *networkagent.SyslogInputConfig
 }
 
 type SyslogMetric struct {
@@ -62,7 +62,7 @@ const (
 	ErrorCheckDuration   = 1 * time.Minute
 )
 
-func NewSyslogSource(ctx context.Context, log logger.Underlying, logchan chan string, registry go_metrics.Registry, apic *api.KentikApi, resolver *resolv.Resolver, cfg *ktranslate.SyslogInputConfig) (*KentikSyslog, error) {
+func NewSyslogSource(ctx context.Context, log logger.Underlying, logchan chan string, registry go_metrics.Registry, apic *api.KentikApi, resolver *resolv.Resolver, cfg *networkagent.SyslogInputConfig) (*KentikSyslog, error) {
 	ks := KentikSyslog{
 		ContextL: logger.NewContextLFromUnderlying(logger.SContext{S: "Syslog"}, log),
 		logchan:  logchan,

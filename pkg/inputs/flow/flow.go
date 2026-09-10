@@ -11,12 +11,12 @@ import (
 	"os"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
+	"github.com/newrelic-forks/newrelic-network-agent"
 
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/resolv"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/resolv"
 
 	"github.com/netsampler/goflow2/v2/decoders/netflow"
 	"github.com/netsampler/goflow2/v2/format"
@@ -60,12 +60,12 @@ func init() {
 	flag.BoolVar(&reuse, "nf.reuserport", false, "Enable so_reuseport for Sflow/NetFlow/IPFIX")
 	flag.IntVar(&workers, "nf.workers", 2, "Number of workers per flow collector")
 	flag.IntVar(&queueSize, "nf.queuesize", 10000, "How big of a queue to hold for incomming flow packets.")
-	flag.StringVar(&fields, "nf.message.fields", ktranslate.FlowDefaultFields, "The list of fields to include in flow messages. Can be any of "+ktranslate.FlowFields)
+	flag.StringVar(&fields, "nf.message.fields", networkagent.FlowDefaultFields, "The list of fields to include in flow messages. Can be any of "+networkagent.FlowFields)
 	flag.StringVar(&promListen, "nf.prom.listen", "", "Run a promethues metrics collector here")
 	flag.StringVar(&mappingFile, "nf.mapping", "", "Configuration file for custom netflow mappings")
 }
 
-func NewFlowSource(ctx context.Context, proto FlowSource, maxBatchSize int, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF, apic *api.KentikApi, resolv *resolv.Resolver, cfg *ktranslate.FlowInputConfig) (*KentikDriver, error) {
+func NewFlowSource(ctx context.Context, proto FlowSource, maxBatchSize int, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF, apic *api.KentikApi, resolv *resolv.Resolver, cfg *networkagent.FlowInputConfig) (*KentikDriver, error) {
 
 	defer func() {
 		if v := cfg.PrometheusListenAddr; v != "" {

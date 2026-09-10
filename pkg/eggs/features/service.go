@@ -2,7 +2,7 @@ package features
 
 import (
 	"fmt"
-	"github.com/kentik/ktranslate/pkg/eggs/properties"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/properties"
 )
 
 type stdFeatureService struct {
