@@ -46,7 +46,7 @@ const (
 	UDR_TYPE                    = "application_type"
 )
 
-type KTranslate struct {
+type NetworkAgent struct {
 	log          logger.ContextL
 	config       *networkagent.Config
 	registry     go_metrics.Registry
