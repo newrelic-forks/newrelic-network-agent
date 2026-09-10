@@ -107,7 +107,7 @@ about picking a shipping destination:
 
 - **`kentik` as a tee, independent of `--sinks`** (`kkc.go:219-228`): if
   `config.TeeFlow != ""`, a `kentik`-type sink is instantiated regardless of what's in the
-  main `sinks` list, to forward a copy of flow to another ktranslate instance. Removing the
+  main `sinks` list, to forward a copy of flow to another newrelic-network-agent instance. Removing the
   `kentik` package breaks this unless the tee target is re-pointed at a different transport
   (e.g. `http`/`net` if kept, or a NR/OTel-flavored tee is built to replace it) — or the
   `tee_flow` feature is dropped too.

@@ -2,8 +2,8 @@
 
 Fork of [`kentik/ktranslate`](https://github.com/kentik/ktranslate) living in the
 `newrelic-forks` GitHub org, used as an internal investigation playground. **Not** wired up
-to publish anywhere yet. (The repo is named `newrelic-network-agent`; the software/binary is
-still upstream `ktranslate`.)
+to publish anywhere yet. The repo, Go module, and binary are all now named
+`newrelic-network-agent`.
 
 ## Repos & branches
 
@@ -11,7 +11,7 @@ still upstream `ktranslate`.)
   - `main` — faithful copy of `kentik/ktranslate@main`. Keep it pristine; do not add work here.
   - `develop` — the working branch (CI build, snmp auth, disabled upstream workflows).
 - **`newrelic-forks/snmp-profiles`** (public) — point-in-time mirror of `kentik/snmp-profiles`.
-  The Docker image bakes these SNMP profiles into `/etc/ktranslate/profiles`.
+  The Docker image bakes these SNMP profiles into `/etc/newrelic-network-agent/profiles`.
 
 Remotes:
 
@@ -52,8 +52,8 @@ git checkout develop && git rebase main   # replay playground changes on top
   re-enabling them would publish to someone else's registry. New Relic's own release
   pipeline (Docker image first) is tracked separately.
 - **Kept, but currently unwired**: `network-agent-package.yml` (renamed from
-  `ktranslate-package.yml`) plus its companions `bin/get_mm.sh`, `ktranslate.service`,
-  `ktranslate@.service`, `scripts/post-install` — the `.deb`/`.rpm` package recipe itself
+  `ktranslate-package.yml`) plus its companions `bin/get_mm.sh`, `newrelic-network-agent.service`,
+  `newrelic-network-agent@.service`, `scripts/post-install` — the `.deb`/`.rpm` package recipe itself
   isn't Kentik-registry-specific, so it's kept for New Relic's own package pipeline. No
   workflow currently invokes it.
 - **Inherited kentik workflows kept, still disabled** (`test-on-pr`, `clean-stale-issues`) —
@@ -91,16 +91,16 @@ A `push`/PR run defaults to `linux/amd64`.
 ### Get the image onto a machine
 
 1. Open the workflow run in the **Actions** tab and download the
-   `ntranslate-image-<platform>-<version>` artifact (a zip).
-2. Unzip it to get `ntranslate-image.tar`, then:
+   `newrelic-network-agent-image-<platform>-<version>` artifact (a zip).
+2. Unzip it to get `newrelic-network-agent-image.tar`, then:
 
 ```bash
-docker load -i ntranslate-image.tar
-docker image ls | grep ntranslate                 # now visible locally
-docker run --rm --entrypoint ktranslate ntranslate:ci -h          # smoke test (prints usage)
+docker load -i newrelic-network-agent-image.tar
+docker image ls | grep newrelic-network-agent                 # now visible locally
+docker run --rm --entrypoint newrelic-network-agent newrelic-network-agent:ci -h          # smoke test (prints usage)
 # inspect baked-in assets:
-docker run --rm --entrypoint sh ntranslate:ci -c \
-  'ls /etc/ktranslate/profiles | head; ls -la /etc/ktranslate/GeoLite2-*.mmdb'
+docker run --rm --entrypoint sh newrelic-network-agent:ci -c \
+  'ls /etc/newrelic-network-agent/profiles | head; ls -la /etc/newrelic-network-agent/GeoLite2-*.mmdb'
 ```
 
 Note: a `push:false` CI build keeps the image only on the runner (discarded at job end) —
@@ -130,9 +130,9 @@ BUILDX="$(nix --extra-experimental-features 'nix-command flakes' \
   --secret id=github_token,env=GH_TOKEN \
   --secret id=mm_account_id,env=MM_ACCOUNT_ID \
   --secret id=mm_license_key,env=MM_DOWNLOAD_KEY \
-  --build-arg KENTIK_KTRANSLATE_VERSION=local-test \
+  --build-arg NETWORK_AGENT_VERSION=local-test \
   --build-arg KENTIK_SNMP_PROFILE_REPO=https://github.com/newrelic-forks/snmp-profiles \
-  -t ntranslate:local --load .
+  -t newrelic-network-agent:local --load .
 ```
 
 **Known blocker — corporate TLS interception.** On a network with a TLS-intercepting proxy
