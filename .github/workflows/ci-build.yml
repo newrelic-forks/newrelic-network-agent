@@ -25,9 +25,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Set version and platform
+      - name: Set build id and platform
         run: |
-          echo "CI_VERSION=ci-$(date +%Y-%m-%d)-${GITHUB_RUN_ID}" >> "$GITHUB_ENV"
+          echo "CI_BUILD=ci-$(date +%Y-%m-%d)-${GITHUB_RUN_ID}" >> "$GITHUB_ENV"
           PLATFORM="${{ github.event.inputs.platform || 'linux/amd64' }}"
           echo "PLATFORM=$PLATFORM" >> "$GITHUB_ENV"
           echo "PLATFORM_TAG=${PLATFORM//\//-}" >> "$GITHUB_ENV"
@@ -47,8 +47,10 @@ jobs:
           # Export a `docker load`-compatible archive instead of pushing to a registry.
           # type=docker is single-platform, which is why the platform is fixed per run.
           outputs: type=docker,dest=/tmp/ntranslate-image.tar
+          # No NETWORK_AGENT_VERSION here -- Make's own default (the VERSION file) stands,
+          # same as any other build. NETWORK_AGENT_BUILD identifies this specific CI run.
           build-args: |
-            NETWORK_AGENT_VERSION=${{ env.CI_VERSION }}
+            NETWORK_AGENT_BUILD=${{ env.CI_BUILD }}
             KENTIK_SNMP_PROFILE_REPO=https://github.com/newrelic-forks/snmp-profiles
           # All credentials are BuildKit secrets (never build-args) so they cannot leak
           # into logs/layers even on a failed step.
@@ -67,7 +69,7 @@ jobs:
       - name: Upload image artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: ntranslate-image-${{ env.PLATFORM_TAG }}-${{ env.CI_VERSION }}
+          name: ntranslate-image-${{ env.PLATFORM_TAG }}-${{ env.CI_BUILD }}
           path: /tmp/ntranslate-image.tar
           retention-days: 7
           if-no-files-found: error
