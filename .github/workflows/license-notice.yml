@@ -4,13 +4,13 @@ name: License notices
 # go-licence-detector against go.mod's direct + indirect deps, gated by
 # assets/licence/rules.json's allowlist) would produce a different file than what's checked
 # in. Same trigger/execution convention as benchmark.yml -- workflow_dispatch + push to
-# develop + pull_request, all path-filtered, running inside the flake.nix devShell (which
+# main + pull_request, all path-filtered, running inside the flake.nix devShell (which
 # pins go-licence-detector) rather than a separate install step.
 
 on:
   workflow_dispatch:
   push:
-    branches: [ develop ]
+    branches: [ main ]
     paths: &license-notice-paths
       - 'go.mod'
       - 'go.sum'
@@ -34,6 +34,12 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
+
+      # GitHub Actions cache-backed Nix substituter (see benchmark.yml).
+      - name: Nix build cache
+        uses: Mic92/hestia@v3.0.1
+        with:
+          upstream-cache-filter: "true"
 
       - name: Verify THIRD_PARTY_NOTICES.md is up to date
         run: nix develop --command just third-party-notices-check

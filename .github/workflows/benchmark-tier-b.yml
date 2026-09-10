@@ -20,7 +20,7 @@ on:
   schedule:
     - cron: '17 3 * * *' # nightly, off-the-hour to avoid the GitHub Actions top-of-hour crunch
   push:
-    branches: [ develop ]
+    branches: [ main ]
     paths: &benchmark-tier-b-paths
       - 'pkg/inputs/snmp/**'
       - 'nix/tests/**'
@@ -49,6 +49,16 @@ jobs:
           # requiredSystemFeatures (kvm, nixos-test). GitHub's hosted Linux runners
           # support nested virtualization for exactly this.
           enable_kvm: true
+
+      # GitHub Actions cache-backed Nix substituter (see benchmark.yml).
+      # This VM test builds the network-agent package itself plus its NixOS test
+      # driver closure on every run -- caching those turns a rebuild into a pull
+      # whenever this workflow's own inputs (see paths, above) haven't changed
+      # what needs building.
+      - name: Nix build cache
+        uses: Mic92/hestia@v3.0.1
+        with:
+          upstream-cache-filter: "true"
 
       - name: Run Tier B and capture the result
         run: |
