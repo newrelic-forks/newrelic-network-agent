@@ -4,8 +4,13 @@ MODULE := github.com/kentik/ktranslate
 # flake package's own version), a Docker --build-arg, or CI. Falls back to
 # git describe for a plain checkout with none of those. See
 # `check-version-env-var` below for the one place this name must also match.
+# Commit timestamp, not wall-clock: building the same commit twice should stamp the same
+# date both times (matches nix/network-agent.nix's use of self.lastModifiedDate). Falls
+# back to wall-clock only when there's no git history to ask at all (e.g. an extracted
+# source tarball with no .git).
 NETWORK_AGENT_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
-LDFLAGS := -X '$(MODULE)/pkg/version.versionStr=$(NETWORK_AGENT_VERSION)' -X '$(MODULE)/pkg/version.dateStr=$(shell date -u +%Y-%m-%dT%H:%M:%SZ)'
+NETWORK_AGENT_DATE ?= $(shell git log -1 --format=%cI 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)
+LDFLAGS := -X '$(MODULE)/pkg/version.versionStr=$(NETWORK_AGENT_VERSION)' -X '$(MODULE)/pkg/version.dateStr=$(NETWORK_AGENT_DATE)'
 
 .PHONY: all
 all:
