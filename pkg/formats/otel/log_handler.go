@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"net/url"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/agoda-com/opentelemetry-go/otelslog"
 	"github.com/agoda-com/opentelemetry-logs-go/exporters/otlp/otlplogs"
@@ -40,7 +40,7 @@ type OtelLogger struct {
 	log    logger.ContextL
 }
 
-func NewLogger(ctx context.Context, log logger.ContextL, cfg *ktranslate.OtelFormatConfig, tlsC *tls.Config) (*OtelLogger, error) {
+func NewLogger(ctx context.Context, log logger.ContextL, cfg *networkagent.OtelFormatConfig, tlsC *tls.Config) (*OtelLogger, error) {
 	// configure opentelemetry logger provider
 	var logExporter sdk.LogRecordExporter
 

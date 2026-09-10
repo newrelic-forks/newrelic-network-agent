@@ -3,11 +3,11 @@ package maps
 import (
 	"context"
 
-	kkapi "github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/maps/api"
-	"github.com/kentik/ktranslate/pkg/maps/file"
+	kkapi "github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/maps/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/maps/file"
 )
 
 type Mapper string

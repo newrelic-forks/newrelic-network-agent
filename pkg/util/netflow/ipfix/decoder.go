@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/kentik/ktranslate/pkg/util/netflow/session"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/session"
 )
 
 func errInvalidVersion(v uint16) error {

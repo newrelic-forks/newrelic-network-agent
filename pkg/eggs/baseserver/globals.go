@@ -3,9 +3,9 @@ package baseserver
 import (
 	"sync"
 
-	"github.com/kentik/ktranslate/pkg/eggs/features"
-	"github.com/kentik/ktranslate/pkg/eggs/preconditions"
-	"github.com/kentik/ktranslate/pkg/eggs/properties"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/features"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/preconditions"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/properties"
 )
 
 var globalBaseServer *BaseServer

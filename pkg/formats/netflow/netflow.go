@@ -8,17 +8,17 @@ import (
 	"net"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/rollup"
-	"github.com/kentik/ktranslate/pkg/util/ic"
-	"github.com/kentik/ktranslate/pkg/util/trkdsess"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/ic"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/trkdsess"
 
-	"github.com/kentik/ktranslate/pkg/util/netflow"
-	"github.com/kentik/ktranslate/pkg/util/netflow/ipfix"
-	"github.com/kentik/ktranslate/pkg/util/netflow/netflow9"
-	"github.com/kentik/ktranslate/pkg/util/netflow/session"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/ipfix"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/netflow9"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/session"
 )
 
 var (
@@ -35,7 +35,7 @@ type NetflowFormat struct {
 	d               *netflow.Decoder
 	templateTracker templateTracker
 	version         uint16
-	config          *ktranslate.NetflowFormatConfig
+	config          *networkagent.NetflowFormatConfig
 }
 
 const (
@@ -104,7 +104,7 @@ const dataSet = uint16(256)
 const templateId = uint16(256)
 const templateEntId = uint16(257)
 
-func NewFormat(log logger.Underlying, comp kt.Compression, cfg *ktranslate.NetflowFormatConfig) (*NetflowFormat, error) {
+func NewFormat(log logger.Underlying, comp kt.Compression, cfg *networkagent.NetflowFormatConfig) (*NetflowFormat, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("netflow format cannot be nil")
 	}

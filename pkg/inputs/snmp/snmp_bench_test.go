@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	lt "github.com/kentik/ktranslate/pkg/eggs/logger/testing"
-	snmp_util "github.com/kentik/ktranslate/pkg/inputs/snmp/util"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	lt "github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger/testing"
+	snmp_util "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 // BenchmarkDeviceInitLoop models the synchronous per-device work in

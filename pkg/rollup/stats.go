@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/montanaflynn/stats"
 )
@@ -29,7 +29,7 @@ type StatsRollup struct {
 	isSum     bool
 	kvs       chan *sumset
 	exportKvs chan chan []Rollup
-	config    *ktranslate.RollupConfig
+	config    *networkagent.RollupConfig
 }
 
 type sumset struct {
@@ -40,7 +40,7 @@ type sumset struct {
 	prov  kt.Provider
 }
 
-func newStatsRollup(log logger.Underlying, rd RollupDef, cfg *ktranslate.RollupConfig) (*StatsRollup, error) {
+func newStatsRollup(log logger.Underlying, rd RollupDef, cfg *networkagent.RollupConfig) (*StatsRollup, error) {
 	r := &StatsRollup{
 		ContextL: logger.NewContextLFromUnderlying(logger.SContext{S: "sumRollup"}, log),
 		state:    map[string][]float64{},
