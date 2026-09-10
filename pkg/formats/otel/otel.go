@@ -170,7 +170,7 @@ func NewFormat(ctx context.Context, log logger.Underlying, cfg *networkagent.Ote
 	}
 
 	// Process-wide global: only one otel metrics formatter should call SetMeterProvider per
-	// ktranslate process. cat reuses kc.format when format_metric matches format (see kkc.go);
+	// newrelic-network-agent process. cat reuses kc.format when format_metric matches format (see kkc.go);
 	// a second NewFormat(otel) would replace the provider and drop internal CHF metrics.
 	meterProvider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exp)))
 	otel.SetMeterProvider(meterProvider)

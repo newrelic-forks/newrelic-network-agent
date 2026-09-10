@@ -113,8 +113,8 @@ let
     global:
       poll_time_sec: 300
       drop_if_outside_poll: false
-      mib_profile_dir: /etc/ktranslate/profiles
-      mibs_db: /etc/ktranslate/mibs.db
+      mib_profile_dir: /etc/newrelic-network-agent/profiles
+      mibs_db: /etc/newrelic-network-agent/mibs.db
       mibs_enabled:
       - IF-MIB
       timeout_ms: 3000
@@ -136,7 +136,7 @@ let
       ""
       "t0 = time.monotonic()"
       "collector.succeed("
-      "    \"ktranslate -snmp=/etc/ktranslate/snmp.yml -snmp_discovery=true \""
+      "    \"newrelic-network-agent -snmp=/etc/newrelic-network-agent/snmp.yml -snmp_discovery=true \""
       "    \"-snmp_out_file=/tmp/discovered.yml -log_level=info > /tmp/collector.log 2>&1\""
       ")"
       "elapsed = time.monotonic() - t0"
@@ -153,7 +153,7 @@ let
       # Correctness check, not just a measurement: catches a silent regression (e.g.
       # Discover() erroring out per-device and swallowing it, or a config change that
       # stops matching respond nodes) that wouldn't otherwise fail this test, since
-      # collector.succeed() above only checks ktranslate's exit code, not what it
+      # collector.succeed() above only checks newrelic-network-agent's exit code, not what it
       # actually found.
       "device_count_int = int(device_count)"
       "assert device_count_int == ${toString respondCount}, ("
@@ -174,7 +174,7 @@ pkgs.testers.runNixOSTest {
 
   nodes = {
     collector = {
-      virtualisation.memorySize = 768; # runs the real ktranslate binary, not just snmpd
+      virtualisation.memorySize = 768; # runs the real newrelic-network-agent binary, not just snmpd
       virtualisation.vlans = [ vlanId ];
       networking.useDHCP = false;
       networking.firewall.enable = false; # collector must be free to dial out everywhere
@@ -182,9 +182,9 @@ pkgs.testers.runNixOSTest {
         { address = collectorIp; prefixLength = 24; }
       ];
       environment.systemPackages = [ collectorBin pkgs.jq ];
-      environment.etc."ktranslate/snmp.yml".source = snmpYaml;
-      environment.etc."ktranslate/mibs.db".source = ../../config/mibs.db;
-      systemd.tmpfiles.rules = [ "d /etc/ktranslate/profiles 0755 root root -" ];
+      environment.etc."newrelic-network-agent/snmp.yml".source = snmpYaml;
+      environment.etc."newrelic-network-agent/mibs.db".source = ../../config/mibs.db;
+      systemd.tmpfiles.rules = [ "d /etc/newrelic-network-agent/profiles 0755 root root -" ];
     };
   } // deviceNodes;
 

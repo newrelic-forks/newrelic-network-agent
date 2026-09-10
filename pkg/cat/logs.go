@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-func (kc *KTranslate) splitLogsForSinks(ctx context.Context) {
+func (kc *NetworkAgent) splitLogsForSinks(ctx context.Context) {
 	if kc.logTee == nil || len(kc.logTeeSinks) == 0 {
 		return
 	}
