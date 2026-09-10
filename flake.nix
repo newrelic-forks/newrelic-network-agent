@@ -31,13 +31,11 @@
       # fails CI if Dockerfile's ARG ever falls out of sync with it.
       versionEnvVar = "NETWORK_AGENT_VERSION";
 
-      # For the devShell export only -- see nix/network-agent.nix for why the
-      # package itself deliberately does *not* consume this (or a matching
-      # per-commit date): self.rev is the whole repo's HEAD SHA, so using it
-      # to stamp Make/Docker builds is fine (those aren't Nix-cached), but
-      # baking it into the package would invalidate that derivation's cache
-      # on every commit, including ones that never touch Go source.
-      version = self.rev or "0.0.0-${self.dirtyShortRev or "unknown"}";
+      # Same VERSION file (repo root) the network-agent package builds with (see
+      # nix/version.nix) -- Make/Docker/CI default to it too (see Makefile), so all build
+      # paths agree on one semver source of truth whether or not they're run from inside
+      # this devShell.
+      version = import ./nix/version.nix { lib = nixpkgs.lib; root = ./.; };
     in
     {
       devShells = forAllSystems (system:
@@ -54,10 +52,10 @@
               gopls
               delve
             ];
-            # So `make all`/`docker build --build-arg NETWORK_AGENT_VERSION`
-            # run from inside this shell get a real commit-based version
-            # automatically, instead of falling back to Make's own (still
-            # perfectly fine, just differently-formatted) git-describe.
+            # Redundant with Make's own default (both read the same VERSION
+            # file) when NETWORK_AGENT_VERSION isn't already set -- exported
+            # anyway so `docker build --build-arg NETWORK_AGENT_VERSION` (no
+            # `=value`; Docker inherits it from the environment) works too.
             "${versionEnvVar}" = version;
           };
         });

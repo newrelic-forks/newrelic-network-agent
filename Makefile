@@ -1,10 +1,11 @@
 MODULE := github.com/kentik/ktranslate
 
-# NETWORK_AGENT_VERSION: set by the nix devShell (matches the network-agent
-# flake package's own version), a Docker --build-arg, or CI. Falls back to
-# git describe for a plain checkout with none of those. See
+# NETWORK_AGENT_VERSION: defaults to the checked-in VERSION file (repo root) -- the same
+# semver source of truth nix/network-agent.nix and the nix devShell use (see
+# nix/version.nix), so all build paths agree unless a Docker --build-arg or CI explicitly
+# overrides it. Falls back to git describe only if VERSION itself is ever missing. See
 # `check-version-env-var` below for the one place this name must also match.
-NETWORK_AGENT_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+NETWORK_AGENT_VERSION ?= $(shell cat VERSION 2>/dev/null || git describe --tags --always --dirty 2>/dev/null || echo dev)
 
 # NETWORK_AGENT_DATE: this commit's own timestamp, not wall-clock -- building the same
 # commit twice stamps the same date both times (matches nix/network-agent.nix's use of
