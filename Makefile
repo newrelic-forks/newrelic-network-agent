@@ -1,4 +1,4 @@
-MODULE := github.com/kentik/ktranslate
+MODULE := github.com/newrelic-forks/newrelic-network-agent
 
 # NETWORK_AGENT_VERSION: defaults to the checked-in VERSION file (repo root) -- the same
 # semver source of truth flake.nix and nix/network-agent.nix use, so all build paths agree

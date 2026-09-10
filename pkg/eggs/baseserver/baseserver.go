@@ -15,19 +15,19 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/timing"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/timing"
 
 	"github.com/judwhite/go-svc"
 
-	"github.com/kentik/ktranslate/pkg/eggs/concurrent"
-	"github.com/kentik/ktranslate/pkg/eggs/version"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/concurrent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/version"
 
-	"github.com/kentik/ktranslate/pkg/eggs/features"
-	"github.com/kentik/ktranslate/pkg/eggs/properties"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/features"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/properties"
 
-	"github.com/kentik/ktranslate/pkg/util/cmetrics"
-	"github.com/kentik/ktranslate/pkg/util/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/cmetrics"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/logger"
 )
 
 const (
@@ -108,11 +108,11 @@ type BaseServer struct {
 	waitGroup       sync.WaitGroup
 	propertyService properties.PropertyService
 	featureService  features.FeatureService
-	config          *ktranslate.ServerConfig
+	config          *networkagent.ServerConfig
 }
 
 // Perform baseserver initialization steps -- hopefully 9 out of 10 services can just call this and Run()
-func Boilerplate(serviceName string, versionInfo version.VersionInfo, defaultPropertyBacking properties.PropertyBacking, mextra interface{}, cfg *ktranslate.ServerConfig) *BaseServer {
+func Boilerplate(serviceName string, versionInfo version.VersionInfo, defaultPropertyBacking properties.PropertyBacking, mextra interface{}, cfg *networkagent.ServerConfig) *BaseServer {
 	bs := NewBaseServer(serviceName, versionInfo, "chf", defaultPropertyBacking, cfg)
 	bs.Init(mextra)
 	setGlobalBaseServer(bs)
@@ -120,14 +120,14 @@ func Boilerplate(serviceName string, versionInfo version.VersionInfo, defaultPro
 }
 
 // For when you need to set metrics prefix.
-func BoilerplateWithPrefix(serviceName string, versionInfo version.VersionInfo, metricsPrefix string, defaultPropertyBacking properties.PropertyBacking, mextra interface{}, cfg *ktranslate.ServerConfig) *BaseServer {
+func BoilerplateWithPrefix(serviceName string, versionInfo version.VersionInfo, metricsPrefix string, defaultPropertyBacking properties.PropertyBacking, mextra interface{}, cfg *networkagent.ServerConfig) *BaseServer {
 	bs := NewBaseServer(serviceName, versionInfo, metricsPrefix, defaultPropertyBacking, cfg)
 	bs.Init(mextra)
 	setGlobalBaseServer(bs)
 	return bs
 }
 
-func NewBaseServer(serviceName string, version version.VersionInfo, metricsPrefix string, defaultPropertyBacking properties.PropertyBacking, cfg *ktranslate.ServerConfig) *BaseServer {
+func NewBaseServer(serviceName string, version version.VersionInfo, metricsPrefix string, defaultPropertyBacking properties.PropertyBacking, cfg *networkagent.ServerConfig) *BaseServer {
 	conf := BaseServerConfigurationDefaults
 	conf.ServiceName = cfg.ServiceName
 	conf.VersionInfo = version

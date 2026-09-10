@@ -1,11 +1,11 @@
-package ktranslate
+package networkagent
 
 import (
 	"context"
 	yaml "gopkg.in/yaml.v3"
 	"io/fs"
 
-	snmp_util "github.com/kentik/ktranslate/pkg/inputs/snmp/util"
+	snmp_util "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/util"
 )
 
 const (

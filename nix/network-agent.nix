@@ -24,8 +24,8 @@ pkgs.buildGoModule {
   subPackages = [ "cmd/ktranslate" ];
   env.CGO_ENABLED = "0";
   ldflags = [
-    "-X=github.com/kentik/ktranslate/pkg/version.versionStr=${version}"
-    "-X=github.com/kentik/ktranslate/pkg/version.buildStr=${buildRev}"
+    "-X=github.com/newrelic-forks/newrelic-network-agent/pkg/version.versionStr=${version}"
+    "-X=github.com/newrelic-forks/newrelic-network-agent/pkg/version.buildStr=${buildRev}"
   ];
 
   doCheck = false; # only needs to run, not pass go test

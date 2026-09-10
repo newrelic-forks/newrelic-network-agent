@@ -10,13 +10,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/formats/util"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/rollup"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
 
 	jsoniter "github.com/json-iterator/go"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
 )
 
 const (
@@ -40,7 +40,7 @@ type ElasticsearchFormat struct {
 	action      string
 }
 
-func NewFormat(log logger.Underlying, compression kt.Compression, cfg *ktranslate.ElasticFormatConfig) (*ElasticsearchFormat, error) {
+func NewFormat(log logger.Underlying, compression kt.Compression, cfg *networkagent.ElasticFormatConfig) (*ElasticsearchFormat, error) {
 	ef := &ElasticsearchFormat{
 		ContextL:    logger.NewContextLFromUnderlying(logger.SContext{S: "elasticsearchFormat"}, log),
 		compression: compression,

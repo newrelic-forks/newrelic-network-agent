@@ -7,12 +7,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp"
-	snmp_util "github.com/kentik/ktranslate/pkg/inputs/snmp/util"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/rollup"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp"
+	snmp_util "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
 
 	"github.com/gosnmp/gosnmp"
 )
@@ -36,7 +36,7 @@ func init() {
 	flag.StringVar(&confFile, "snmp.format.conf", "", "Parse this file for the snmp format option. Same format as -snmp flag.")
 }
 
-func NewFormat(log logger.Underlying, cfg *ktranslate.SnmpFormatConfig) (*SnmpFormat, error) {
+func NewFormat(log logger.Underlying, cfg *networkagent.SnmpFormatConfig) (*SnmpFormat, error) {
 	sf := &SnmpFormat{
 		ContextL: logger.NewContextLFromUnderlying(logger.SContext{S: "snmpFormat"}, log),
 	}

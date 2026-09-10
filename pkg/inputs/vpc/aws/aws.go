@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/ic"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/ic"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/kentik/patricia"

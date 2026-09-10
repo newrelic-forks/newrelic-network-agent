@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/x/arista"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/x/meraki"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/x/arista"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/x/meraki"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 // Code to handle various vendor extensions to snmp.

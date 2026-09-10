@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/gosnmp/gosnmp"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/mibs"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/ping"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/util"
-	extension "github.com/kentik/ktranslate/pkg/inputs/snmp/x"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/tick"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/mibs"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/ping"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/util"
+	extension "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/x"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/tick"
 )
 
 const (

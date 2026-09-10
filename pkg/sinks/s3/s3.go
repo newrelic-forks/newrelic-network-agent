@@ -19,10 +19,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/formats"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 var (
@@ -61,7 +61,7 @@ type S3Sink struct {
 	suffix   string
 	buf      *bytes.Buffer
 	mux      sync.RWMutex
-	config   *ktranslate.S3SinkConfig
+	config   *networkagent.S3SinkConfig
 	dl       *s3manager.Downloader
 }
 
@@ -70,7 +70,7 @@ type S3Metric struct {
 	DeliveryWin go_metrics.Meter
 }
 
-func NewSink(log logger.Underlying, registry go_metrics.Registry, cfg *ktranslate.S3SinkConfig) (*S3Sink, error) {
+func NewSink(log logger.Underlying, registry go_metrics.Registry, cfg *networkagent.S3SinkConfig) (*S3Sink, error) {
 	rand.Seed(time.Now().UnixNano())
 	return &S3Sink{
 		registry: registry,
