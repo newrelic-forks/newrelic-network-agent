@@ -310,6 +310,20 @@ type SnmpGlobalConfig struct {
 	SaveCache             bool                   `yaml:"save_mds_cache"`
 	MibGitUrl             string                 `yaml:"profile_git_url"`
 	MibGitHash            string                 `yaml:"profile_git_commit"`
+	MerakiCloudSNMP       *MerakiCloudSNMPConfig `yaml:"meraki_cloud_snmp"`
+}
+
+// MerakiCloudSNMPConfig configures a one-time (per bootstrap) SNMP walk against Meraki's
+// org-wide "cloud SNMP" endpoint, used to enrich locally-polled devices with their Meraki
+// serial number. Nil (the default) means this feature is off.
+type MerakiCloudSNMPConfig struct {
+	Host      string        `yaml:"host,omitempty"`      // default "snmp.meraki.com"
+	Port      uint16        `yaml:"port,omitempty"`      // default 161
+	Community string        `yaml:"snmp_comm,omitempty"` // v2c community string
+	V3        *V3SNMPConfig `yaml:"snmp_v3,omitempty"`
+	TimeoutMS int           `yaml:"timeout_ms,omitempty"`
+	Retries   int           `yaml:"retries,omitempty"`
+	TagName   string        `yaml:"tag_name,omitempty"` // default "meraki_serial"
 }
 
 type SnmpConfig struct {

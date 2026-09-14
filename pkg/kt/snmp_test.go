@@ -110,6 +110,40 @@ func TestUpdateFromPreservesPollTimeoutSec(t *testing.T) {
 	assert.Equal(t, 45, d.PollTimeoutSec)
 }
 
+func TestMerakiCloudSNMPConfigOptedOutByDefault(t *testing.T) {
+	// A global config with no meraki_cloud_snmp key -- i.e. every config that exists today --
+	// must leave the new field nil, so the enrichment feature stays off unless opted in.
+	input := []byte(`
+poll_time_sec: 300
+timeout_ms: 3000
+`)
+
+	gc := SnmpGlobalConfig{}
+	err := yaml.Unmarshal(input, &gc)
+	assert.NoError(t, err)
+	assert.Nil(t, gc.MerakiCloudSNMP)
+}
+
+func TestMerakiCloudSNMPConfigParses(t *testing.T) {
+	input := []byte(`
+poll_time_sec: 300
+meraki_cloud_snmp:
+  host: snmp.meraki.com
+  port: 161
+  snmp_comm: mycommunity
+  tag_name: meraki_serial
+`)
+
+	gc := SnmpGlobalConfig{}
+	err := yaml.Unmarshal(input, &gc)
+	assert.NoError(t, err)
+	assert.NotNil(t, gc.MerakiCloudSNMP)
+	assert.Equal(t, "snmp.meraki.com", gc.MerakiCloudSNMP.Host)
+	assert.Equal(t, uint16(161), gc.MerakiCloudSNMP.Port)
+	assert.Equal(t, "mycommunity", gc.MerakiCloudSNMP.Community)
+	assert.Equal(t, "meraki_serial", gc.MerakiCloudSNMP.TagName)
+}
+
 func TestEAPI(t *testing.T) {
 	input := []byte(`
 host: mabel
