@@ -1,12 +1,16 @@
 package snmp
 
 import (
+	"context"
 	"fmt"
 	"net/netip"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	lt "github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger/testing"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/x/merakicloudsnmp"
 	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
@@ -177,6 +181,35 @@ func TestSetTagsMatch(t *testing.T) {
 			assert.Equal(expt, device.MatchAttr["match"], "%s -> %s %v", test, device.Provider, device.MatchAttr)
 		}
 	}
+}
+
+// TestMerakiCloudSNMPEnrichmentIsOptIn is a regression guard for the runSnmpPolling
+// wire-up: every config that doesn't set meraki_cloud_snmp (i.e. every real-world config
+// that exists today) must leave device tag state completely untouched by the new
+// enrichment call, exactly mirroring the "if conf.Global.MerakiCloudSNMP != nil" guard in
+// runSnmpPolling itself.
+func TestMerakiCloudSNMPEnrichmentIsOptIn(t *testing.T) {
+	assert := assert.New(t)
+
+	deviceA := &kt.SnmpDeviceConfig{DeviceName: "deviceA", DeviceIP: "10.2.3.1"}
+	deviceB := &kt.SnmpDeviceConfig{DeviceName: "deviceB", DeviceIP: "10.2.3.2"}
+	deviceA.InitUserTags("ktranslate")
+	deviceB.InitUserTags("ktranslate")
+
+	conf := &kt.SnmpConfig{
+		Global: &kt.SnmpGlobalConfig{}, // No MerakiCloudSNMP set -- today's default shape.
+		Devices: kt.DeviceMap{
+			"deviceA": deviceA,
+			"deviceB": deviceB,
+		},
+	}
+
+	assert.Nil(conf.Global.MerakiCloudSNMP, "guard condition in runSnmpPolling must not fire for an unconfigured global block")
+
+	err := merakicloudsnmp.EnrichSerials(context.Background(), conf.Global, conf.Devices, lt.NewTestContextL(logger.NilContext, t))
+	assert.NoError(err)
+	assert.Empty(deviceA.GetUserTags())
+	assert.Empty(deviceB.GetUserTags())
 }
 
 func TestIgnoreList(t *testing.T) {
