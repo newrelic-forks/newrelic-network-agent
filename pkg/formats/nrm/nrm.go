@@ -3,6 +3,7 @@ package nrm
 import (
 	"bytes"
 	"compress/gzip"
+	"flag"
 	"fmt"
 	"os"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/kentik/ktranslate"
 	"github.com/kentik/ktranslate/pkg/formats/nrm/events"
 	"github.com/kentik/ktranslate/pkg/formats/util"
 	"github.com/kentik/ktranslate/pkg/kt"
@@ -18,6 +20,12 @@ import (
 
 	"github.com/kentik/ktranslate/pkg/eggs/logger"
 )
+
+var customAttributes string
+
+func init() {
+	flag.StringVar(&customAttributes, "nr_custom_attributes", "", "Comma separated key=value pairs stamped onto every metric batch sent to New Relic -- e.g. install_id=abc123. Useful for telling this instance's data apart from any other ktranslate instance's.")
+}
 
 const (
 	NR_COUNT_TYPE   = "count"
@@ -44,6 +52,7 @@ type NRMFormat struct {
 	mux          sync.RWMutex
 	demo         *Demozer
 	seenInvalid  bool
+	config       *ktranslate.NRMFormatConfig
 
 	EventChan chan []byte
 }
@@ -67,13 +76,17 @@ type NRMetric struct {
 	Attributes map[string]interface{} `json:"attributes"`
 }
 
-func NewFormat(log logger.Underlying, compression kt.Compression) (*NRMFormat, error) {
+func NewFormat(log logger.Underlying, compression kt.Compression, cfg *ktranslate.NRMFormatConfig) (*NRMFormat, error) {
+	if cfg == nil {
+		return nil, fmt.Errorf("new_relic_metric format cannot be nil")
+	}
 	jf := &NRMFormat{
 		compression:  compression,
 		ContextL:     logger.NewContextLFromUnderlying(logger.SContext{S: "nrmFormat"}, log),
 		doGz:         false,
 		invalids:     map[string]bool{},
 		lastMetadata: map[string]*kt.LastMetadata{},
+		config:       cfg,
 		EventChan:    make(chan []byte, 100), // Used for sending events to the event API.
 	}
 
@@ -103,7 +116,7 @@ func NewFormat(log logger.Underlying, compression kt.Compression) (*NRMFormat, e
 func (f *NRMFormat) To(msgs []*kt.JCHF, serBuf []byte) (*kt.Output, error) {
 	ms := NRMetricSet{
 		Metrics: make([]NRMetric, 0, len(msgs)*4),
-		Common:  newNRCommon(),
+		Common:  f.newNRCommon(),
 	}
 	for _, m := range msgs {
 		ms.Metrics = append(ms.Metrics, f.toNRMetric(m)...)
@@ -124,6 +137,8 @@ func (f *NRMFormat) To(msgs []*kt.JCHF, serBuf []byte) (*kt.Output, error) {
 			ms.Metrics[i].Value = kt.SanitizeUTF8(strVal)
 		}
 	}
+
+	sanitizeMetricsUTF8(ms.Metrics)
 
 	target, err := json.Marshal([]NRMetricSet{ms}) // Has to be an array here, no idea why.
 	if err != nil {
@@ -158,6 +173,23 @@ func (f *NRMFormat) To(msgs []*kt.JCHF, serBuf []byte) (*kt.Output, error) {
 	return kt.NewOutputWithProviderAndCompanySender(buf.Bytes(), msgs[0].Provider, msgs[0].CompanyId, kt.MetricOutput, ""), nil
 }
 
+// sanitizeMetricsUTF8 rewrites any invalid UTF-8 string in a metric's Value
+// or Attributes in place, so it survives json.Marshal instead of tripping
+// the utf8.Valid check below and dropping the whole batch.
+func sanitizeMetricsUTF8(metrics []NRMetric) {
+	for i := range metrics {
+		m := &metrics[i]
+		if s, ok := m.Value.(string); ok {
+			m.Value = kt.SanitizeUTF8(s)
+		}
+		for k, v := range m.Attributes {
+			if s, ok := v.(string); ok {
+				m.Attributes[k] = kt.SanitizeUTF8(s)
+			}
+		}
+	}
+}
+
 func (f *NRMFormat) From(raw *kt.Output) ([]map[string]interface{}, error) {
 	values := make([]map[string]interface{}, 0)
 	return values, nil
@@ -166,7 +198,7 @@ func (f *NRMFormat) From(raw *kt.Output) ([]map[string]interface{}, error) {
 func (f *NRMFormat) Rollup(rolls []rollup.Rollup) (*kt.Output, error) {
 	ms := NRMetricSet{
 		Metrics: f.toNRMetricRollup(rolls),
-		Common:  newNRCommon(),
+		Common:  f.newNRCommon(),
 	}
 
 	if len(ms.Metrics) == 0 {
@@ -750,12 +782,20 @@ func toInstName(prov kt.Provider) string {
 	return InstNameNetflowMetric
 }
 
-func newNRCommon() *NRCommon {
+func (f *NRMFormat) newNRCommon() *NRCommon {
+	attrs := map[string]string{
+		"instrumentation.provider": kt.InstProvider,
+		"collector.name":           kt.CollectorName,
+	}
+	// Merged onto every batch this instance sends (SNMP, flow, heartbeat, everything) --
+	// New Relic's Metric API ingest merges these into each metric's own attributes
+	// server-side, unlike per-device user_tags which never reach non-device-scoped
+	// metrics such as heartbeat/self-instrumentation. See NR-612348.
+	for k, v := range f.config.CustomAttributes {
+		attrs[k] = v
+	}
 	return &NRCommon{
-		Timestamp: time.Now().UnixNano() / 1e+6, // Convert to milliseconds
-		Attributes: map[string]string{
-			"instrumentation.provider": kt.InstProvider,
-			"collector.name":           kt.CollectorName,
-		},
+		Timestamp:  time.Now().UnixNano() / 1e+6, // Convert to milliseconds
+		Attributes: attrs,
 	}
 }

@@ -1,0 +1,87 @@
+name: CI Build (no push)
+
+# Validation build for the `develop` branch: builds the Docker image end-to-end
+# (which also compiles the Go binary via `make`) and exports it as a downloadable artifact.
+# It is NEVER pushed to a registry. Download the artifact and `docker load` it locally.
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Target platform for the exported image
+        type: choice
+        options:
+          - linux/amd64
+          - linux/arm64
+        default: linux/amd64
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set build id and platform
+        run: |
+          echo "CI_BUILD=ci-$(date +%Y-%m-%d)-${GITHUB_RUN_ID}" >> "$GITHUB_ENV"
+          PLATFORM="${{ github.event.inputs.platform || 'linux/amd64' }}"
+          echo "PLATFORM=$PLATFORM" >> "$GITHUB_ENV"
+          echo "PLATFORM_TAG=${PLATFORM//\//-}" >> "$GITHUB_ENV"
+
+      - name: Set up QEMU        # enables cross-building (e.g. arm64 on an amd64 runner)
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Build image and export as docker tar (no push)
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: ${{ env.PLATFORM }}
+          tags: ntranslate:ci
+          # Export a `docker load`-compatible archive instead of pushing to a registry.
+          # type=docker is single-platform, which is why the platform is fixed per run.
+          outputs: type=docker,dest=/tmp/ntranslate-image.tar
+          # No NETWORK_AGENT_VERSION here -- Make's own default (the VERSION file) stands,
+          # same as any other build. NETWORK_AGENT_BUILD identifies this specific CI run.
+          build-args: |
+            NETWORK_AGENT_BUILD=${{ env.CI_BUILD }}
+            KENTIK_SNMP_PROFILE_REPO=https://github.com/newrelic-forks/snmp-profiles
+          # All credentials are BuildKit secrets (never build-args) so they cannot leak
+          # into logs/layers even on a failed step.
+          secrets: |
+            github_token=${{ secrets.SNMP_PROFILES_TOKEN }}
+            mm_account_id=${{ secrets.MM_ACCOUNT_ID }}
+            mm_license_key=${{ secrets.MM_DOWNLOAD_KEY }}
+
+      # Sanity-checks the built image directly (independent of the artifact upload below,
+      # which is subject to storage quotas), so a missing/misplaced file fails CI loudly.
+      - name: Verify third-party notices are present in the image
+        run: |
+          docker load -i /tmp/ntranslate-image.tar
+          docker run --rm --entrypoint cat ntranslate:ci /usr/share/doc/ktranslate/THIRD_PARTY_NOTICES.md | head -5
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ntranslate-image-${{ env.PLATFORM_TAG }}-${{ env.CI_BUILD }}
+          path: /tmp/ntranslate-image.tar
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: How to load it
+        run: |
+          {
+            echo "## ntranslate image artifact"
+            echo "Built \`ntranslate:ci\` for **$PLATFORM**. Download the artifact, unzip, then:"
+            echo '```bash'
+            echo "docker load -i ntranslate-image.tar"
+            echo "docker image ls | grep ntranslate       # now visible"
+            echo "docker run --rm --entrypoint ktranslate ntranslate:ci -h    # prints usage"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

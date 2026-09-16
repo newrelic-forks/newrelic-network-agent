@@ -20,9 +20,6 @@ config/GeoLite2-Country.mmdb
 config/GeoLite2-ASN.mmdb
 config/profiles
 
-#generated on build
-cmd/version/generated_version.go
-
 .vscode/
 .idea/
 
@@ -30,3 +27,7 @@ cmd/version/generated_version.go
 config.yaml
 
 .DS_Store
+
+## nix build output symlinks (nix build ./#..., nix/tests/*)
+result
+result-*
