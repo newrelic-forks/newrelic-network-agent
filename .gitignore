@@ -25,6 +25,9 @@ config/profiles
 
 ## local configuration
 config.yaml
+.envrc
+.env
+testing/nr/state/
 
 .DS_Store
 

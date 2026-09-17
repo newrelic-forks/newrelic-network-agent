@@ -72,3 +72,22 @@ third-party-notices-check:
     trap 'rm -f "$tmp"' EXIT
     just third-party-notices "$tmp"
     diff "$tmp" THIRD_PARTY_NOTICES.md
+
+# Bring up (or tear down) the manual NR testing harness -- testing/nr/README.md.
+# action: up|down. Extra flags (--cidr, --nr-account-id, ...) after `--` pass through.
+test-nr-snmp action *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd testing/nr
+    secretspec run -- ./run-snmp-test.sh {{action}} {{args}}
+
+# Build this fork's Dockerfile from any git ref into ntranslate:<ref> for use
+# with `test-nr-snmp ... --image ntranslate:<ref>` -- testing/nr/README.md.
+build-fork-image ref tag="":
+    testing/nr/build-fork-image.sh {{ref}} {{tag}}
+
+# Same result as build-fork-image, but built by ci-build.yml in GitHub
+# Actions instead of locally -- sidesteps the corporate-TLS-interception
+# blocker in docs/PLAYGROUND.md. Pass extra args (e.g. --latest) after `--`.
+fetch-ci-image ref tag="" *args:
+    testing/nr/fetch-ci-image.sh {{ref}} {{tag}} {{args}}
