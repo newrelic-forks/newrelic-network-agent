@@ -1,23 +1,11 @@
 name: Vendor hash autofix
 
-# What is vendorHash, and why does it need "fixing"?
-#
-# nix/network-agent.nix builds this Go module with Nix's buildGoModule, which needs
-# every Go dependency fetched (the moral equivalent of `go mod download`) before the
-# sandboxed, network-isolated build proper can start. Nix allows that one exception --
-# a "fixed-output derivation" (FOD) -- but only if you pre-declare the exact hash the
-# fetched output must have; Nix fetches it, hashes what it got, and fails the build if
-# that doesn't match. vendorHash in nix/network-agent.nix is that pre-declared hash for
-# the downloaded Go module set.
-#
-# The set of downloaded modules changes any time go.mod/go.sum does (a version bump, a
-# new dependency), which changes the resulting hash -- so the old vendorHash now
-# mismatches and the build fails with "hash mismatch in fixed-output derivation" until
-# someone updates it to the new correct value. vendor-hash-check.yml (the workflow this
-# one follows up on) is what surfaces that failure on a PR. This workflow exists so a
-# routine dependency bump doesn't need a human to run the failing build locally, read
-# the correct hash back out of the error output, and push a fixup commit by hand --
-# Dependabot PRs in particular have no way to do that themselves.
+# vendorHash is how Nix makes the Go build reproducible: dependencies get downloaded
+# (vendored) up front and checked against this hash, then the actual build runs
+# sandboxed with no network access at all. Any dependency change (e.g. a Dependabot
+# bump) changes that vendored set, so the hash goes stale and the build fails until
+# someone updates it -- this job does that automatically instead of needing a manual
+# fix every time.
 #
 # Follow-up to vendor-hash-check.yml: if that check failed on a pull request from a
 # same-repo branch (true for Dependabot PRs here), recompute vendorHash and push a
