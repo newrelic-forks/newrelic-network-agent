@@ -2,8 +2,8 @@
 
 INCLUDE+ Dockerfile
 
-COPY --chown=newrelic-network-agent:newrelic-network-agent eu/config.json /etc/newrelic-network-agent/config.json
-COPY --chown=newrelic-network-agent:newrelic-network-agent eu/udr.csv /etc/newrelic-network-agent/udr.csv
+COPY --chown=network-agent:network-agent eu/config.json /etc/network-agent/config.json
+COPY --chown=network-agent:network-agent eu/udr.csv /etc/network-agent/udr.csv
 
-USER newrelic-network-agent
-ENTRYPOINT ["newrelic-network-agent", "-listen", "off", "-mapping", "/etc/newrelic-network-agent/config.json", "-geo", "/etc/newrelic-network-agent/GeoLite2-Country.mmdb", "-udrs", "/etc/newrelic-network-agent/udr.csv", "-api_devices", "/etc/newrelic-network-agent/devices.json", "-asn", "/etc/newrelic-network-agent/GeoLite2-ASN.mmdb", "-log_level", "info", "-api_root", "https://api.kentik.eu", "-geo_region_map", "/etc/newrelic-network-agent/ch_region_mapping.csv.gz", "-geo_city_map", "/etc/newrelic-network-agent/ch_city_mapping.csv.gz"]
+USER network-agent
+ENTRYPOINT ["network-agent", "-listen", "off", "-mapping", "/etc/network-agent/config.json", "-geo", "/etc/network-agent/GeoLite2-Country.mmdb", "-udrs", "/etc/network-agent/udr.csv", "-api_devices", "/etc/network-agent/devices.json", "-asn", "/etc/network-agent/GeoLite2-ASN.mmdb", "-log_level", "info", "-api_root", "https://api.kentik.eu", "-geo_region_map", "/etc/network-agent/ch_region_mapping.csv.gz", "-geo_city_map", "/etc/network-agent/ch_city_mapping.csv.gz"]

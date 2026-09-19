@@ -233,9 +233,9 @@ type StitchConfig struct {
 	BufLen int
 }
 
-// Config is the newrelic-network-agent configuration
+// Config is the network-agent configuration
 type Config struct {
-	// newrelic-network-agent
+	// network-agent
 	ListenAddr          string
 	MappingFile         string
 	UDRSFile            string
@@ -334,7 +334,7 @@ type Config struct {
 	Lilo *StitchConfig
 }
 
-// DefaultConfig returns a newrelic-network-agent configuration with defaults applied
+// DefaultConfig returns a network-agent configuration with defaults applied
 func DefaultConfig() *Config {
 	return &Config{
 		ListenAddr:          "127.0.0.1:8081",
@@ -519,7 +519,7 @@ func DefaultConfig() *Config {
 	}
 }
 
-// LoadConfig returns a newrelic-network-agent configuration from the specified path
+// LoadConfig returns a network-agent configuration from the specified path
 func LoadConfig(ctx context.Context, configPath string) (*Config, error) {
 	confBytes, err := snmp_util.LoadFile(ctx, configPath)
 	if err != nil {
@@ -538,7 +538,7 @@ func LoadConfig(ctx context.Context, configPath string) (*Config, error) {
 	return &cfg, nil
 }
 
-// SaveConfig saves the newrelic-network-agent configuration to the specified path
+// SaveConfig saves the network-agent configuration to the specified path
 func (c *Config) SaveConfig() error {
 	t, err := yaml.Marshal(c)
 	if err != nil {

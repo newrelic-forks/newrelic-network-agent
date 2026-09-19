@@ -2,7 +2,7 @@
 
 Listen for a feed of data to or from Kentik and pass on in a common form. Supports rollups and filtering as well.
 
-See the [Wiki](https://github.com/kentik/ktranslate/wiki) for more details. Come visit the [Discord](https://discord.gg/XGDNRj528C) if you have any questions, need any assistance, or want to talk about the development of newrelic-network-agent.
+See the [Wiki](https://github.com/kentik/ktranslate/wiki) for more details. Come visit the [Discord](https://discord.gg/XGDNRj528C) if you have any questions, need any assistance, or want to talk about the development of network-agent.
 
 # Build:
 
@@ -20,7 +20,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
 
 # Flags:
 
-```Usage of ./bin/newrelic-network-agent:
+```Usage of ./bin/network-agent:
   -api_device_file string
     	File to sideload devices without hitting API
   -api_devices string
@@ -42,7 +42,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
   -compression string
     	compression algo to use (none|gzip|snappy|deflate|null) (default "none")
   -config string
-    	path to newrelic-network-agent config
+    	path to network-agent config
   -config_provider string
     	Implementation of which provider controls the config process. Can be one of (new_relic,local)
   -dns string
@@ -70,7 +70,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
   -gcp.sub string
     	Google Sub to listen for flows on
   -generate-config
-    	generate newrelic-network-agent config and exit
+    	generate network-agent config and exit
   -geo string
     	Geo mapping file
   -geo_city_map string
@@ -270,7 +270,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
   -tag_map_type string
     	type of mapping to use for tag values. file|null
   -tee_flow string
-    	If set, tee flow to another newrelic-network-agent instance here.
+    	If set, tee flow to another network-agent instance here.
   -tee_logs
     	Tee log messages to sink
   -threads int
@@ -284,7 +284,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
 
 # Further documentation
 
-The flag list above is a snapshot. `newrelic-network-agent -h` on a current binary is authoritative for names.
+The flag list above is a snapshot. `network-agent -h` on a current binary is authoritative for names.
 
 Newer operator guides live on the [wiki](https://github.com/kentik/ktranslate/wiki):
 
@@ -296,7 +296,7 @@ Newer operator guides live on the [wiki](https://github.com/kentik/ktranslate/wi
 # pprof
 
 To expose profiling endpoints, use the `-metalisten` flag. This can be used with tools such as
-`go tool pprof` to capture and view the data. For example, if `newrelic-network-agent` was started with
+`go tool pprof` to capture and view the data. For example, if `network-agent` was started with
 `-metalisten :6060`:
 
 ```

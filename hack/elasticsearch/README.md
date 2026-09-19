@@ -1,6 +1,6 @@
-# Elasticsearch with newrelic-network-agent
+# Elasticsearch with network-agent
 This is a Docker compose setup that will create an Elasticsearch with Kibana stack and setup
-newrelic-network-agent to listen to a NetFlow generator.
+network-agent to listen to a NetFlow generator.
 
 # Run
 
