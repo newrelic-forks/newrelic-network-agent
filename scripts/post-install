@@ -1,6 +1,6 @@
-if [ -d "/etc/newrelic-network-agent/profiles" ]
+if [ -d "/etc/network-agent/profiles" ]
 then
-  su -s /bin/bash newrelic-network-agent -c "cd /etc/newrelic-network-agent/profiles && git pull --rebase"
+  su -s /bin/bash network-agent -c "cd /etc/network-agent/profiles && git pull --rebase"
 else
-  su -s /bin/bash newrelic-network-agent -c "git clone https://github.com/kentik/snmp-profiles.git /etc/newrelic-network-agent/profiles"
+  su -s /bin/bash network-agent -c "git clone https://github.com/kentik/snmp-profiles.git /etc/network-agent/profiles"
 fi

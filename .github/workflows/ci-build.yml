@@ -85,7 +85,7 @@ jobs:
         with:
           context: .
           platforms: ${{ env.PLATFORM }}
-          tags: newrelic-network-agent:ci
+          tags: network-agent:ci
           # Loads the built image into the runner's local Docker daemon (same as
           # `docker buildx build --load`) so the verification step below can run it --
           # nothing is exported to a file or pushed anywhere. type=docker is
@@ -105,4 +105,4 @@ jobs:
       # or misplaced file fails CI loudly instead of only surfacing at release time.
       - name: Verify third-party notices are present in the image
         run: |
-          docker run --rm --entrypoint cat newrelic-network-agent:ci /usr/share/doc/newrelic-network-agent/THIRD_PARTY_NOTICES.md | head -5
+          docker run --rm --entrypoint cat network-agent:ci /usr/share/doc/network-agent/THIRD_PARTY_NOTICES.md | head -5

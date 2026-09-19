@@ -40,17 +40,17 @@ services:
     depends_on:
       - elasticsearch
 
-  newrelic-network-agent:
+  network-agent:
     image: newrelic/network-agent:latest
     entrypoint:
       - sh
       - -euc
       - |
-        cat <<EOF > /tmp/newrelic-network-agent.yaml
+        cat <<EOF > /tmp/network-agent.yaml
         listenaddr: "127.0.0.1:8081"
-        udrsfile: "/etc/newrelic-network-agent/udr.csv"
-        geofile: "/etc/newrelic-network-agent/GeoLite2-Country.mmdb"
-        asnfile: "/etc/newrelic-network-agent/GeoLite2-ASN.mmdb"
+        udrsfile: "/etc/network-agent/udr.csv"
+        geofile: "/etc/network-agent/GeoLite2-Country.mmdb"
+        asnfile: "/etc/network-agent/GeoLite2-ASN.mmdb"
         processingthreads: 1
         inputthreads: 1
         maxthreads: 1
@@ -88,7 +88,7 @@ services:
           ollywritekey: ""
 
         api:
-          devicefile: "/etc/newrelic-network-agent/devices.json"
+          devicefile: "/etc/network-agent/devices.json"
 
         flowinput:
           enable: true
@@ -101,7 +101,7 @@ services:
           prometheuslistenaddr: ""
           mappingfile: ""
         EOF
-        newrelic-network-agent --config /tmp/newrelic-network-agent.yaml
+        network-agent --config /tmp/network-agent.yaml
     restart: always
     ports:
       - 8081:8081
@@ -115,8 +115,8 @@ services:
     restart: always
     command:
       - -t
-      - newrelic-network-agent
+      - network-agent
       - -p
       - "9995"
     depends_on:
-      - newrelic-network-agent
+      - network-agent

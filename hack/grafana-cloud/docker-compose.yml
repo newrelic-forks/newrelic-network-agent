@@ -1,5 +1,5 @@
 services:
-  newrelic-network-agent:
+  network-agent:
     image: newrelic/network-agent:latest
     restart: always
     pull_policy: always

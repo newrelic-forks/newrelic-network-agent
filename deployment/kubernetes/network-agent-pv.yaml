@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: newrelic-network-agent-discovery
+  name: network-agent-discovery
 spec:
   selector:
     matchLabels:
-      app: newrelic-network-agent-discovery
+      app: network-agent-discovery
   template:
     metadata:
       labels:
-        app: newrelic-network-agent-discovery
+        app: network-agent-discovery
     spec:
       containers:
       - name: discovery
@@ -28,10 +28,10 @@ spec:
             cpu: 500m
             memory: 128Mi
         volumeMounts:
-          - name: newrelic-network-agent-discovery-claim
+          - name: network-agent-discovery-claim
             mountPath: /data
       volumes:
-        - name: newrelic-network-agent-discovery-claim
+        - name: network-agent-discovery-claim
           hostPath:
             path: /mnt/data/
 
@@ -39,18 +39,18 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: newrelic-network-agent
+  name: network-agent
 spec:
   selector:
     matchLabels:
-      app: newrelic-network-agent
+      app: network-agent
   template:
     metadata:
       labels:
-        app: newrelic-network-agent
+        app: network-agent
     spec:
       containers:
-      - name: newrelic-network-agent
+      - name: network-agent
         image: newrelic/network-agent:latest
         imagePullPolicy: Always
         args:
@@ -94,10 +94,10 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 5
         volumeMounts:
-          - name: newrelic-network-agent-discovery-claim
+          - name: network-agent-discovery-claim
             mountPath: /data
       volumes:
-        - name: newrelic-network-agent-discovery-claim
+        - name: network-agent-discovery-claim
           hostPath:
             path: /mnt/data/
 
@@ -105,9 +105,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: newrelic-network-agent-firehose
+  name: network-agent-firehose
   labels:
-    app: newrelic-network-agent
+    app: network-agent
 spec:
   ports:
   - port: 8082
@@ -115,15 +115,15 @@ spec:
     targetPort: 8082
     protocol: TCP
   selector:
-    app: newrelic-network-agent
+    app: network-agent
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: newrelic-network-agent-metadata
+  name: network-agent-metadata
   labels:
-    app: newrelic-network-agent
+    app: network-agent
 spec:
   ports:
   - port: 8083
@@ -131,15 +131,15 @@ spec:
     targetPort: 8083
     protocol: TCP
   selector:
-    app: newrelic-network-agent
+    app: network-agent
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: newrelic-network-agent-prom
+  name: network-agent-prom
   labels:
-    app: newrelic-network-agent
+    app: network-agent
 spec:
   ports:
   - port: 8084
@@ -147,14 +147,14 @@ spec:
     targetPort: 8084
     protocol: TCP
   selector:
-    app: newrelic-network-agent
+    app: network-agent
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: newrelic-network-agent-sflow
+  name: network-agent-sflow
   labels:
-    app: newrelic-network-agent
+    app: network-agent
 spec:
   ports:
   - port: 6343
@@ -162,24 +162,24 @@ spec:
     targetPort: 6343
     protocol: UDP
   selector:
-    app: newrelic-network-agent
+    app: network-agent
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: newrelic-network-agent-discovery-claim
+  name: network-agent-discovery-claim
 spec:
   storageClassName: "" # Empty string must be explicitly set otherwise default StorageClass will be set
-  volumeName: newrelic-network-agent-pv-volume
+  volumeName: network-agent-pv-volume
 metadata:
-  name: newrelic-network-agent-discovery-claim
+  name: network-agent-discovery-claim
 
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: newrelic-network-agent-pv-volume
+  name: network-agent-pv-volume
   labels:
     type: local
 spec:

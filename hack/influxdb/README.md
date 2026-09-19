@@ -1,6 +1,6 @@
-# InfluxDB with newrelic-network-agent
+# InfluxDB with network-agent
 This is a Docker compose setup that will create an InfluxDB stack and setup
-newrelic-network-agent to listen to a NetFlow generator.
+network-agent to listen to a NetFlow generator.
 
 # Run
 

@@ -1,9 +1,9 @@
 FROM newrelic/network-agent:next
 
 USER root
-RUN setcap -r /usr/local/bin/newrelic-network-agent
+RUN setcap -r /usr/local/bin/network-agent
 
 EXPOSE 8082
 
-USER newrelic-network-agent
-ENTRYPOINT ["newrelic-network-agent", "-listen", "off", "-mapping", "/etc/newrelic-network-agent/config.json", "-geo", "/etc/newrelic-network-agent/GeoLite2-Country.mmdb", "-udrs", "/etc/newrelic-network-agent/udr.csv", "-api_devices", "/etc/newrelic-network-agent/devices.json", "-asn", "/etc/newrelic-network-agent/GeoLite2-ASN.mmdb", "-log_level", "info"]
+USER network-agent
+ENTRYPOINT ["network-agent", "-listen", "off", "-mapping", "/etc/network-agent/config.json", "-geo", "/etc/network-agent/GeoLite2-Country.mmdb", "-udrs", "/etc/network-agent/udr.csv", "-api_devices", "/etc/network-agent/devices.json", "-asn", "/etc/network-agent/GeoLite2-ASN.mmdb", "-log_level", "info"]

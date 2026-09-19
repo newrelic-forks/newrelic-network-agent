@@ -22,15 +22,15 @@ LDFLAGS := -X '$(MODULE)/pkg/version.versionStr=$(NETWORK_AGENT_VERSION)' -X '$(
 
 .PHONY: all
 all:
-	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o bin/newrelic-network-agent ./cmd/newrelic-network-agent
+	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o bin/network-agent ./cmd/network-agent
 
 .PHONY: windows
 windows:
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o bin/newrelic-network-agent.exe ./cmd/newrelic-network-agent
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o bin/network-agent.exe ./cmd/network-agent
 
 .PHONY: arm
 arm:
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "-s -w $(LDFLAGS)" -o bin/newrelic-network-agent ./cmd/newrelic-network-agent
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "-s -w $(LDFLAGS)" -o bin/network-agent ./cmd/network-agent
 
 .PHONY: print-version-env-var
 print-version-env-var:
@@ -49,13 +49,13 @@ test: check-version-env-var
 bench:
 	go test -bench=. ./cmd/... ./pkg/...
 
-.PHONY: newrelic-network-agent
-newrelic-network-agent:
-	go install ./cmd/newrelic-network-agent
+.PHONY: network-agent
+network-agent:
+	go install ./cmd/network-agent
 
 .PHONY: clean
 clean:
-	rm -f bin/newrelic-network-agent
+	rm -f bin/network-agent
 
 .PHONY: generate
 generate:
@@ -64,7 +64,7 @@ generate:
 .PHONY: install
 install:
 	mkdir -p $(DESTDIR)/usr/local/bin
-	install -m 0755 bin/newrelic-network-agent $(DESTDIR)/usr/local/bin
+	install -m 0755 bin/network-agent $(DESTDIR)/usr/local/bin
 
 .PHONY: docker
 docker: all

@@ -1,17 +1,17 @@
 version: "3.9"
 services:
-  newrelic-network-agent:
+  network-agent:
     image: newrelic/network-agent:latest
     network_mode: host
     entrypoint:
       - sh
       - -euc
       - |
-        cat <<EOF > /tmp/newrelic-network-agent.toml
+        cat <<EOF > /tmp/network-agent.toml
         listenaddr: "127.0.0.1:8081"
-        udrsfile: "/etc/newrelic-network-agent/udr.csv"
-        geofile: "/etc/newrelic-network-agent/GeoLite2-Country.mmdb"
-        asnfile: "/etc/newrelic-network-agent/GeoLite2-ASN.mmdb"
+        udrsfile: "/etc/network-agent/udr.csv"
+        geofile: "/etc/network-agent/GeoLite2-Country.mmdb"
+        asnfile: "/etc/network-agent/GeoLite2-ASN.mmdb"
         processingthreads: 1
         inputthreads: 1
         maxthreads: 1
@@ -43,7 +43,7 @@ services:
           ollywritekey: ""
 
         api:
-          devicefile: "/etc/newrelic-network-agent/devices.json"
+          devicefile: "/etc/network-agent/devices.json"
 
         snmpinput:
           enable: true
@@ -60,7 +60,7 @@ services:
           validatemibs: false
           pollnowtarget: ""
         EOF
-        newrelic-network-agent --config /tmp/newrelic-network-agent.toml
+        network-agent --config /tmp/network-agent.toml
     restart: always
     volumes:
       - type: bind

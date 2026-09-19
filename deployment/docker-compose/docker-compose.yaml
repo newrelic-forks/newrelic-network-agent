@@ -1,8 +1,8 @@
 version: "3.9"
 services:
-  newrelic-network-agent:
+  network-agent:
     image: newrelic/network-agent:latest
-    container_name: newrelic-network-agent
+    container_name: network-agent
     restart: unless-stopped
     volumes:
       - ${SNMP_PATH}:/snmp.yaml ## Make SNMP_PATH a path to your local snmp.yaml config.
