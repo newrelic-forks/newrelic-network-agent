@@ -5,11 +5,11 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	lt "github.com/kentik/ktranslate/pkg/eggs/logger/testing"
-	"github.com/kentik/ktranslate/pkg/formats/util"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	lt "github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger/testing"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"
@@ -26,7 +26,7 @@ func TestRemotePromSynthOutcome(t *testing.T) {
 	assert := assert.New(t)
 	l := lt.NewTestContextL(logger.NilContext, t).GetLogger().GetUnderlyingLogger()
 
-	cfg := ktranslate.DefaultConfig().PrometheusFormat
+	cfg := networkagent.DefaultConfig().PrometheusFormat
 	f, err := NewRemoteFormat(l, kt.CompressionSnappy, cfg)
 	assert.NoError(err)
 
@@ -103,7 +103,7 @@ func TestRemotePromSyngest(t *testing.T) {
 	assert := assert.New(t)
 	l := lt.NewTestContextL(logger.NilContext, t).GetLogger().GetUnderlyingLogger()
 
-	cfg := ktranslate.DefaultConfig().PrometheusFormat
+	cfg := networkagent.DefaultConfig().PrometheusFormat
 	f, err := NewRemoteFormat(l, kt.CompressionSnappy, cfg)
 	assert.NoError(err)
 

@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: newrelic-network-agent
+  name: network-agent
 spec:
   selector:
     matchLabels:
-      app: newrelic-network-agent
+      app: network-agent
   template:
     metadata:
       labels:
-        app: newrelic-network-agent
+        app: network-agent
     spec:
       containers:
-      - name: newrelic-network-agent
+      - name: network-agent
         image: newrelic/network-agent:latest
         imagePullPolicy: Always
         args:
           - --listen=0.0.0.0:8082
           - --metalisten=0.0.0.0:8083
-          - --snmp=/etc/newrelic-network-agent/snmp.yml
+          - --snmp=/etc/network-agent/snmp.yml
           - --log_level=info
           - --nf.source=sflow
           - --nf.addr=0.0.0.0
@@ -56,21 +56,21 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 5
         volumeMounts:
-          - name: newrelic-network-agent-config
-            mountPath: /etc/newrelic-network-agent/snmp.yml
+          - name: network-agent-config
+            mountPath: /etc/network-agent/snmp.yml
             subPath: snmp.yml
       volumes:
-        - name: newrelic-network-agent-config
+        - name: network-agent-config
           configMap:
-            name: newrelic-network-agent-config
+            name: network-agent-config
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: newrelic-network-agent-firehose
+  name: network-agent-firehose
   labels:
-    app: newrelic-network-agent
+    app: network-agent
 spec:
   ports:
   - port: 8082
@@ -78,15 +78,15 @@ spec:
     targetPort: 8082
     protocol: TCP
   selector:
-    app: newrelic-network-agent
+    app: network-agent
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: newrelic-network-agent-metadata
+  name: network-agent-metadata
   labels:
-    app: newrelic-network-agent
+    app: network-agent
 spec:
   ports:
   - port: 8083
@@ -94,15 +94,15 @@ spec:
     targetPort: 8083
     protocol: TCP
   selector:
-    app: newrelic-network-agent
+    app: network-agent
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: newrelic-network-agent-prom
+  name: network-agent-prom
   labels:
-    app: newrelic-network-agent
+    app: network-agent
 spec:
   ports:
   - port: 8084
@@ -110,14 +110,14 @@ spec:
     targetPort: 8084
     protocol: TCP
   selector:
-    app: newrelic-network-agent
+    app: network-agent
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: newrelic-network-agent-sflow
+  name: network-agent-sflow
   labels:
-    app: newrelic-network-agent
+    app: network-agent
 spec:
   ports:
   - port: 6343
@@ -125,13 +125,13 @@ spec:
     targetPort: 6343
     protocol: UDP
   selector:
-    app: newrelic-network-agent
+    app: network-agent
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: newrelic-network-agent-config
+  name: network-agent-config
 data:
   snmp.yml: |
     devices:
@@ -143,8 +143,8 @@ data:
     global:
       poll_time_sec: 30
       drop_if_outside_poll: false
-      mib_profile_dir: /etc/newrelic-network-agent/profiles
-      mibs_db: /etc/newrelic-network-agent/mibs.db
+      mib_profile_dir: /etc/network-agent/profiles
+      mibs_db: /etc/network-agent/mibs.db
       mibs_enabled:
       - IF-MIB
       timeout_ms: 3000
