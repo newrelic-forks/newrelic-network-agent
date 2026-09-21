@@ -127,11 +127,27 @@ release-rc version ref="HEAD":
 
     sha="$(git rev-parse "{{ref}}")"
 
-    if git rev-parse -q --verify "refs/tags/$tag" >/dev/null || \
-       git ls-remote --exit-code origin "refs/tags/$tag" >/dev/null 2>&1; then
-      echo "error: tag $tag already exists (locally or on origin)." >&2
+    if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+      echo "error: tag $tag already exists locally." >&2
       exit 1
     fi
+    # Checked separately from the local check (not folded into one `||`) so a
+    # network/auth failure here -- which also exits nonzero -- can't be
+    # mistaken for "tag not found" and silently let a duplicate slip through.
+    # --exit-code's contract is specifically exit 2 for "not found"; anything
+    # else nonzero is a real failure to even ask the question.
+    set +e
+    git ls-remote --exit-code origin "refs/tags/$tag" >/dev/null 2>&1
+    remote_rc=$?
+    set -e
+    case "$remote_rc" in
+      0) echo "error: tag $tag already exists on origin." >&2; exit 1 ;;
+      2) ;;
+      *)
+        echo "error: could not check whether $tag exists on origin (git ls-remote exited $remote_rc) -- aborting rather than assuming it's safe to proceed." >&2
+        exit 1
+        ;;
+    esac
     if gh release view "$tag" >/dev/null 2>&1; then
       echo "error: a GitHub release already exists for $tag." >&2
       exit 1
@@ -163,6 +179,7 @@ release-promote version from_tag:
     tag="v{{version}}"
     from="{{from_tag}}"
     case "$from" in v*) ;; *) from="v$from" ;; esac
+    from_version="${from#v}"
 
     case "{{version}}" in
       *-*)
@@ -172,11 +189,35 @@ release-promote version from_tag:
     esac
     nix run .#check-semver -- "{{version}}"
 
-    if git rev-parse -q --verify "refs/tags/$tag" >/dev/null || \
-       git ls-remote --exit-code origin "refs/tags/$tag" >/dev/null 2>&1; then
+    # $from must actually be a pre-release *of this version* -- otherwise e.g.
+    # `release-promote 2.0.0 1.0.0-rc1` would pass every other check here and
+    # promote a completely unrelated RC's image as 2.0.0.
+    case "$from_version" in
+      "{{version}}"-*) ;;
+      *)
+        echo "error: $from is not a pre-release of {{version}} -- expected a tag starting with 'v{{version}}-'." >&2
+        exit 1
+        ;;
+    esac
+
+    if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
       echo "error: tag $tag already exists -- this version has already been released." >&2
       exit 1
     fi
+    # See release-rc's matching check: don't fold this into the local check via
+    # `||` -- a network/auth failure here must abort, not be read as "not found".
+    set +e
+    git ls-remote --exit-code origin "refs/tags/$tag" >/dev/null 2>&1
+    remote_rc=$?
+    set -e
+    case "$remote_rc" in
+      0) echo "error: tag $tag already exists on origin -- this version has already been released." >&2; exit 1 ;;
+      2) ;;
+      *)
+        echo "error: could not check whether $tag exists on origin (git ls-remote exited $remote_rc) -- aborting rather than assuming it's safe to proceed." >&2
+        exit 1
+        ;;
+    esac
     if gh release view "$tag" >/dev/null 2>&1; then
       echo "error: a GitHub release already exists for $tag." >&2
       exit 1
