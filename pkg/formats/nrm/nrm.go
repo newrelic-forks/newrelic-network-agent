@@ -41,6 +41,9 @@ const (
 	InstNameNetflowMetric = "netflow-metrics"
 	InstNameSynthetic     = "synthetic"
 	InstNameKtranslate    = "heartbeat"
+
+	AttrInstrumentationProvider = "instrumentation.provider"
+	AttrCollectorName           = "collector.name"
 )
 
 // reservedNRAttributeKeys are the common attributes newNRCommon stamps onto every
@@ -48,7 +51,7 @@ const (
 // silently dropped in NewFormat (rather than allowed to overwrite it in
 // newNRCommon on every batch), since overwriting either one would misattribute
 // this instance's data.
-var reservedNRAttributeKeys = []string{"instrumentation.provider", "collector.name"}
+var reservedNRAttributeKeys = []string{AttrInstrumentationProvider, AttrCollectorName}
 
 type NRMFormat struct {
 	logger.ContextL
@@ -792,8 +795,8 @@ func toInstName(prov kt.Provider) string {
 
 func (f *NRMFormat) newNRCommon() *NRCommon {
 	attrs := map[string]string{
-		"instrumentation.provider": kt.InstProvider,
-		"collector.name":           kt.CollectorName,
+		AttrInstrumentationProvider: kt.InstProvider,
+		AttrCollectorName:           kt.CollectorName,
 	}
 	// Merged onto every batch this instance sends (SNMP, flow, heartbeat, everything) --
 	// New Relic's Metric API ingest merges these into each metric's own attributes
