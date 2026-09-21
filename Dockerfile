@@ -26,21 +26,25 @@ ARG NR_SNMP_PROFILE_REPO
 RUN apk add -U git
 
 # Opt-in auth: when a `github_token` BuildKit secret is provided (a GitHub token with read
-# access to the repo), transparently authenticate GitHub HTTPS clones. This is a complete
-# no-op when the secret is absent, so the override/clone logic below is unchanged from
-# upstream. The token lives only in this throwaway stage (only /snmp/profiles is copied on).
+# access to the repo), transparently authenticate GitHub HTTPS clones for the clone below.
+# This is a complete no-op when the secret is absent, so the override/clone logic is
+# unchanged from upstream. The git config edit, the clone, and removing that config all
+# happen in this one RUN -- `--mount=type=secret` keeps the secret file itself out of the
+# layer, but a plain file this RUN writes (the token embedded in ~/.gitconfig) is not a
+# secret to BuildKit and would still be committed to that RUN's layer. Doing the cleanup
+# in a later, separate RUN doesn't undo that -- the earlier layer still has it -- so the
+# clone and the cleanup have to happen in the same instruction as the git config edit.
 RUN --mount=type=secret,id=github_token \
     if [ -s /run/secrets/github_token ]; then \
         git config --global url."https://x-access-token:$(cat /run/secrets/github_token)@github.com/".insteadOf "https://github.com/"; \
-    fi
-
-# If there is a branch of snmp-profiles to use, switch over here now.
-RUN if [ -z "${NR_SNMP_PROFILE_REPO}" ]; then \
-    git clone https://github.com/kentik/snmp-profiles /snmp; \
-else \
-    echo "picking repo ${NR_SNMP_PROFILE_REPO} for snmp profiles"; \
-    git clone ${NR_SNMP_PROFILE_REPO} /snmp; \
-fi
+    fi; \
+    if [ -z "${NR_SNMP_PROFILE_REPO}" ]; then \
+        git clone https://github.com/kentik/snmp-profiles /snmp; \
+    else \
+        echo "picking repo ${NR_SNMP_PROFILE_REPO} for snmp profiles"; \
+        git clone ${NR_SNMP_PROFILE_REPO} /snmp; \
+    fi; \
+    rm -f /root/.gitconfig
 
 # main image
 FROM alpine:3.23.3
