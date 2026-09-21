@@ -90,7 +90,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
   -http_timeout_sec int
     	Timeout each request after this long. (default 30)
   -http_url string
-    	URL to post to (default "http://localhost:8086/write?db=kentik")
+    	URL to post to (default "http://localhost:8086/write?db=network-agent")
   -iam_role string
     	IAM Role to use for processing flow
   -influxdb_measurement_prefix string
@@ -202,7 +202,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
   -s3_flush_sec int
     	Create a new output file every this many seconds (default 60)
   -s3_prefix string
-    	AWS S3 Object prefix (default "/kentik")
+    	AWS S3 Object prefix (default "/network-agent")
   -s3_region string
     	S3 Bucket region where S3 bucket is created (default "us-east-1")
   -s3_signing_region string

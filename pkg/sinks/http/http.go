@@ -37,7 +37,7 @@ const (
 )
 
 func init() {
-	flag.StringVar(&targetURL, "http_url", "http://localhost:8086/write?db=kentik", "URL to post to")
+	flag.StringVar(&targetURL, "http_url", "http://localhost:8086/write?db=network-agent", "URL to post to")
 	flag.StringVar(&targetLogURL, "http_log_url", "http://localhost:8088/services/collector/event", "URL to post logs to")
 	flag.BoolVar(&insecureSkipVerify, "http_insecure", false, "Allow insecure urls.")
 	flag.IntVar(&timeoutSec, "http_timeout_sec", 30, "Timeout each request after this long.")
