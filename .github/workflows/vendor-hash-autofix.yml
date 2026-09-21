@@ -96,6 +96,15 @@ jobs:
           nix build .#packages.x86_64-linux.network-agent -L
 
       - name: Commit and push if changed
+        env:
+          # head_branch is a branch name chosen by whoever pushed it -- interpolating
+          # it directly into this run: script via ${{ }} (rather than $HEAD_BRANCH)
+          # would let a maliciously-named branch inject shell commands that run with
+          # this job's contents: write token. The head_repository check in this job's
+          # `if:` limits this to same-repo branches, not arbitrary forks, but that's
+          # about who can trigger this, not about the branch name being safe to
+          # interpolate unquoted.
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           if git diff --quiet; then
             echo "vendorHash already correct, nothing to fix"
@@ -105,4 +114,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add nix/network-agent.nix
           git commit -m "chore(deps): refresh network-agent vendorHash"
-          git push origin "HEAD:${{ github.event.workflow_run.head_branch }}"
+          git push origin "HEAD:$HEAD_BRANCH"

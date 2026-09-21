@@ -27,9 +27,16 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set build id and platform
+        env:
+          # github.event.inputs.platform is a `type: choice` input restricted to a
+          # fixed set of options, but interpolating any ${{ }} expression directly
+          # into a run: script is still worth avoiding on principle -- GitHub expands
+          # ${{ }} textually before bash parses the script, so anything that ever
+          # widens this input's type later wouldn't be caught here.
+          PLATFORM_INPUT: ${{ github.event.inputs.platform }}
         run: |
           echo "CI_BUILD=ci-$(date +%Y-%m-%d)-${GITHUB_RUN_ID}" >> "$GITHUB_ENV"
-          echo "PLATFORM=${{ github.event.inputs.platform || 'linux/amd64' }}" >> "$GITHUB_ENV"
+          echo "PLATFORM=${PLATFORM_INPUT:-linux/amd64}" >> "$GITHUB_ENV"
 
       - name: Set up QEMU        # enables cross-building (e.g. arm64 on an amd64 runner)
         uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
