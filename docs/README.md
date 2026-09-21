@@ -6,7 +6,7 @@ can be acted on, revised, or removed at any time — they're not fixed specs.
 
 ## Contributor reference
 
-- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — how to contribute to Kentik Labs projects
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — how to contribute to New Relic projects
   (issue reporting, PR process).
 
 ## Investigations
