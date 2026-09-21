@@ -77,10 +77,10 @@ type NetworkAgent struct {
 	tagMapRegion maps.TagMapper
 	tagKM        *km.KMMapper
 	vpc          vpc.VpcImpl
-	nfs          *flow.KentikDriver
+	nfs          *flow.Driver
 	rule         *rule.RuleSet
-	syslog       *syslog.KentikSyslog
-	http         *http.KentikHttpListener
+	syslog       *syslog.Source
+	http         *http.Listener
 	enricher     *enrich.Enricher
 	logTee       chan string
 	logTeeSinks  []chan string

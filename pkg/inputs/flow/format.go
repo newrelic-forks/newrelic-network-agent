@@ -29,7 +29,7 @@ const (
 	DeviceUpdateDuration = 1 * time.Hour
 )
 
-type KentikDriver struct {
+type Driver struct {
 	logger.ContextL
 	sync.RWMutex
 	jchfChan     chan []*kt.JCHF
@@ -61,8 +61,8 @@ type FlowMetric struct {
 	Flows go_metrics.Meter
 }
 
-func NewKentikDriver(ctx context.Context, proto FlowSource, maxBatchSize int, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF, apic *api.KentikApi, fields string, resolv *resolv.Resolver, cfg *networkagent.FlowInputConfig) *KentikDriver {
-	kt := KentikDriver{
+func NewDriver(ctx context.Context, proto FlowSource, maxBatchSize int, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF, apic *api.KentikApi, fields string, resolv *resolv.Resolver, cfg *networkagent.FlowInputConfig) *Driver {
+	kt := Driver{
 		ContextL:     logger.NewContextLFromUnderlying(logger.SContext{S: "flow"}, log),
 		jchfChan:     jchfChan,
 		apic:         apic,
@@ -81,7 +81,7 @@ func NewKentikDriver(ctx context.Context, proto FlowSource, maxBatchSize int, lo
 	return &kt
 }
 
-func (t *KentikDriver) SetConfig(c *pp.ProducerConfig) {
+func (t *Driver) SetConfig(c *pp.ProducerConfig) {
 	t.config = c
 	t.pb2ixd = map[int32]pbInfo{}
 	for _, pf := range t.config.Formatter.Protobuf {
@@ -92,24 +92,24 @@ func (t *KentikDriver) SetConfig(c *pp.ProducerConfig) {
 	}
 }
 
-func (t *KentikDriver) Name() string {
+func (t *Driver) Name() string {
 	return "Kentik CHF"
 }
 
-func (t *KentikDriver) Init() error {
+func (t *Driver) Init() error {
 	return nil
 }
 
-func (t *KentikDriver) Prepare() error {
+func (t *Driver) Prepare() error {
 	return nil
 }
 
 // Noop for now. Possibly add later?
-func (t *KentikDriver) Send(key, data []byte) error {
+func (t *Driver) Send(key, data []byte) error {
 	return nil
 }
 
-func (t *KentikDriver) Format(data interface{}) ([]byte, []byte, error) {
+func (t *Driver) Format(data interface{}) ([]byte, []byte, error) {
 	msg, ok := data.(*pp.ProtoProducerMessage)
 	if !ok {
 		return nil, nil, fmt.Errorf("message is not protobuf")
@@ -118,7 +118,7 @@ func (t *KentikDriver) Format(data interface{}) ([]byte, []byte, error) {
 	return nil, nil, nil
 }
 
-func (t *KentikDriver) Close() error {
+func (t *Driver) Close() error {
 	if t.receiver != nil {
 		if err := t.receiver.Stop(); err != nil {
 			t.Errorf("Error stopping flow reciever: %v", err)
@@ -134,7 +134,7 @@ func (t *KentikDriver) Close() error {
 	return nil
 }
 
-func (t *KentikDriver) HttpInfo() map[string]float64 {
+func (t *Driver) HttpInfo() map[string]float64 {
 	flows := map[string]float64{}
 	for d, f := range t.metrics {
 		flows[d+"_rate"] = f.Flows.Rate1()
@@ -143,7 +143,7 @@ func (t *KentikDriver) HttpInfo() map[string]float64 {
 	return flows
 }
 
-func (t *KentikDriver) mapCustoms(m *pp.ProtoProducerMessage, in *kt.JCHF) {
+func (t *Driver) mapCustoms(m *pp.ProtoProducerMessage, in *kt.JCHF) {
 	if t.pb2ixd == nil {
 		return
 	}
@@ -186,7 +186,7 @@ func (t *KentikDriver) mapCustoms(m *pp.ProtoProducerMessage, in *kt.JCHF) {
 	}
 }
 
-func (t *KentikDriver) toJCHF(fmsg *pp.ProtoProducerMessage) *kt.JCHF {
+func (t *Driver) toJCHF(fmsg *pp.ProtoProducerMessage) *kt.JCHF {
 	srcmac := make([]byte, 8)
 	dstmac := make([]byte, 8)
 	binary.BigEndian.PutUint64(srcmac, fmsg.SrcMac)
@@ -355,7 +355,7 @@ func (t *KentikDriver) toJCHF(fmsg *pp.ProtoProducerMessage) *kt.JCHF {
 	return in
 }
 
-func (t *KentikDriver) run(ctx context.Context) {
+func (t *Driver) run(ctx context.Context) {
 	sendTicker := time.NewTicker(kt.SendBatchDuration)
 	defer sendTicker.Stop()
 	deviceTicker := time.NewTicker(DeviceUpdateDuration)

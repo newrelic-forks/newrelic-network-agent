@@ -36,7 +36,7 @@ func init() {
 	flag.IntVar(&threads, "syslog.threads", 1, "Number of threads to use to process messages.")
 }
 
-type KentikSyslog struct {
+type Source struct {
 	logger.ContextL
 	server   *syslog.Server
 	handler  *syslog.ChannelHandler
@@ -62,8 +62,8 @@ const (
 	ErrorCheckDuration   = 1 * time.Minute
 )
 
-func NewSyslogSource(ctx context.Context, log logger.Underlying, logchan chan string, registry go_metrics.Registry, apic *api.KentikApi, resolver *resolv.Resolver, cfg *networkagent.SyslogInputConfig) (*KentikSyslog, error) {
-	ks := KentikSyslog{
+func NewSyslogSource(ctx context.Context, log logger.Underlying, logchan chan string, registry go_metrics.Registry, apic *api.KentikApi, resolver *resolv.Resolver, cfg *networkagent.SyslogInputConfig) (*Source, error) {
+	ks := Source{
 		ContextL: logger.NewContextLFromUnderlying(logger.SContext{S: "Syslog"}, log),
 		logchan:  logchan,
 		metrics: SyslogMetric{
@@ -135,9 +135,9 @@ func NewSyslogSource(ctx context.Context, log logger.Underlying, logchan chan st
 	return &ks, nil
 }
 
-func (ks *KentikSyslog) Close() {}
+func (ks *Source) Close() {}
 
-func (ks *KentikSyslog) HttpInfo() map[string]float64 {
+func (ks *Source) HttpInfo() map[string]float64 {
 	msgs := map[string]float64{
 		"messages": ks.metrics.Messages.Rate1(),
 		"errors":   ks.metrics.Errors.Rate1(),
@@ -146,7 +146,7 @@ func (ks *KentikSyslog) HttpInfo() map[string]float64 {
 	return msgs
 }
 
-func (ks *KentikSyslog) process(ctx context.Context, id int, channel syslog.LogPartsChannel) {
+func (ks *Source) process(ctx context.Context, id int, channel syslog.LogPartsChannel) {
 	deviceTicker := time.NewTicker(DeviceUpdateDuration)
 	defer deviceTicker.Stop()
 	checkTicker := time.NewTicker(1 * time.Second)
@@ -194,7 +194,7 @@ func (ks *KentikSyslog) process(ctx context.Context, id int, channel syslog.LogP
 	}
 }
 
-func (ks *KentikSyslog) run(ctx context.Context, host string) {
+func (ks *Source) run(ctx context.Context, host string) {
 	ks.Infof("Server ready on %s", host)
 
 	for i := 1; i <= ks.config.Threads; i++ {
@@ -205,7 +205,7 @@ func (ks *KentikSyslog) run(ctx context.Context, host string) {
 	ks.server.Wait()
 }
 
-func (ks *KentikSyslog) formatMessage(ctx context.Context, msg sfmt.LogParts) ([]byte, error) {
+func (ks *Source) formatMessage(ctx context.Context, msg sfmt.LogParts) ([]byte, error) {
 	if client, ok := msg["client"].(string); ok { // Look up device_name here.
 		pts := strings.Split(client, ":")
 		if dev, ok := ks.devices[pts[0]]; ok {

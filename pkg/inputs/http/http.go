@@ -19,7 +19,7 @@ import (
 	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/ic"
 )
 
-type KentikHttpListener struct {
+type Listener struct {
 	logger.ContextL
 	metrics  HttpListenerMetric
 	apic     *api.KentikApi
@@ -46,8 +46,8 @@ func init() {
 	flag.StringVar(&useAsRemoteIP, "http.remote_ip", "", "If set, ignore actual remote IP and use this for device mapping.")
 }
 
-func NewHttpListener(ctx context.Context, host string, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF, apic *api.KentikApi) (*KentikHttpListener, error) {
-	ks := KentikHttpListener{
+func NewHttpListener(ctx context.Context, host string, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF, apic *api.KentikApi) (*Listener, error) {
+	ks := Listener{
 		ContextL: logger.NewContextLFromUnderlying(logger.SContext{S: "Http"}, log),
 		jchfChan: jchfChan,
 		metrics: HttpListenerMetric{
@@ -62,7 +62,7 @@ func NewHttpListener(ctx context.Context, host string, log logger.Underlying, re
 	return &ks, nil
 }
 
-func (ks *KentikHttpListener) RegisterRoutes(r *kmux.Router) {
+func (ks *Listener) RegisterRoutes(r *kmux.Router) {
 	r.HandleFunc(Listen+"/telegraf/standard", ks.wrap(ks.readStandard))
 	r.HandleFunc(Listen+"/telegraf/batch", ks.wrap(ks.readBatch))
 	r.HandleFunc(Listen+"/ktranslate/jchf", ks.wrap(ks.readJCHF))
@@ -96,7 +96,7 @@ type gigaEvent struct {
 	SeqNum                    int    `json:"seq_num,string"`
 }
 
-func (ks *KentikHttpListener) readGigaBatch(w http.ResponseWriter, r *http.Request) {
+func (ks *Listener) readGigaBatch(w http.ResponseWriter, r *http.Request) {
 	var wrap []gigaEvent
 
 	// Decode body in gzip format if the request header is set this way.
@@ -126,7 +126,7 @@ func (ks *KentikHttpListener) readGigaBatch(w http.ResponseWriter, r *http.Reque
 	ks.jchfChan <- out
 }
 
-func (ks *KentikHttpListener) getGigaJCHF(event *gigaEvent, remoteIP string) *kt.JCHF {
+func (ks *Listener) getGigaJCHF(event *gigaEvent, remoteIP string) *kt.JCHF {
 	in := kt.NewJCHF()
 	in.Timestamp = time.Now().Unix()
 	in.CustomStr = map[string]string{
@@ -179,7 +179,7 @@ type batch struct {
 	Metrics []basic `json:"metrics"`
 }
 
-func (ks *KentikHttpListener) readBatch(w http.ResponseWriter, r *http.Request) {
+func (ks *Listener) readBatch(w http.ResponseWriter, r *http.Request) {
 	var wrapper batch
 
 	// Decode body in gzip format if the request header is set this way.
@@ -208,7 +208,7 @@ func (ks *KentikHttpListener) readBatch(w http.ResponseWriter, r *http.Request) 
 	ks.jchfChan <- out
 }
 
-func (ks *KentikHttpListener) readStandard(w http.ResponseWriter, r *http.Request) {
+func (ks *Listener) readStandard(w http.ResponseWriter, r *http.Request) {
 	var wrapper basic
 
 	// Decode body in gzip format if the request header is set this way.
@@ -232,7 +232,7 @@ func (ks *KentikHttpListener) readStandard(w http.ResponseWriter, r *http.Reques
 	ks.metrics.Messages.Mark(1)
 }
 
-func (ks *KentikHttpListener) getJCHF(wrapper *basic, remoteIP string) *kt.JCHF {
+func (ks *Listener) getJCHF(wrapper *basic, remoteIP string) *kt.JCHF {
 	in := kt.NewJCHF()
 	in.CustomStr = make(map[string]string)
 	in.CustomInt = make(map[string]int32)
@@ -267,7 +267,7 @@ func (ks *KentikHttpListener) getJCHF(wrapper *basic, remoteIP string) *kt.JCHF 
 }
 
 // Get the JCHF content directly.
-func (ks *KentikHttpListener) readJCHF(w http.ResponseWriter, r *http.Request) {
+func (ks *Listener) readJCHF(w http.ResponseWriter, r *http.Request) {
 	wrapper := []*kt.JCHF{}
 
 	// Decode body in gzip format if the request header is set this way.
@@ -294,9 +294,9 @@ func (ks *KentikHttpListener) readJCHF(w http.ResponseWriter, r *http.Request) {
 	ks.jchfChan <- wrapper
 }
 
-func (ks *KentikHttpListener) Close() {}
+func (ks *Listener) Close() {}
 
-func (ks *KentikHttpListener) HttpInfo() map[string]float64 {
+func (ks *Listener) HttpInfo() map[string]float64 {
 	msgs := map[string]float64{
 		"messages": ks.metrics.Messages.Rate1(),
 		"errors":   ks.metrics.Errors.Rate1(),
@@ -304,7 +304,7 @@ func (ks *KentikHttpListener) HttpInfo() map[string]float64 {
 	return msgs
 }
 
-func (ks *KentikHttpListener) wrap(f handler) handler {
+func (ks *Listener) wrap(f handler) handler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -340,7 +340,7 @@ func getIP(r *http.Request) string {
 	return pts[0]
 }
 
-func (ks *KentikHttpListener) run(ctx context.Context) {
+func (ks *Listener) run(ctx context.Context) {
 	deviceTicker := time.NewTicker(DeviceUpdateDuration)
 	defer deviceTicker.Stop()
 
