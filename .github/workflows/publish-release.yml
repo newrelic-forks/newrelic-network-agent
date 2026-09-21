@@ -50,6 +50,16 @@ jobs:
             VERSION="$(cat VERSION)"
           fi
 
+          # "latest" is reserved for the promote job -- it must never be pushed as a
+          # regular version tag by the publish job (workflow_dispatch could otherwise
+          # type it in directly as the version input).
+          case "$(printf '%s' "$VERSION" | tr '[:upper:]' '[:lower:]')" in
+            latest)
+              echo "::error::'latest' is not a valid version -- it's reserved for the promote job on a full release."
+              exit 1
+              ;;
+          esac
+
           IS_PRERELEASE="${{ github.event_name == 'release' && github.event.release.prerelease }}"
           if [ "$IS_PRERELEASE" = "true" ]; then
             case "$VERSION" in
@@ -91,6 +101,20 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASS }}
+
+      # An ad-hoc workflow_dispatch build must never clobber a version tag that's
+      # already on Docker Hub -- published versions are immutable. A pre-release
+      # rebuild (github.event_name == 'release') is deliberately NOT checked here:
+      # re-publishing/re-running the same pre-release to retry a flaky build is
+      # expected to succeed, not get blocked by its own prior (possibly partial)
+      # attempt.
+      - name: Refuse to overwrite an existing version tag (workflow_dispatch only)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if docker buildx imagetools inspect "newrelic/network-agent:${{ env.VERSION }}" > /dev/null 2>&1; then
+            echo "::error::newrelic/network-agent:${{ env.VERSION }} already exists on Docker Hub. Published version tags are immutable -- use a different version input (or bump VERSION) for an ad-hoc build."
+            exit 1
+          fi
 
       # See ci-build.yml for why this downloads MaxMind's databases itself (via
       # actions/cache) instead of inside the Docker build: a BuildKit `--mount=type=cache`
