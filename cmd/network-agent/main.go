@@ -82,7 +82,7 @@ func init() {
 	flag.IntVar(&dumpRollups, "rollup_interval", 0, "Export timer for rollups in seconds")
 	flag.StringVar(&teeFlow, "tee_flow", "", "If set, tee flow to another network-agent instance here.")
 	flag.BoolVar(&rollupAndAlpha, "rollup_and_alpha", false, "Send both rollups and alpha inputs to sinks")
-	flag.IntVar(&sample, "sample_rate", kt.LookupEnvInt("KENTIK_SAMPLE_RATE", 1), "Sampling rate to use. 1 -> 1:1 sampling, 2 -> 1:2 sampling and so on.")
+	flag.IntVar(&sample, "sample_rate", kt.LookupEnvIntDeprecated(kt.NetworkAgentSampleRate, kt.KentikSampleRate, 1), "Sampling rate to use. 1 -> 1:1 sampling, 2 -> 1:2 sampling and so on.")
 	flag.IntVar(&sampleMin, "max_before_sample", 1, "Only sample when a set of inputs is at least this many")
 	flag.StringVar(&apiDevices, "api_devices", "", "json file containing dumy devices to use for the stub Kentik API")
 	flag.StringVar(&snmpFile, "snmp", "", "yaml file containing snmp config to use")
@@ -93,7 +93,7 @@ func init() {
 	flag.StringVar(&sslCertFile, "ssl_cert_file", "", "SSL Cert file to use for serving HTTPS traffic")
 	flag.StringVar(&sslKeyFile, "ssl_key_file", "", "SSL Key file to use for serving HTTPS traffic")
 	flag.StringVar(&tagMapType, "tag_map_type", "", "type of mapping to use for tag values. file|null")
-	flag.StringVar(&vpcSource, "vpc", kt.LookupEnvString("KENTIK_VPC", ""), "Run VPC Flow Ingest")
+	flag.StringVar(&vpcSource, "vpc", kt.LookupEnvStringDeprecated(kt.NetworkAgentVPC, kt.KentikVPC, ""), "Run VPC Flow Ingest")
 	flag.StringVar(&flowSource, "nf.source", "", "Run NetFlow Ingest Directly. Valid values here are netflow5|netflow9|ipfix|sflow|nbar|asa|pan|auto")
 	flag.BoolVar(&teeLog, "tee_logs", false, "Tee log messages to sink")
 	flag.StringVar(&appMap, "application_map", "", "File containing custom application mappings")
@@ -149,7 +149,7 @@ func main() {
 		cfg.Server.CfgPath = v
 	}
 
-	if err := applyMode(cfg, kt.LookupEnvString("KENTIK_MODE", flag.Arg(0))); err != nil {
+	if err := applyMode(cfg, kt.LookupEnvStringDeprecated(kt.NetworkAgentMode, kt.KentikMode, flag.Arg(0))); err != nil {
 		panic(err)
 	}
 

@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	nurl "net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -118,8 +117,8 @@ func NewSink(log logger.Underlying, registry go_metrics.Registry, cfg *networkag
 		nr.Infof(`Adding HTTP header "%s: %s"`, k, v)
 	}
 
-	username := os.Getenv("KENTIK_HTTP_USERNAME")
-	passwd := os.Getenv("KENTIK_HTTP_PASSWORD")
+	username := kt.LookupEnvStringDeprecated(kt.NetworkAgentHTTPUsername, kt.KentikHTTPUsername, "")
+	passwd := kt.LookupEnvStringDeprecated(kt.NetworkAgentHTTPPassword, kt.KentikHTTPPassword, "")
 	if username != "" && passwd != "" {
 		nr.username = username
 		nr.passwd = passwd

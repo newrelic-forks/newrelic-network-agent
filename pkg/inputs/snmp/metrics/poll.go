@@ -287,8 +287,8 @@ func (p *Poller) StartPingOnlyLoop(ctx context.Context) {
 	jitterWindow := time.Duration(p.jitterTimeSec) * time.Second
 	firstCollection := time.Now().Truncate(counterAlignment).Add(counterAlignment).Add(time.Duration(rand.Int63n(int64(jitterWindow))))
 	counterCheck := tick.NewFixedTimer(firstCollection, counterAlignment)
-	fastDuration := time.Duration(kt.LookupEnvInt("KENTIK_FAST_PING_DURATION_SEC", 120)) * time.Second
-	fastTick := time.Duration(kt.LookupEnvInt("KENTIK_FAST_PING_TICK_SEC", 10)) * time.Second
+	fastDuration := time.Duration(kt.LookupEnvIntDeprecated(kt.NetworkAgentFastPingDurationSec, kt.KentikFastPingDurationSec, 120)) * time.Second
+	fastTick := time.Duration(kt.LookupEnvIntDeprecated(kt.NetworkAgentFastPingTickSec, kt.KentikFastPingTickSec, 10)) * time.Second
 	slowTick := time.Duration(p.pingSec) * time.Second
 
 	p.pinger.Reset(slowTick, p.counterTimeSec/p.pingSec)
