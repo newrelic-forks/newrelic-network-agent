@@ -50,6 +50,9 @@ jobs:
       sha_tag: ${{ steps.version.outputs.sha_tag }}
       is_prerelease: ${{ steps.version.outputs.is_prerelease }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
       - name: Determine version
         id: version
         env:
