@@ -22,12 +22,14 @@ jobs:
 
       # Same devShell (flake.nix) every other workflow and local development use --
       # go, make's own dependencies, etc. all come from there instead of a second,
-      # drifting actions/setup-go + apt-get definition of the toolchain.
-      - name: Build, vet, and test
-        run: |
-          nix develop --command bash -c '
-            set -euo pipefail
-            make
-            go vet ./...
-            make test
-          '
+      # drifting actions/setup-go + apt-get definition of the toolchain. Kept as
+      # three separate steps (rather than one bash -c chaining all three) so a
+      # failure's step name in the Actions UI says which one broke.
+      - name: Build
+        run: nix develop --command make
+
+      - name: Vet
+        run: nix develop --command go vet ./...
+
+      - name: Test
+        run: nix develop --command make test
