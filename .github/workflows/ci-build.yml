@@ -7,7 +7,7 @@ name: CI Build (no push)
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ main ]
   pull_request:
   workflow_dispatch:
     inputs:

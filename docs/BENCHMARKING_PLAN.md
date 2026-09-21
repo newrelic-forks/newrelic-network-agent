@@ -277,7 +277,7 @@ disabled; `.github/workflows/ci-build.yml` runs on
 `push: [investigation]` + `pull_request`). A new benchmark workflow should match that
 convention rather than gate every push:
 
-- `.github/workflows/benchmark.yml` (Tier A) — `workflow_dispatch` + `push: [develop]` +
+- `.github/workflows/benchmark.yml` (Tier A) — `workflow_dispatch` + `push: [main]` +
   `pull_request` (path-filtered). Checkout → `cachix/install-nix-action@v31` →
   `nix develop --command` runs the benchmarks and `benchstat -ignore cpu` against the
   checked-in baseline → writes to `$GITHUB_STEP_SUMMARY` and a sticky PR comment
@@ -287,7 +287,7 @@ convention rather than gate every push:
   path-filtered to only the code that plausibly changes what it measures
   (`pkg/inputs/snmp/**`, `nix/tests/**`) rather than running on every PR regardless of
   relevance. Triggers: `workflow_dispatch` + nightly `schedule` (drift tracking without
-  needing someone to remember to run it) + `push: [develop]` + `pull_request`
+  needing someone to remember to run it) + `push: [main]` + `pull_request`
   (path-filtered), mirroring Tier A's own trigger shape. Checkout →
   `cachix/install-nix-action@v31` (`enable_kvm: true`) →
   `nix build .#checks.x86_64-linux.snmp-discovery-bench-ci` (the 8-node CI-sized target,

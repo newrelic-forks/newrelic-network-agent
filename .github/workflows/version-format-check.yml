@@ -12,7 +12,7 @@ name: Version format check
 on:
   workflow_dispatch:
   push:
-    branches: [ develop ]
+    branches: [ main ]
     paths: &version-paths
       - 'VERSION'
       - 'nix/semver.nix'

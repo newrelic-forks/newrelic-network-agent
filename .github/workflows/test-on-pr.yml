@@ -7,26 +7,27 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           submodules: recursive
-          fetch-depth: 0         # Fetch all history for .GitInfo and .Lastmod
 
-      - name: Setup Go
-        uses: actions/setup-go@bfdd3570ce990073878bf10f6b2d79082de49492 # v2
+      - name: Install Nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
+
+      - name: Nix build cache
+        uses: Mic92/hestia@f1f4df2801140a36398ed423533c8460618539df # v3.0.1
         with:
-          go-version: '1.25.4'
+          upstream-cache-filter: "true"
 
-      - name: Install dependencies
-        run: sudo apt-get install make
-
-      - name: Run build
+      # Same devShell (flake.nix) every other workflow and local development use --
+      # go, make's own dependencies, etc. all come from there instead of a second,
+      # drifting actions/setup-go + apt-get definition of the toolchain.
+      - name: Build, vet, and test
         run: |
-          make
-
-      - name: Run vet
-        run: |
-          go vet .
-
-      - name: Run testing
-        run: make test
+          nix develop --command bash -c '
+            set -euo pipefail
+            make
+            go vet ./...
+            make test
+          '
