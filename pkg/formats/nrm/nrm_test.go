@@ -5,23 +5,11 @@ import (
 	"unicode/utf8"
 
 	"github.com/newrelic-forks/newrelic-network-agent"
+	lt "github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger/testing"
 	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/stretchr/testify/assert"
 )
-
-// noopUnderlying is a minimal logger.Underlying that discards everything --
-// used where a test needs NewFormat to actually be able to log (e.g.
-// Warnf on a rejected -nr_custom_attributes key) without pulling in *testing.T
-// via pkg/eggs/logger/testing's Test, which is missing GetLogLevel() and so
-// doesn't actually satisfy logger.Underlying despite its doc comment.
-type noopUnderlying struct{}
-
-func (noopUnderlying) Debugf(string, string, ...interface{}) {}
-func (noopUnderlying) Infof(string, string, ...interface{})  {}
-func (noopUnderlying) Warnf(string, string, ...interface{})  {}
-func (noopUnderlying) Errorf(string, string, ...interface{}) {}
-func (noopUnderlying) GetLogLevel() string                   { return "debug" }
 
 func TestSanitizeMetricsUTF8(t *testing.T) {
 	assert := assert.New(t)
@@ -134,7 +122,7 @@ func TestNewFormatDropsReservedCustomAttributeKeys(t *testing.T) {
 			"install_id":                "test-instance-123",
 		},
 	}
-	f, err := NewFormat(noopUnderlying{}, kt.CompressionNone, cfg)
+	f, err := NewFormat(&lt.Test{T: t}, kt.CompressionNone, cfg)
 	assert.NoError(err)
 
 	common := f.newNRCommon()
