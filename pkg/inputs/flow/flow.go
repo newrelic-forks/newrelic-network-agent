@@ -65,7 +65,7 @@ func init() {
 	flag.StringVar(&mappingFile, "nf.mapping", "", "Configuration file for custom netflow mappings")
 }
 
-func NewFlowSource(ctx context.Context, proto FlowSource, maxBatchSize int, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF, apic *api.KentikApi, resolv *resolv.Resolver, cfg *networkagent.FlowInputConfig) (*KentikDriver, error) {
+func NewFlowSource(ctx context.Context, proto FlowSource, maxBatchSize int, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF, apic *api.KentikApi, resolv *resolv.Resolver, cfg *networkagent.FlowInputConfig) (*Driver, error) {
 
 	defer func() {
 		if v := cfg.PrometheusListenAddr; v != "" {
@@ -89,7 +89,7 @@ func NewFlowSource(ctx context.Context, proto FlowSource, maxBatchSize int, log 
 		config = loadDefault(cfg)
 	}
 
-	kt := NewKentikDriver(ctx, proto, maxBatchSize, log, registry, jchfChan, apic, cfg.MessageFields, resolv, cfg)
+	kt := NewDriver(ctx, proto, maxBatchSize, log, registry, jchfChan, apic, cfg.MessageFields, resolv, cfg)
 
 	// Or pull up a special file if needed.
 	if v := cfg.MappingFile; v != "" {
