@@ -39,7 +39,7 @@ RUN --mount=type=secret,id=github_token \
         git config --global url."https://x-access-token:$(cat /run/secrets/github_token)@github.com/".insteadOf "https://github.com/"; \
     fi; \
     if [ -z "${NR_SNMP_PROFILE_REPO}" ]; then \
-        git clone https://github.com/kentik/snmp-profiles /snmp; \
+        git clone https://github.com/newrelic-forks/snmp-profiles /snmp; \
     else \
         echo "picking repo ${NR_SNMP_PROFILE_REPO} for snmp profiles"; \
         git clone ${NR_SNMP_PROFILE_REPO} /snmp; \
