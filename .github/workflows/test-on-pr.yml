@@ -1,7 +1,16 @@
 name: Test on Pull Request
 
+# The only workflow that runs the actual go test suite -- ci-build.yml only builds the
+# Docker image, and benchmark.yml runs with -run=^$ (benchmarks only, no correctness
+# tests). Was manual-dispatch-only since a 2026-07-29 blanket "disable inherited Kentik
+# workflow auto-triggers" cleanup swept it up along with the legacy publish-*.yml
+# pipeline (since removed entirely) -- unlike those, this workflow is still exactly what
+# we want on every PR, so restoring its trigger here is the correction, not a new risk.
 on:
-  workflow_dispatch:  # scheduled auto-trigger disabled; run manually
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
