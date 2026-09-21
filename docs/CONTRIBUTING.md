@@ -1,83 +1,35 @@
-# Contributing to Kentik Labs Projects
+# Contributing
 
-Want to contribute?  Awesome!
+Contributions are always welcome. Before contributing please read the
+[code of conduct](https://github.com/newrelic/.github/blob/main/CODE_OF_CONDUCT.md) and [search the issue tracker](../../issues); your issue may have already been discussed or fixed in `main`. To contribute,
+[fork](https://help.github.com/articles/fork-a-repo/) this repository, commit your changes, and [send a Pull Request](https://help.github.com/articles/using-pull-requests/).
 
-Please follow the guidelines below to ensure healthy and productive participation.
+Note that our [code of conduct](https://github.com/newrelic/.github/blob/main/CODE_OF_CONDUCT.md) applies to all platforms and venues related to this project; please follow it in all your interactions with the project and its participants.
 
-# Reporting Issues
+## Feature Requests
 
-Reporting issues and errors is a great way to contribute.  We appreciate well-written thorough issue reports as detailed as possible.
-
-Please check existing [Issues](/issues) before submitting.  If an existing issue is there, you can use the "subscribe" button to get updates.  If you have something to add please do so but "+1" or "same" comments typically clutter the discussion and do not really help.
-
-When opening a new issue, please include the version you are running and ways to reproduce the problem if possible.  If there is a long log file or attachment, please use a gist (https://gist.github.com).  Please check and remove any sensitive information from the log before posting.
-
-# Contributions
-
-This section will help contributors to the project.
+Feature requests should be submitted in the [Issue tracker](../../issues), with a description of the expected behavior & use case, where they’ll remain closed until sufficient interest, [e.g. :+1: reactions](https://help.github.com/articles/about-discussions-in-issues-and-pull-requests/), has been [shown by the community](../../issues?q=label%3A%22votes+needed%22+sort%3Areactions-%2B1-desc).
+Before submitting an Issue, please search for similar ones in the
+[closed issues](../../issues?q=is%3Aissue+is%3Aclosed+label%3Aenhancement).
 
 ## Pull Requests
 
-Every pull request is appreciated!  No matter if it is a typo, documentation, instructions, or code we welcome every pull request.  If it is a significant feature or refactor, please open an issue to discuss before spending time on the change to ensure that the maintainers are in agreement on the direction.
+1. Ensure any install or build dependencies are removed before the end of the layer when doing a build.
+2. Increase the version numbers in any examples files and the README.md to the new version that this Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
+3. You may merge the Pull Request in once you have the sign-off of two other developers, or if you do not have permission to do that, you may request the second reviewer to merge it for you.
 
+Following our best practices right from the start will accelerate the review process and help get your PR merged quicker.
 
-## Connect
+When updates to your PR are requested, please add new commits and do not squash the history. This will make it easier to identify new changes. The PR will be squashed anyway when it is merged.
 
-To connect with other contributors we have a [Discord](https://discord.gg/XGDNRj528C) server setup
-for more realtime discussion.
+For fast feedback, please `@`-mention maintainers.
 
-## Conventions
+Please make sure you test your changes before you push them. Once pushed, a GitHub Action will run across your changes and do some initial checks and linting. These checks can take a while, but we nonetheless require them to pass before we even continue reviewing your changes.
 
-Fork the repository and make changes on your fork in a feature branch:
+And do NOT forget to update documentation! Check the contents of the [`docs`](./docs) directory and apply changes as required. To quickly locate potential places that might need updating, search for expressions like "currently" or "as of now".
 
-- If it's a bug fix branch, name it XXXX-something where XXXX is the number of
-	the issue.
-- If it's a feature branch, create an enhancement issue to announce
-	your intentions, and name it XXXX-something where XXXX is the number of the
-	issue.
+## Contributor License Agreement
 
-### Documentation
+Keep in mind that when you submit your Pull Request, you'll need to sign the CLA via the click-through using CLA-Assistant. If you'd like to execute our corporate CLA, or if you have any questions, please drop us an email at <opensource@newrelic.com>.
 
-Please watch the pull request for test (CI) results and address any failures.  Also please
-ensure to update the documentation when creating or modifying features.
-
-### Commit Messages
-
-Please include a short summary (max 50 chars) followed by an optional more detailed explanation
-separated from the summary by an empty line.  This helps keep the version history clean.
-
-Commit messages should follow best practices, including explaining the context
-of the problem and how it was solved, including in caveats or follow up changes
-required. They should tell the story of the change and provide readers understanding
-of what led to it.  If you are completely new, please see
-[How to Write a Git Commit Message](http://chris.beams.io/posts/git-commit/) for a start.
-
-### Review
-
-Code review comments may be added to your pull request. Discuss, then make the
-suggested modifications and push additional commits to your feature branch. Post
-a comment after pushing. New commits show up in the pull request automatically,
-but the reviewers are notified only when you comment.
-
-Pull requests must be cleanly rebased on top of master without multiple branches
-mixed into the PR.
-
-Before you make a pull request, squash your commits into logical units of work
-using `git rebase -i` and `git push -f`. A logical unit of work is a consistent
-set of patches that should be reviewed together: for example, upgrading the
-version of a vendored dependency and taking advantage of its now available new
-feature constitute two separate units of work. Implementing a new function and
-calling it in another file constitute a single logical unit of work. The very
-high majority of submissions should have a single commit, so if in doubt: squash
-down to one.
-
-# Community Guidelines
-
-We want to keep the community awesome.  Please follow these guidelines:
-
-* Be courteous and respectful to fellow community members.  No racial, gender, or other
-abuse will be tolerated.
-
-* Encourage participation from all.  Please make everyone feel welcome in the community
-regardless of background and do everything possible to encourage participation.
-
+For more information about CLAs, please check out Alex Russell’s excellent post, [“Why Do I Need to Sign This?”](https://infrequently.org/2008/06/why-do-i-need-to-sign-this/).
