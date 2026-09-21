@@ -48,10 +48,7 @@ const (
 // silently dropped in NewFormat (rather than allowed to overwrite it in
 // newNRCommon on every batch), since overwriting either one would misattribute
 // this instance's data.
-var reservedNRAttributeKeys = map[string]bool{
-	"instrumentation.provider": true,
-	"collector.name":           true,
-}
+var reservedNRAttributeKeys = []string{"instrumentation.provider", "collector.name"}
 
 type NRMFormat struct {
 	logger.ContextL
@@ -100,8 +97,8 @@ func NewFormat(log logger.Underlying, compression kt.Compression, cfg *networkag
 		EventChan:    make(chan []byte, 100), // Used for sending events to the event API.
 	}
 
-	for k := range cfg.CustomAttributes {
-		if reservedNRAttributeKeys[k] {
+	for _, k := range reservedNRAttributeKeys {
+		if _, ok := cfg.CustomAttributes[k]; ok {
 			jf.Warnf("-nr_custom_attributes cannot override reserved attribute %q, ignoring it", k)
 			delete(cfg.CustomAttributes, k)
 		}
