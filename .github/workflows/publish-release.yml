@@ -195,10 +195,6 @@ jobs:
             NETWORK_AGENT_VERSION=${{ env.VERSION }}
             NETWORK_AGENT_BUILD=${{ github.event_name == 'release' && github.event.release.tag_name || format('manual-{0}', github.run_id) }}
             NR_SNMP_PROFILE_REPO=https://github.com/newrelic-forks/snmp-profiles
-          # All credentials are BuildKit secrets (never build-args) so they cannot leak
-          # into logs/layers even on a failed step.
-          secrets: |
-            github_token=${{ secrets.SNMP_PROFILES_TOKEN }}
 
       - name: Summary
         run: |
