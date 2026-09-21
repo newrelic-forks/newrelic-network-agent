@@ -25,6 +25,16 @@ name: Publish Release
 #
 # ci-build.yml (stack/01) builds the same Dockerfile but only ever exports a local tarball --
 # this is the one workflow in the repo that actually pushes anywhere.
+#
+# `publish`/`promote` each declare an `environment:` (docker-hub-prerelease /
+# docker-hub-release) so pushes to the real, public newrelic/network-agent repo can be
+# gated behind required reviewers -- addresses SLCREV-1691 item 3, re-targeted here after
+# the original publish-prod/staging/next.yml files this used to apply to were removed by
+# the legacy Kentik pipeline cleanup (see PR #5, superseded). Note on scope, same as
+# before: this only adds the `environment:` field. The actual protection -- required
+# reviewers configured in Settings -> Environments -- is intentionally *not* set up here;
+# configure it once this repo is settled in its final home, since environment protection
+# rules don't carry over across a repo move.
 
 on:
   release:
@@ -115,6 +125,7 @@ jobs:
     needs: version
     if: github.event_name == 'workflow_dispatch' || needs.version.outputs.is_prerelease == 'true'
     runs-on: ubuntu-latest
+    environment: docker-hub-prerelease
     env:
       VERSION: ${{ needs.version.outputs.version }}
       SHA_TAG: ${{ needs.version.outputs.sha_tag }}
@@ -214,6 +225,7 @@ jobs:
     needs: version
     if: github.event_name == 'release' && needs.version.outputs.is_prerelease == 'false'
     runs-on: ubuntu-latest
+    environment: docker-hub-release
     env:
       VERSION: ${{ needs.version.outputs.version }}
       SHA_TAG: ${{ needs.version.outputs.sha_tag }}
