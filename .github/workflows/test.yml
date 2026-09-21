@@ -1,4 +1,4 @@
-name: Test on Pull Request
+name: Test
 
 # The only workflow that runs the actual go test suite -- ci-build.yml only builds the
 # Docker image, and benchmark.yml runs with -run=^$ (benchmarks only, no correctness
@@ -6,6 +6,8 @@ name: Test on Pull Request
 # workflow auto-triggers" cleanup swept it up along with the legacy publish-*.yml
 # pipeline (since removed entirely) -- unlike those, this workflow is still exactly what
 # we want on every PR, so restoring its trigger here is the correction, not a new risk.
+# Renamed from "Test on Pull Request"/test-on-pr.yml now that it also runs on push --
+# the old name stopped being accurate the moment it did.
 on:
   push:
     branches: [ main ]

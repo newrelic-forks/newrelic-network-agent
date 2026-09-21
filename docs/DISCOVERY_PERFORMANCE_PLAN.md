@@ -358,7 +358,7 @@ of a config knob defaulting to 4.
   vendoring/replacing `DeviceScanner` removes `libpcap` from the build entirely — on Linux,
   with no cgo left in the graph, this should make the binary fully static with no extra flags
   (today, `CGO_ENABLED=1` by default and `libpcap` is dynamically linked, which is also why
-  `.github/workflows/test-on-pr.yml` needs `apt-get install libpcap-dev` at all). Worth
+  `.github/workflows/test.yml` needs `apt-get install libpcap-dev` at all). Worth
   confirming with `ldd`/`readelf -d` on the resulting Linux binary once this lands.
 - Verification: with a lab range configured with `check_all_ips: true`, measure wall-clock
   time for a 65k-address scan before/after. Target: no worse than
@@ -580,4 +580,4 @@ Before landing fixes, consider adding (temporary or permanent) timing logs aroun
 | A55 | same file | 106 | TCP-connect-to-port-1 liveness probe, SNMP timeout reused |
 | A56 | same file | 127 | `wg.Wait()` — blocks until all 65k probes finish |
 | A57 | `~/.go/pkg/mod/github.com/liamg/furious@.../scan/scan-syn.go` | 14 | Unused `SynScanner` variant imports `gopacket/pcap` (cgo/`libpcap`), pulled in by package-granularity cgo linking even though `disco.go:159` never calls it |
-| A58 | `.github/workflows/test-on-pr.yml` | — | `apt-get install libpcap-dev` step — needed only because of A57 |
+| A58 | `.github/workflows/test.yml` | — | `apt-get install libpcap-dev` step — needed only because of A57 |

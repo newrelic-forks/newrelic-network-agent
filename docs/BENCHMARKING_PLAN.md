@@ -35,7 +35,7 @@ Nix is being introduced for:
 1. **Tier B's benchmark harness** — the NixOS VM test that stands up the synthetic device
    farm (§2.2).
 2. **A `devShell`** — a reproducible local dev environment (Go toolchain version, `benchstat`,
-   lint tools, `libpcap-dev` for cgo — see `.github/workflows/test-on-pr.yml`'s
+   lint tools, `libpcap-dev` for cgo — see `.github/workflows/test.yml`'s
    `sudo apt-get install make libpcap-dev` step, which a `devShell` should make unnecessary
    to remember/re-run manually) so anyone picking up this repo gets the same tool versions
    without hand-installing things.
@@ -272,7 +272,7 @@ consistently.
 ### CI wiring
 
 This repo's CI on `investigation` is deliberately manual/opt-in
-(`.github/workflows/test-on-pr.yml` is `workflow_dispatch`-only; auto-triggers were
+(`.github/workflows/test.yml` is `workflow_dispatch`-only; auto-triggers were
 disabled; `.github/workflows/ci-build.yml` runs on
 `push: [investigation]` + `pull_request`). A new benchmark workflow should match that
 convention rather than gate every push:
