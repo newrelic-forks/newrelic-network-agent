@@ -1,6 +1,6 @@
-# Kentik Synthetics → Prometheus via the ktranslate Firehose
+# Kentik Synthetics → Prometheus via the network-agent Firehose
 
-This guide covers running `ktranslate` as a **Kentik Data Firehose** collector that receives
+This guide covers running `network-agent` as a **Kentik Data Firehose** collector that receives
 **synthetic test results** (kflow with `app_protocol=10`) and exports them as **Prometheus**
 metrics — either scraped (`/metrics`) or pushed via **remote-write**. It documents every
 required flag (including the easy-to-miss `-udrs`, `-mapping`, and `-prom_seen`), and explains
@@ -25,7 +25,7 @@ Kentik Firehose ──HTTPS POST kflow──▶ /chf on -listen (8081)
                     └───────────────────────────────────────────┘
 ```
 
-Synthetic results arrive over the **same kflow firehose** as flow. `ktranslate` classifies
+Synthetic results arrive over the **same kflow firehose** as flow. `network-agent` classifies
 records with `app_protocol=10` as `KSynth`, and the Prometheus format turns them into metrics.
 
 ---
@@ -61,7 +61,7 @@ The UDR file ([config/udr.csv](config/udr.csv)) renames them into the fields the
 10,INT05,Ping Avg RTT,Synthetic Agent      # …          → avg_rtt, etc.
 ```
 
-`ktranslate` lowercases the display name (`Result Type` → `result_type`). **If you omit
+`network-agent` lowercases the display name (`Result Type` → `result_type`). **If you omit
 `-udrs`, `result_type` never gets set**, every record looks like `result_type=0`, and the
 outcome metric will report `error` for everything. Always pass `-udrs ./config/udr.csv`.
 
@@ -74,7 +74,7 @@ outcome metric will report `error` for everything. Always pass `-udrs ./config/u
 ### A. Scrape model (`/metrics`)
 
 ```bash
-KENTIK_API_TOKEN=<token> bin/ktranslate \
+KENTIK_API_TOKEN=<token> bin/network-agent \
   -listen 0.0.0.0:8081 \
   -ssl_cert_file /path/firehose.pem -ssl_key_file /path/firehose.key \
   -kentik_email you@example.com \
@@ -90,7 +90,7 @@ curl -s http://127.0.0.1:8883/metrics | grep '^kentik:synth:'
 ### B. Remote-write model (push)
 
 ```bash
-KENTIK_API_TOKEN=<token> bin/ktranslate \
+KENTIK_API_TOKEN=<token> bin/network-agent \
   -listen 0.0.0.0:8081 \
   -ssl_cert_file /path/firehose.pem -ssl_key_file /path/firehose.key \
   -kentik_email you@example.com \

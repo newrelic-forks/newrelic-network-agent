@@ -20,7 +20,7 @@ services:
     entrypoint: ["/bin/sh"]
     command:
       - "-c"
-      - "wait-for-it.sh -h elasticsearch -p 9200 -- curl -XPUT http://elasticsearch:9200/kentik"
+      - "wait-for-it.sh -h elasticsearch -p 9200 -- curl -XPUT http://elasticsearch:9200/network-agent"
     depends_on:
       - elasticsearch
 
@@ -73,7 +73,7 @@ services:
           version: "netflow5"
 
         httpsink:
-          target: "http://elasticsearch:9200/kentik/_bulk"
+          target: "http://elasticsearch:9200/network-agent/_bulk"
           headers: ["Content-Type:application/json"]
           insecureskipverify: false
           timeoutinseconds: 30

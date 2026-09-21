@@ -1,17 +1,17 @@
 devices:
-  lima-ktranslate__127.0.0.1:
-    device_name: ktranslate
+  lima-network-agent__127.0.0.1:
+    device_name: network-agent
     device_ip: 127.0.0.1
     snmp_comm: public
     use_snmp_v1: false
     debug: false
     port: 161
     oid: .1.3.6.1.4.1.8072.3.2.10
-    description: 'Linux lima-ktranslate 5.15.0-25-generic #25-Ubuntu SMP Wed Mar 30
+    description: 'Linux lima-network-agent 5.15.0-25-generic #25-Ubuntu SMP Wed Mar 30
       15:57:31 UTC 2022 aarch64'
     last_checked: 2022-05-23T16:52:35.51822962Z
     mib_profile: net-snmp.yml
-    provider: kentik-net-snmp
+    provider: newrelic-net-snmp
     user_tags: {}
     discovered_mibs:
     - HOST-RESOURCES-MIB
