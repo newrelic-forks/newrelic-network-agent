@@ -10,6 +10,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// noopUnderlying is a minimal logger.Underlying that discards everything --
+// used where a test needs NewFormat to actually be able to log (e.g.
+// Warnf on a rejected -nr_custom_attributes key) without pulling in *testing.T
+// via pkg/eggs/logger/testing's Test, which is missing GetLogLevel() and so
+// doesn't actually satisfy logger.Underlying despite its doc comment.
+type noopUnderlying struct{}
+
+func (noopUnderlying) Debugf(string, string, ...interface{}) {}
+func (noopUnderlying) Infof(string, string, ...interface{})  {}
+func (noopUnderlying) Warnf(string, string, ...interface{})  {}
+func (noopUnderlying) Errorf(string, string, ...interface{}) {}
+func (noopUnderlying) GetLogLevel() string                   { return "debug" }
+
 func TestSanitizeMetricsUTF8(t *testing.T) {
 	assert := assert.New(t)
 
@@ -106,6 +119,35 @@ func TestNewNRCommonMergesCustomAttributes(t *testing.T) {
 	assert.Equal("test-instance-123", sets[0].Common.Attributes["install_id"])
 	assert.Equal(kt.InstProvider, sets[0].Common.Attributes["instrumentation.provider"])
 	assert.Equal(kt.CollectorName, sets[0].Common.Attributes["collector.name"])
+}
+
+// A -nr_custom_attributes entry named after a reserved attribute must not be
+// able to override it -- every metric batch would otherwise carry the wrong
+// instrumentation.provider/collector.name.
+func TestNewFormatDropsReservedCustomAttributeKeys(t *testing.T) {
+	assert := assert.New(t)
+
+	cfg := &networkagent.NRMFormatConfig{
+		CustomAttributes: map[string]string{
+			"instrumentation.provider": "hijacked",
+			"collector.name":           "hijacked",
+			"install_id":               "test-instance-123",
+		},
+	}
+	f, err := NewFormat(noopUnderlying{}, kt.CompressionNone, cfg)
+	assert.NoError(err)
+
+	common := f.newNRCommon()
+	assert.Equal(kt.InstProvider, common.Attributes["instrumentation.provider"])
+	assert.Equal(kt.CollectorName, common.Attributes["collector.name"])
+	assert.Equal("test-instance-123", common.Attributes["install_id"])
+
+	// The reserved keys are stripped from the config itself, not just masked per-call.
+	_, hasProvider := cfg.CustomAttributes["instrumentation.provider"]
+	_, hasCollector := cfg.CustomAttributes["collector.name"]
+	assert.False(hasProvider)
+	assert.False(hasCollector)
+	assert.Equal("test-instance-123", cfg.CustomAttributes["install_id"])
 }
 
 func TestNewNRCommonWithNoCustomAttributes(t *testing.T) {

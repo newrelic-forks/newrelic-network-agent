@@ -43,6 +43,16 @@ const (
 	InstNameKtranslate    = "heartbeat"
 )
 
+// reservedNRAttributeKeys are the common attributes newNRCommon stamps onto every
+// metric batch itself. A -nr_custom_attributes entry using one of these names is
+// silently dropped in NewFormat (rather than allowed to overwrite it in
+// newNRCommon on every batch), since overwriting either one would misattribute
+// this instance's data.
+var reservedNRAttributeKeys = map[string]bool{
+	"instrumentation.provider": true,
+	"collector.name":           true,
+}
+
 type NRMFormat struct {
 	logger.ContextL
 	compression  kt.Compression
@@ -88,6 +98,13 @@ func NewFormat(log logger.Underlying, compression kt.Compression, cfg *networkag
 		lastMetadata: map[string]*kt.LastMetadata{},
 		config:       cfg,
 		EventChan:    make(chan []byte, 100), // Used for sending events to the event API.
+	}
+
+	for k := range cfg.CustomAttributes {
+		if reservedNRAttributeKeys[k] {
+			jf.Warnf("-nr_custom_attributes cannot override reserved attribute %q, ignoring it", k)
+			delete(cfg.CustomAttributes, k)
+		}
 	}
 
 	dp := os.Getenv(DO_DEMO_PERIOD)
