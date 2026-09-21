@@ -405,7 +405,7 @@ func DefaultConfig() *Config {
 		},
 		S3Sink: &S3SinkConfig{
 			Bucket:               "",
-			Prefix:               "/kentik",
+			Prefix:               "/network-agent",
 			FlushIntervalSeconds: 60,
 			AssumeRoleARN:        "",
 			Region:               "us-east-1",
@@ -416,7 +416,7 @@ func DefaultConfig() *Config {
 			SigningRegion: "",
 		},
 		HTTPSink: &HTTPSinkConfig{
-			Target:             "http://localhost:8086/write?db=kentik",
+			Target:             "http://localhost:8086/write?db=network-agent",
 			TargetLogs:         "http://localhost:8088/services/collector/event",
 			Headers:            []string{},
 			InsecureSkipVerify: false,

@@ -125,9 +125,9 @@ func (ms *MetaServer) Run(ctx context.Context) error {
 }
 
 func (ms *MetaServer) writeCommonHeaders(w http.ResponseWriter) {
-	w.Header().Set("Server", "kentik-baseserver-metaserver")
-	w.Header().Set("X-Kentik-Service", ms.serviceName)
-	w.Header().Set("X-Kentik-Version", ms.version.Version)
+	w.Header().Set("Server", "newrelic-network-agent-metaserver")
+	w.Header().Set("X-Network-Agent-Service", ms.serviceName)
+	w.Header().Set("X-Network-Agent-Version", ms.version.Version)
 	w.Header().Set("Content-Type", "application/json")
 
 }
