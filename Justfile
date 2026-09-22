@@ -92,3 +92,74 @@ third-party-notices-check:
     trap 'rm -f "$tmp"' EXIT
     just third-party-notices "$tmp"
     diff "$tmp" THIRD_PARTY_NOTICES.md
+
+# --- SemVer helpers -----------------------------------------------------------
+#
+# Deliberately here, not in flake.nix: these are thin wrappers around semver-tool
+# (fsaintjacques/semver-tool) plus this repo's own release policy (no +build metadata in
+# VERSION, no bare-vs-prerelease suffix rules, ...) -- not packages, not a devShell, and
+# not complex enough to need Nix's own build/VM machinery the way the checks in flake.nix
+# do. Each calls `nix run nixpkgs#semver-tool` itself rather than assuming semver-tool is
+# already on PATH, so they work identically run bare, from CI (`nix run nixpkgs#just --
+# <recipe>`, see cut-prerelease.yml/version-format-check.yml/push-adhoc-image.yml), or
+# from inside `nix develop` (where semver-tool is also on the devShell PATH directly, for
+# interactive `semver compare`/`validate` use).
+
+# Validates that `s` is SemVer (MAJOR.MINOR.PATCH, optionally -prerelease) -- and,
+# specifically, rejects +build-metadata even though semver-tool itself accepts it: this
+# repo doesn't use SemVer's +build suffix anywhere (NETWORK_AGENT_BUILD covers that
+# separately), so a version string carrying one is never actually valid here.
+check-semver s:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    case "{{s}}" in
+      *+*)
+        echo "error: '{{s}}' has build metadata -- this repo doesn't use SemVer's +build suffix" >&2
+        exit 1
+        ;;
+    esac
+    result="$(nix run nixpkgs#semver-tool -- validate "{{s}}")"
+    if [ "$result" != "valid" ]; then
+      echo "error: '{{s}}' is not a valid SemVer version (expected MAJOR.MINOR.PATCH, optionally -prerelease): $result" >&2
+      exit 1
+    fi
+    echo "'{{s}}' is valid SemVer"
+
+# Validates that `new` is a strict SemVer increase over `old` -- real SemVer precedence
+# (numeric vs. alphanumeric prerelease identifiers, a release outranking its own
+# prerelease, ...), via semver-tool's `compare`, not re-derived by hand (e.g. `sort -V`,
+# which isn't SemVer-aware and gets prerelease precedence wrong).
+check-version-increment old new:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    result="$(nix run nixpkgs#semver-tool -- compare "{{new}}" "{{old}}")"
+    if [ "$result" != "1" ]; then
+      echo "error: '{{new}}' is not a strict increase over '{{old}}' (semver compare: $result)" >&2
+      exit 1
+    fi
+    echo "'{{new}}' > '{{old}}'"
+
+# Validates the checked-in VERSION file itself -- what version-format-check.yml's "Validate
+# VERSION is SemVer" step and cut-prerelease.yml's own re-validation both actually run.
+check-version:
+    just check-semver "$(tr -d '[:space:]' < VERSION)"
+
+# Rejects `tag` if it's valid SemVer or is literally "latest" -- both are reserved for the
+# real release pipeline (VERSION bump -> cut-prerelease.yml -> publish-release.yml), never
+# for push-adhoc-image.yml's workflow_dispatch input. This is release *policy* (which tags
+# are reserved), so it lives here too, calling into check-semver above for the actual "is
+# this valid SemVer" primitive.
+check-adhoc-tag tag:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    case "$(printf '%s' "{{tag}}" | tr '[:upper:]' '[:lower:]')" in
+      latest)
+        echo "error: 'latest' is reserved for the release pipeline -- pick a different ad-hoc tag." >&2
+        exit 1
+        ;;
+    esac
+    if just check-semver "{{tag}}" >/dev/null 2>&1; then
+      echo "error: '{{tag}}' is valid SemVer, which is reserved for the release pipeline (VERSION bump -> cut-prerelease.yml) -- an ad-hoc tag must not be confusable with a real release. Pick something clearly not a version number." >&2
+      exit 1
+    fi
+    echo "'{{tag}}' is a valid ad-hoc image tag."

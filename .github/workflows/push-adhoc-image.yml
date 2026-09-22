@@ -1,0 +1,107 @@
+name: Push ad-hoc image
+
+# The only workflow_dispatch path left that pushes to Docker Hub -- deliberately separate
+# from publish-release.yml, which has none at all. That split is the actual point: the real
+# release pipeline (VERSION bump -> cut-prerelease.yml -> publish-release.yml -> promote) is
+# the only way to produce a tag that looks like a real version or `latest`. This workflow can
+# only ever push a tag that structurally *cannot* be confused with one -- `just
+# check-adhoc-tag` (see the Justfile) rejects the input outright if it's valid SemVer or is
+# literally "latest", before anything gets built. That check lives in the Justfile rather
+# than here or in flake.nix: it's a piece of release policy, not a package/devShell
+# definition, and it needs to be runnable identically here and by hand before ever
+# dispatching this.
+#
+# Never touches VERSION, never creates a tag/release, never promotes -- for a one-off build
+# to poke at something outside a real release, not a substitute for one.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag to push (must NOT be valid SemVer or "latest" -- those are reserved for the real release pipeline)'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
+
+      - name: Nix build cache
+        uses: Mic92/hestia@f1f4df2801140a36398ed423533c8460618539df # v3.0.1
+        with:
+          upstream-cache-filter: "true"
+
+      - name: Refuse a release-shaped tag
+        env:
+          TAG: ${{ inputs.tag }}
+        run: nix run nixpkgs#just -- check-adhoc-tag "$TAG"
+
+      - name: Set up QEMU        # enables cross-building (e.g. arm64 on an amd64 runner)
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USER }}
+          password: ${{ secrets.DOCKER_HUB_PASS }}
+
+      # See ci-build.yml/publish-release.yml for why this downloads MaxMind's databases
+      # itself instead of inside the Docker build.
+      - name: Cache key date
+        id: date
+        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache MaxMind databases
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: maxmind-dbs
+          key: maxmind-dbs-${{ steps.date.outputs.date }}
+          restore-keys: |
+            maxmind-dbs-
+
+      - name: Download MaxMind databases
+        env:
+          MM_ACCOUNT_ID: ${{ secrets.MM_ACCOUNT_ID }}
+          MM_DOWNLOAD_KEY: ${{ secrets.MM_DOWNLOAD_KEY }}
+        run: |
+          set -eu
+          if [ -f maxmind-dbs/GeoLite2-Country.mmdb ] && [ -f maxmind-dbs/GeoLite2-ASN.mmdb ]; then
+            echo "Using cached MaxMind databases (exact match or restore-keys fallback)"
+            exit 0
+          fi
+          if [ -z "$MM_DOWNLOAD_KEY" ]; then echo "maxmind license key secret (MM_DOWNLOAD_KEY) not provided"; exit 1; fi
+          mkdir -p maxmind-dbs
+          curl -sfL -o /tmp/country.tar.gz -u "$MM_ACCOUNT_ID:$MM_DOWNLOAD_KEY" "https://download.maxmind.com/geoip/databases/GeoLite2-Country/download?suffix=tar.gz"
+          tar zxf /tmp/country.tar.gz --strip-components 1 -C maxmind-dbs
+          curl -sfL -o /tmp/asn.tar.gz -u "$MM_ACCOUNT_ID:$MM_DOWNLOAD_KEY" "https://download.maxmind.com/geoip/databases/GeoLite2-ASN/download?suffix=tar.gz"
+          tar zxf /tmp/asn.tar.gz --strip-components 1 -C maxmind-dbs
+
+      - name: Build and push
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: newrelic/network-agent:${{ inputs.tag }}
+          build-args: |
+            NETWORK_AGENT_VERSION=${{ inputs.tag }}
+            NETWORK_AGENT_BUILD=manual-${{ github.run_id }}
+            NR_SNMP_PROFILE_REPO=https://github.com/newrelic-forks/snmp-profiles
+
+      - name: Summary
+        run: |
+          {
+            echo "## Pushed ad-hoc image to Docker Hub"
+            echo "Tag: \`newrelic/network-agent:${{ inputs.tag }}\` (not a release -- never promoted, never touches VERSION)"
+          } >> "$GITHUB_STEP_SUMMARY"

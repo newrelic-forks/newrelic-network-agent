@@ -1,7 +1,12 @@
 {
   description = "newrelic-network-agent dev tooling and benchmarking flake";
 
-  # Scope (see docs/BENCHMARKING_PLAN.md "Nix usage" section):
+  # Scope (see docs/BENCHMARKING_PLAN.md "Nix usage" section) -- deliberately narrow: this
+  # file defines packages, the devShell, and checks complex enough to genuinely need Nix's
+  # own machinery (the NixOS VM tests below). Anything that's really just a shell script --
+  # SemVer validation/comparison, release policy like `check-adhoc-tag` -- lives in the
+  # Justfile instead, even though it's release-adjacent, precisely because it *isn't* a
+  # package/devShell/VM-test and doesn't need to be evaluated by Nix to do its job.
   #   - a devShell with the tools needed to develop and benchmark this repo
   #   - packages.*.network-agent (nix/network-agent.nix): a real ktranslate binary, built
   #     directly via buildGoModule's own go build (no dependency on the Makefile, which
@@ -57,6 +62,11 @@
               just
               gopls
               delve
+              semver-tool # `semver compare`/`validate` for interactive use -- see also
+                          # `just check-semver`/`check-version-increment`, which shell out
+                          # to this same tool via `nix run nixpkgs#semver-tool` themselves
+                          # rather than assuming a devShell PATH, so they work identically
+                          # from CI too.
             ];
             # So `docker build --build-arg NETWORK_AGENT_VERSION` (no `=value`
             # needed -- Docker inherits it from the environment) works too.
@@ -90,20 +100,8 @@
           # guest's CPU arch to the host's own so Darwin hosts get an accelerated, not
           # emulated, guest.
           linuxSystem = nixpkgs.lib.replaceStrings [ "-darwin" ] [ "-linux" ] system;
-          semver = import ./nix/semver.nix { };
         in
         {
-          # Protects the VERSION file itself: fails at evaluation time (no sandbox, no
-          # build, effectively instant) if it's ever not a valid SemVer core version.
-          # publish-release.yml's workflow_dispatch path validates its own version input
-          # against the exact same regex, via apps.<system>.check-semver below --
-          # nix/semver.nix is the one place this rule is defined.
-          version-is-semver =
-            if semver.isValid version then
-              pkgs.runCommand "version-is-semver" { } "touch $out"
-            else
-              throw "VERSION file contains '${version}', which is not a valid SemVer core version (expected MAJOR.MINOR.PATCH, optionally -prerelease)";
-
           # Sanity check confirming this system can run a NixOS VM test at all before
           # trusting the real, more complex one below -- see nix/tests/minimal-ping.nix.
           minimal-ping = pkgs.testers.runNixOSTest ./nix/tests/minimal-ping.nix;
@@ -148,40 +146,6 @@
             inherit (pkgs) lib;
             collectorBin = self.packages.${linuxSystem}.network-agent;
             deviceCount = 8;
-          };
-        }
-      );
-
-      apps = forAllSystems (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-          semver = import ./nix/semver.nix { };
-        in
-        {
-          # Runtime counterpart to checks.<system>.version-is-semver above: that check
-          # validates the committed VERSION file, this validates an arbitrary string
-          # (e.g. publish-release.yml's workflow_dispatch version input) against the
-          # exact same nix/semver.nix regex, callable as `nix run .#check-semver -- STR`
-          # both from CI and locally before ever pushing a tag or triggering a dispatch.
-          check-semver = {
-            type = "app";
-            program = "${
-              pkgs.writeShellApplication {
-                name = "check-semver";
-                text = ''
-                  if [ "$#" -ne 1 ]; then
-                    echo "usage: check-semver VERSION_STRING" >&2
-                    exit 2
-                  fi
-                  if ! [[ "$1" =~ ^${semver.pattern}$ ]]; then
-                    echo "'$1' is not a valid SemVer version (expected MAJOR.MINOR.PATCH, optionally -prerelease)" >&2
-                    exit 1
-                  fi
-                  echo "'$1' is valid SemVer"
-                '';
-              }
-            }/bin/check-semver";
           };
         }
       );
