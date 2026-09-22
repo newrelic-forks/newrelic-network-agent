@@ -15,16 +15,19 @@ goes out as `0.0.6`, never a re-spun `0.0.5`.
 
 ```mermaid
 flowchart TD
-    A["Bump VERSION in a PR<br/>(bare MAJOR.MINOR.PATCH, strictly increasing)"]
-    B["Merge to main<br/>→ cut-prerelease.yml tags v&lt;version&gt;<br/>and opens a GitHub pre-release"]
-    C["publish-release.yml (publish job)<br/>builds + pushes<br/>network-agent:&lt;version&gt;<br/>network-agent:sha-&lt;commit&gt;"]
+    A["Bump VERSION in a PR (bare MAJOR.MINOR.PATCH, strictly increasing)"]
+    B["Merge to main: cut-prerelease.yml tags the commit and opens a GitHub pre-release"]
+    C["publish-release.yml (publish job): pushes the version tag and a sha tag"]
     D{"Test the pre-release"}
-    E["just release-promote &lt;version&gt;<br/>(or uncheck &quot;pre-release&quot; on GitHub)"]
-    F["publish-release.yml (promote job)<br/>retags sha-&lt;commit&gt; as<br/>&lt;version&gt; and latest — no rebuild"]
+    E["just release-promote: flips the release's pre-release flag off"]
+    F["publish-release.yml (promote job): retags the sha image as the version and latest, no rebuild"]
 
-    A -->|PR review| B --> C --> D
-    D -->|fails: fix it, bump VERSION again| A
-    D -->|passes| E --> F
+    A -->|PR review| B
+    B --> C
+    C --> D
+    D -->|fails: bump VERSION again| A
+    D -->|passes| E
+    E --> F
 ```
 
 ## The pipeline
