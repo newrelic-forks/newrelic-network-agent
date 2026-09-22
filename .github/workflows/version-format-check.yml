@@ -53,7 +53,7 @@ jobs:
       - name: Validate VERSION is a bare, incremented release version
         if: github.event_name != 'workflow_dispatch'
         env:
-          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
         run: |
           set -euo pipefail
           NEW="$(tr -d '[:space:]' < VERSION)"
@@ -65,14 +65,27 @@ jobs:
               ;;
           esac
 
-          if [ -z "${BASE_SHA:-}" ] || ! git cat-file -e "$BASE_SHA" 2>/dev/null; then
-            echo "No usable previous commit (new branch, or history unavailable) -- skipping the increment check."
-            exit 0
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            # Fetches the base branch's actual current tip rather than trusting
+            # github.event.pull_request.base.sha: that field can be stale relative to
+            # main's real state when this run was triggered by something other than a
+            # fresh sync of this exact PR against the current base -- e.g. this
+            # workflow's own paths filter matching flake.nix on a push that landed well
+            # after main last advanced. Comparing against a stale base previously
+            # produced a false "VERSION decreased" failure on an unrelated change.
+            git fetch --depth 1 origin "$GITHUB_BASE_REF"
+            OLD="$(git show "origin/$GITHUB_BASE_REF:VERSION" 2>/dev/null | tr -d '[:space:]' || true)"
+          elif [ -n "${PUSH_BEFORE_SHA:-}" ] && git cat-file -e "$PUSH_BEFORE_SHA" 2>/dev/null; then
+            # push: github.event.before is exactly this ref's state immediately before
+            # this push, which is what we want -- no equivalent staleness risk here.
+            OLD="$(git show "$PUSH_BEFORE_SHA:VERSION" 2>/dev/null | tr -d '[:space:]' || true)"
+          else
+            OLD=""
           fi
-          if git diff --quiet "$BASE_SHA" HEAD -- VERSION; then
-            echo "VERSION unchanged -- skipping the increment check."
+
+          if [ -z "$OLD" ] || [ "$OLD" = "$NEW" ]; then
+            echo "VERSION unchanged (or no usable previous state to compare against) -- skipping the increment check."
             exit 0
           fi
 
-          OLD="$(git show "$BASE_SHA:VERSION" | tr -d '[:space:]')"
           nix run .#check-version-increment -- "$OLD" "$NEW"
