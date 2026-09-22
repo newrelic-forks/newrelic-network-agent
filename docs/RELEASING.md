@@ -13,15 +13,27 @@ version, from the moment `VERSION` is bumped through to the final promoted relea
 A failed pre-release burns a version number: if `0.0.5`'s pre-release fails testing, the fix
 goes out as `0.0.6`, never a re-spun `0.0.5`.
 
+```mermaid
+flowchart TD
+    A["Bump VERSION in a PR<br/>(bare MAJOR.MINOR.PATCH, strictly increasing)"]
+    B["Merge to main<br/>→ cut-prerelease.yml tags v&lt;version&gt;<br/>and opens a GitHub pre-release"]
+    C["publish-release.yml (publish job)<br/>builds + pushes<br/>network-agent:&lt;version&gt;<br/>network-agent:sha-&lt;commit&gt;"]
+    D{"Test the pre-release"}
+    E["just release-promote &lt;version&gt;<br/>(or uncheck &quot;pre-release&quot; on GitHub)"]
+    F["publish-release.yml (promote job)<br/>retags sha-&lt;commit&gt; as<br/>&lt;version&gt; and latest — no rebuild"]
+
+    A -->|PR review| B --> C --> D
+    D -->|fails: fix it, bump VERSION again| A
+    D -->|passes| E --> F
+```
+
 ## The pipeline
 
 1. **Bump `VERSION`** in a PR to a bare, strictly-increasing `MAJOR.MINOR.PATCH` (e.g.
    `0.0.4` → `0.0.5`). `version-format-check.yml` enforces the format, the no-prerelease-
    suffix rule, and the increment on every PR that touches it.
 2. **Merge it.** That push to `main` triggers `cut-prerelease.yml`, which re-validates
-   VERSION, tags that commit `v0.0.5`, and opens a GitHub **pre-release** for it. This runs
-   behind the `docker-hub-prerelease` environment, so it pauses for a required reviewer's
-   approval before anything gets pushed to Docker Hub.
+   VERSION and tags that commit `v0.0.5`, opening a GitHub **pre-release** for it.
 3. **`publish-release.yml` picks up the new pre-release** (it triggers on `release: published`)
    and pushes `newrelic/network-agent:0.0.5` and `newrelic/network-agent:sha-<commit>`. Both
    tags are immutable from this point on.
@@ -33,13 +45,12 @@ goes out as `0.0.6`, never a re-spun `0.0.5`.
 5. **Promote:** `just release-promote 0.0.5`, or equivalently, edit the `v0.0.5` release on
    GitHub and uncheck "This is a pre-release." Either way, this flips that release object's
    pre-release flag off, which fires GitHub's `released` event.
-   `publish-release.yml`'s `promote` job picks that up, and — behind the
-   `docker-hub-release` environment's own required-reviewer approval — retags the
-   already-pushed `sha-<commit>` image as `0.0.5` and `latest`. No rebuild: what ships as the
-   release is byte-for-byte what was tested in step 4.
+   `publish-release.yml`'s `promote` job picks that up and retags the already-pushed
+   `sha-<commit>` image as `0.0.5` and `latest`. No rebuild: what ships as the release is
+   byte-for-byte what was tested in step 4.
 
-PR review gates cutting a candidate (steps 1-2); a required reviewer on `docker-hub-release`
-gates promoting it (step 5), independently of whoever approved the pre-release build itself.
+PR review gates cutting a candidate (steps 1-2); the deliberate act of running
+`release-promote` gates promoting it (step 5).
 
 ## `just release-promote <version>`
 
