@@ -79,7 +79,7 @@ type NetworkAgent struct {
 	vpc          vpc.VpcImpl
 	nfs          *flow.Driver
 	rule         *rule.RuleSet
-	syslog       *syslog.Source
+	syslog       *syslog.NewRelicSyslog
 	http         *http.Listener
 	enricher     *enrich.Enricher
 	logTee       chan string
