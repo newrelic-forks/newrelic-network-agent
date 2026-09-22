@@ -344,22 +344,10 @@ of a config knob defaulting to 4.
   headroom (e.g. a few thousand, not 65,536), and give the reverse-DNS lookup
   (`scan-device.go:98`) its own short timeout via `context.WithTimeout` + a
   cancellable resolver call, rather than letting it block unbounded.
-- **Bonus side effect of vendoring/replacing this dependency:** `disco.go:159` only ever
-  calls `scan.NewDeviceScanner`/`scan.NewTargetIterator` from the vendored `furious/scan`
-  package — never `scan.NewSynScanner`. But that package's `scan-syn.go:14` imports
-  `github.com/google/gopacket/pcap` (a cgo binding requiring `libpcap` at link time) purely
-  to support the SYN-scanner variant we don't use. Go links cgo at package granularity, so
-  merely importing `furious/scan` for the scanner we do use drags in `libpcap` for the one we
-  don't. Confirmed via `go list -deps -json ./cmd/ktranslate` filtered for `.CgoFiles`: of the
-  three cgo-requiring packages in the whole build graph, `gopacket/pcap` is the only one that
-  both needs a real external system library and has no pure-Go fallback (`DataDog/zstd`
-  statically vendors its own C source by default; `prometheus/client_golang`'s cgo file is
-  Darwin-only with an automatic `!cgo` fallback). Trimming `scan-syn.go` out when
-  vendoring/replacing `DeviceScanner` removes `libpcap` from the build entirely — on Linux,
-  with no cgo left in the graph, this should make the binary fully static with no extra flags
-  (today, `CGO_ENABLED=1` by default and `libpcap` is dynamically linked, which is also why
-  `.github/workflows/test-on-pr.yml` needs `apt-get install libpcap-dev` at all). Worth
-  confirming with `ldd`/`readelf -d` on the resulting Linux binary once this lands.
+- **cgo/`libpcap`:** the build has no cgo dependency — `furious`/`gopacket/pcap` are gone,
+  `disco.go` uses the pure-Go scanner in `pkg/inputs/snmp/scan.go`, `CGO_ENABLED=0` in the
+  Dockerfile, and `.github/workflows/test.yml` has no `apt-get install libpcap-dev` step (the
+  Nix devShell provides the whole toolchain). Not a remediation item.
 - Verification: with a lab range configured with `check_all_ips: true`, measure wall-clock
   time for a 65k-address scan before/after. Target: no worse than
   `(dead_addresses × timeout_ms) ÷ new_thread_count`, and the pre-scan phase should not run
@@ -579,5 +567,5 @@ Before landing fixes, consider adding (temporary or permanent) timing logs aroun
 | A54 | same file | 98 | Synchronous reverse-DNS lookup |
 | A55 | same file | 106 | TCP-connect-to-port-1 liveness probe, SNMP timeout reused |
 | A56 | same file | 127 | `wg.Wait()` — blocks until all 65k probes finish |
-| A57 | `~/.go/pkg/mod/github.com/liamg/furious@.../scan/scan-syn.go` | 14 | Unused `SynScanner` variant imports `gopacket/pcap` (cgo/`libpcap`), pulled in by package-granularity cgo linking even though `disco.go:159` never calls it |
-| A58 | `.github/workflows/test-on-pr.yml` | — | `apt-get install libpcap-dev` step — needed only because of A57 |
+| A57 | `pkg/inputs/snmp/scan.go` | — | Pure-Go scanner; no `gopacket/pcap`/cgo/`libpcap` dependency |
+| A58 | `.github/workflows/test.yml` | — | No `apt-get install libpcap-dev` step (Nix devShell provides the toolchain) |

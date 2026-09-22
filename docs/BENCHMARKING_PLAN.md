@@ -35,13 +35,12 @@ Nix is being introduced for:
 1. **Tier B's benchmark harness** — the NixOS VM test that stands up the synthetic device
    farm (§2.2).
 2. **A `devShell`** — a reproducible local dev environment (Go toolchain version, `benchstat`,
-   lint tools, `libpcap-dev` for cgo — see `.github/workflows/test-on-pr.yml`'s
-   `sudo apt-get install make libpcap-dev` step, which a `devShell` should make unnecessary
-   to remember/re-run manually) so anyone picking up this repo gets the same tool versions
-   without hand-installing things.
+   lint tools) so anyone picking up this repo gets the same tool versions without
+   hand-installing things. The build has no cgo dependency, so there's no system library
+   (e.g. `libpcap`) to provision.
 3. **`packages.*.network-agent`** (`nix/network-agent.nix`) — a real ktranslate binary buildable via
-   `nix build`, since the binary is now fully static (upstream #14, "go static") and
-   distributable on its own. Its `buildPhase` literally shells out to `make all` rather than
+   `nix build`, since the binary is fully static and distributable on its own. Its
+   `buildPhase` literally shells out to `make all` rather than
    reimplementing the build, so Make remains the single source of truth for *how* to build;
    Nix's job here is limited to vendoring Go module deps reproducibly (`vendorHash`, fetched
    with network access, same as any `buildGoModule` package) and dispatching the build to a
@@ -272,12 +271,12 @@ consistently.
 ### CI wiring
 
 This repo's CI on `investigation` is deliberately manual/opt-in
-(`.github/workflows/test-on-pr.yml` is `workflow_dispatch`-only; auto-triggers were
+(`.github/workflows/test.yml` is `workflow_dispatch`-only; auto-triggers were
 disabled; `.github/workflows/ci-build.yml` runs on
 `push: [investigation]` + `pull_request`). A new benchmark workflow should match that
 convention rather than gate every push:
 
-- `.github/workflows/benchmark.yml` (Tier A) — `workflow_dispatch` + `push: [develop]` +
+- `.github/workflows/benchmark.yml` (Tier A) — `workflow_dispatch` + `push: [main]` +
   `pull_request` (path-filtered). Checkout → `cachix/install-nix-action@v31` →
   `nix develop --command` runs the benchmarks and `benchstat -ignore cpu` against the
   checked-in baseline → writes to `$GITHUB_STEP_SUMMARY` and a sticky PR comment
@@ -287,7 +286,7 @@ convention rather than gate every push:
   path-filtered to only the code that plausibly changes what it measures
   (`pkg/inputs/snmp/**`, `nix/tests/**`) rather than running on every PR regardless of
   relevance. Triggers: `workflow_dispatch` + nightly `schedule` (drift tracking without
-  needing someone to remember to run it) + `push: [develop]` + `pull_request`
+  needing someone to remember to run it) + `push: [main]` + `pull_request`
   (path-filtered), mirroring Tier A's own trigger shape. Checkout →
   `cachix/install-nix-action@v31` (`enable_kvm: true`) →
   `nix build .#checks.x86_64-linux.snmp-discovery-bench-ci` (the 8-node CI-sized target,

@@ -21,7 +21,7 @@ name: Vendor hash check
 on:
   workflow_dispatch:
   push:
-    branches: [ develop ]
+    branches: [ main ]
     paths: &vendor-hash-paths
       - 'go.mod'
       - 'go.sum'

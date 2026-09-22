@@ -1,0 +1,46 @@
+name: Test
+
+# The only workflow that runs the actual go test suite -- ci-build.yml only builds the
+# Docker image, and benchmark.yml runs with -run=^$ (benchmarks only, no correctness
+# tests). Was manual-dispatch-only since a 2026-07-29 blanket "disable inherited Kentik
+# workflow auto-triggers" cleanup swept it up along with the legacy publish-*.yml
+# pipeline (since removed entirely) -- unlike those, this workflow is still exactly what
+# we want on every PR, so restoring its trigger here is the correction, not a new risk.
+# Renamed from "Test on Pull Request"/test-on-pr.yml now that it also runs on push --
+# the old name stopped being accurate the moment it did.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
+
+      - name: Nix build cache
+        uses: Mic92/hestia@f1f4df2801140a36398ed423533c8460618539df # v3.0.1
+        with:
+          upstream-cache-filter: "true"
+
+      # Same devShell (flake.nix) every other workflow and local development use --
+      # go, make's own dependencies, etc. all come from there instead of a second,
+      # drifting actions/setup-go + apt-get definition of the toolchain. Kept as
+      # three separate steps (rather than one bash -c chaining all three) so a
+      # failure's step name in the Actions UI says which one broke.
+      - name: Build
+        run: nix develop --command make
+
+      - name: Vet
+        run: nix develop --command go vet ./...
+
+      - name: Test
+        run: nix develop --command make test
