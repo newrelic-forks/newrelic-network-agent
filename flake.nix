@@ -47,6 +47,7 @@
               just
               gopls
               delve
+              semver-tool # `semver compare`/`validate` -- see apps.<system>.check-version-increment
             ];
             # So `docker build --build-arg NETWORK_AGENT_VERSION` (no `=value`
             # needed -- Docker inherits it from the environment) works too.
@@ -169,6 +170,36 @@
                 echo "'$1' is valid SemVer"
               '';
             }}/bin/check-semver";
+          };
+
+          # The checked-in VERSION file must strictly increase release over release (the
+          # commit that bumps it is the one that gets tagged and pre-released -- see
+          # cut-prerelease.yml), which check-semver above can't tell you: it validates one
+          # string's shape, not how two versions compare. Real SemVer precedence (numeric
+          # vs. alphanumeric prerelease identifiers, a release outranking its own
+          # prerelease, ...) is exactly what fsaintjacques/semver-tool's `compare` already
+          # implements correctly -- no reason to re-derive that by hand (e.g. `sort -V`,
+          # which isn't SemVer-aware and gets prerelease precedence wrong).
+          check-version-increment = {
+            type = "app";
+            program = "${pkgs.writeShellApplication {
+              name = "check-version-increment";
+              runtimeInputs = [ pkgs.semver-tool ];
+              text = ''
+                if [ "$#" -ne 2 ]; then
+                  echo "usage: check-version-increment OLD_VERSION NEW_VERSION" >&2
+                  exit 2
+                fi
+                old="$1"
+                new="$2"
+                result="$(semver compare "$new" "$old")"
+                if [ "$result" != "1" ]; then
+                  echo "'$new' is not a strict increase over '$old' (semver compare: $result)" >&2
+                  exit 1
+                fi
+                echo "'$new' > '$old'"
+              '';
+            }}/bin/check-version-increment";
           };
         });
     };

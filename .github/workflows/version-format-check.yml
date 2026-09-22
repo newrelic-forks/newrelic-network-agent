@@ -8,6 +8,13 @@ name: Version format check
 # publish-release.yml's workflow_dispatch path validates its own version input the same
 # way, via `nix run .#check-semver` -- see nix/semver.nix for the one shared regex both
 # of these consume.
+#
+# Also enforces this repo's release model on VERSION specifically (stricter than "is this
+# a valid SemVer string" -- workflow_dispatch version inputs elsewhere are still free to
+# carry a prerelease suffix): no prerelease suffix, and it must strictly increase over
+# whatever it's replacing. The commit that bumps VERSION is the exact commit
+# cut-prerelease.yml tags and pre-releases, so catching a bad bump here, at PR review time,
+# is cheaper than catching it after that workflow has already acted on it.
 
 on:
   workflow_dispatch:
@@ -30,6 +37,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0 # need history to diff VERSION against its pre-change state below
 
       - name: Install Nix
         uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
@@ -41,3 +50,30 @@ jobs:
 
       - name: Validate VERSION is SemVer
         run: nix build .#checks.x86_64-linux.version-is-semver -L
+
+      - name: Validate VERSION is a bare, incremented release version
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          NEW="$(tr -d '[:space:]' < VERSION)"
+
+          case "$NEW" in
+            *-*)
+              echo "::error::VERSION ('$NEW') has a prerelease suffix. This repo's release model never checks one in -- the commit that bumps VERSION is itself the commit that gets tagged and pre-released (see cut-prerelease.yml). Bump to a bare MAJOR.MINOR.PATCH instead."
+              exit 1
+              ;;
+          esac
+
+          if [ -z "${BASE_SHA:-}" ] || ! git cat-file -e "$BASE_SHA" 2>/dev/null; then
+            echo "No usable previous commit (new branch, or history unavailable) -- skipping the increment check."
+            exit 0
+          fi
+          if git diff --quiet "$BASE_SHA" HEAD -- VERSION; then
+            echo "VERSION unchanged -- skipping the increment check."
+            exit 0
+          fi
+
+          OLD="$(git show "$BASE_SHA:VERSION" | tr -d '[:space:]')"
+          nix run .#check-version-increment -- "$OLD" "$NEW"

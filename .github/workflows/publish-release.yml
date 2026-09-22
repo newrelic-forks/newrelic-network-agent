@@ -1,9 +1,11 @@
 name: Publish Release
 
 # Pushes a versioned, multi-arch image to Docker Hub (newrelic/network-agent). Three paths in:
-#   - Publishing a pre-release (GitHub's "This is a pre-release" checkbox, e.g. v0.1.0-rc1):
-#     builds from source and pushes that exact version tag plus a content-addressed
-#     sha-<commit> tag. Never touches `latest`.
+#   - Publishing a pre-release (GitHub's "This is a pre-release" checkbox on a bare tag like
+#     v0.1.0 -- cut automatically by cut-prerelease.yml when VERSION is bumped, never a
+#     suffixed tag like v0.1.0-rc1: this repo's VERSION never carries one, so neither does
+#     the tag): builds from source and pushes that exact version tag plus a
+#     content-addressed sha-<commit> tag. Never touches `latest`.
 #   - Publishing (or promoting to, by unchecking "pre-release" on an existing one) a full
 #     release: never rebuilds. Retags the sha-<commit> image already pushed by a prior
 #     pre-release build of this same commit as the version tag plus `latest`, via `docker
@@ -74,15 +76,6 @@ jobs:
           esac
 
           IS_PRERELEASE="${{ github.event_name == 'release' && github.event.release.prerelease }}"
-          if [ "$IS_PRERELEASE" = "true" ]; then
-            case "$VERSION" in
-              *-*) ;;
-              *)
-                echo "::error::Pre-release '$VERSION' has no SemVer prerelease suffix (e.g. '$VERSION-rc1') -- a bare version would collide with the eventual full release's tag."
-                exit 1
-                ;;
-            esac
-          fi
 
           {
             echo "version=$VERSION"
