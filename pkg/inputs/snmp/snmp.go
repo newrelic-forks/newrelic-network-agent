@@ -271,8 +271,6 @@ func watchProfileChange(ctx context.Context, conf *kt.SnmpConfig, log logger.Con
 			return nil
 		}
 	}
-
-	return nil
 }
 
 func launchSnmpTrap(ctx context.Context, conf *kt.SnmpConfig, jchfChan chan []*kt.JCHF, metrics *kt.SnmpMetricSet, log logger.ContextL, resolv *resolv.Resolver) error {

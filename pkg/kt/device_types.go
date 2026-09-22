@@ -74,7 +74,6 @@ type Interface struct {
 	Alias         string  `json:"snmp_alias"`
 	Type          uint64  `json:"snmp_type"`
 	SnmpSpeedMbps int64   `json:"snmp_speed,string"` // unit? TODO: switch to uint64, rename to SnmpSpeedMbps
-	SnmpType      int     `json:"snmp_type"`
 
 	Addrs     []Addr            `json:"secondary_ips"`
 	ExtraInfo map[string]string `json:"extra_info"`

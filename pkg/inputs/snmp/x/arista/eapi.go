@@ -236,7 +236,7 @@ type MLAGDetail struct {
 	Enabled                      bool     `json:"enabled"`
 	PeerMacRoutingSupported      bool     `json:"peerMacRoutingSupported"`
 	PeerPrimaryPriority          int      `json:"peerPrimaryPriority"`
-	udpHeartbeatsReceived        int64    `json:"udpHeartbeatsReceived"`
+	UdpHeartbeatsReceived        int64    `json:"udpHeartbeatsReceived"`
 	PeerMacAddress               string   `json:"peerMacAddress"`
 	MountChanges                 int      `json:"mountChanges"`
 	HeartbeatTimeoutsSinceReboot int64    `json:"heartbeatTimeoutsSinceReboot"`
