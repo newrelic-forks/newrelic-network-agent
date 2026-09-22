@@ -20,10 +20,11 @@ name: Publish Release
 #     clobber. disable_semver_validation is the deliberate, visible escape hatch for the
 #     rare case that's genuinely wanted.
 #
-# Version format is enforced via nix/semver.nix's regex -- checks.<system>.version-is-semver
-# (see version-format-check.yml) protects the checked-in VERSION file the same way, so
-# there's exactly one place this rule is defined, runnable identically in CI or locally
-# (`nix run .#check-semver -- 0.0.1`).
+# Version format is enforced via apps.<system>.check-semver in flake.nix (a thin wrapper
+# around semver-tool, not a homegrown regex) -- checks.<system>.version-is-semver (see
+# version-format-check.yml) protects the checked-in VERSION file the same way, so there's
+# exactly one real implementation of "is this valid SemVer", runnable identically in CI or
+# locally (`nix run .#check-semver -- 0.0.1`).
 #
 # ci-build.yml (stack/01) builds the same Dockerfile but only ever exports a local tarball --
 # this is the one workflow in the repo that actually pushes anywhere.

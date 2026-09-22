@@ -83,18 +83,35 @@
           # guest's CPU arch to the host's own so Darwin hosts get an accelerated, not
           # emulated, guest.
           linuxSystem = nixpkgs.lib.replaceStrings [ "-darwin" ] [ "-linux" ] system;
-          semver = import ./nix/semver.nix { };
         in
         {
-          # Protects the VERSION file itself: fails at evaluation time (no sandbox, no
-          # build, effectively instant) if it's ever not a valid SemVer core version.
-          # publish-release.yml's workflow_dispatch path validates its own version input
-          # against the exact same regex, via apps.<system>.check-semver below --
-          # nix/semver.nix is the one place this rule is defined.
-          version-is-semver =
-            if semver.isValid version
-            then pkgs.runCommand "version-is-semver" { } "touch $out"
-            else throw "VERSION file contains '${version}', which is not a valid SemVer core version (expected MAJOR.MINOR.PATCH, optionally -prerelease)";
+          # Protects the VERSION file itself: fails at build time (cached after the first
+          # run, so still effectively instant in practice) if it's ever not a valid SemVer
+          # core version. publish-release.yml's workflow_dispatch path validates its own
+          # version input the same way, via apps.<system>.check-semver below -- both defer
+          # to semver-tool (fsaintjacques/semver-tool) rather than a homegrown regex, so
+          # there's exactly one real implementation of "is this valid SemVer" and it's
+          # already spec-correct (e.g. rejecting leading-zero prerelease identifiers,
+          # which a hand-rolled regex here previously got wrong).
+          #
+          # semver-tool's `validate` accepts full SemVer, including +build-metadata, which
+          # this repo deliberately doesn't use in VERSION (NETWORK_AGENT_BUILD covers that
+          # separately) -- hence the explicit `*+*` rejection below on top of it.
+          version-is-semver = pkgs.runCommand "version-is-semver" { nativeBuildInputs = [ pkgs.semver-tool ]; } ''
+            version="${version}"
+            case "$version" in
+              *+*)
+                echo "VERSION file contains '$version', which has build metadata -- this repo doesn't use SemVer's +build suffix in VERSION." >&2
+                exit 1
+                ;;
+            esac
+            result="$(semver validate "$version")"
+            if [ "$result" != "valid" ]; then
+              echo "VERSION file contains '$version', which is not valid SemVer (expected MAJOR.MINOR.PATCH, optionally -prerelease): $result" >&2
+              exit 1
+            fi
+            touch $out
+          '';
 
           # Sanity check confirming this system can run a NixOS VM test at all before
           # trusting the real, more complex one below -- see nix/tests/minimal-ping.nix.
@@ -146,25 +163,32 @@
       apps = forAllSystems (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          semver = import ./nix/semver.nix { };
         in
         {
           # Runtime counterpart to checks.<system>.version-is-semver above: that check
-          # validates the committed VERSION file, this validates an arbitrary string
-          # (e.g. publish-release.yml's workflow_dispatch version input) against the
-          # exact same nix/semver.nix regex, callable as `nix run .#check-semver -- STR`
-          # both from CI and locally before ever pushing a tag or triggering a dispatch.
+          # validates the committed VERSION file, this validates an arbitrary string (e.g.
+          # publish-release.yml's workflow_dispatch version input) the same way, via
+          # semver-tool, callable as `nix run .#check-semver -- STR` both from CI and
+          # locally before ever pushing a tag or triggering a dispatch.
           check-semver = {
             type = "app";
             program = "${pkgs.writeShellApplication {
               name = "check-semver";
+              runtimeInputs = [ pkgs.semver-tool ];
               text = ''
                 if [ "$#" -ne 1 ]; then
                   echo "usage: check-semver VERSION_STRING" >&2
                   exit 2
                 fi
-                if ! [[ "$1" =~ ^${semver.pattern}$ ]]; then
-                  echo "'$1' is not a valid SemVer version (expected MAJOR.MINOR.PATCH, optionally -prerelease)" >&2
+                case "$1" in
+                  *+*)
+                    echo "'$1' has build metadata -- this repo doesn't use SemVer's +build suffix" >&2
+                    exit 1
+                    ;;
+                esac
+                result="$(semver validate "$1")"
+                if [ "$result" != "valid" ]; then
+                  echo "'$1' is not a valid SemVer version (expected MAJOR.MINOR.PATCH, optionally -prerelease): $result" >&2
                   exit 1
                 fi
                 echo "'$1' is valid SemVer"
