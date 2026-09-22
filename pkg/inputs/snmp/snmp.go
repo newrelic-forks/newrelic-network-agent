@@ -19,6 +19,7 @@ import (
 	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/mibs"
 	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/traps"
 	snmp_util "github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/x/merakicloudsnmp"
 	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/resolv"
 
@@ -174,6 +175,17 @@ func runSnmpPolling(ctx context.Context, snmpFile string, jchfChan chan []*kt.JC
 	}
 
 	log.Infof("Client SNMP: Setting up for %d devices", len(conf.Devices))
+
+	// Best-effort, opt-in only: tag devices with their Meraki serial before any per-device
+	// polling goroutine starts, so SetUserTags calls downstream pick it up for free. A nil
+	// MerakiCloudSNMP (the default) makes this a no-op; any failure here must never block
+	// normal device polling from starting.
+	if conf.Global.MerakiCloudSNMP != nil {
+		if err := merakicloudsnmp.EnrichSerials(ctx, conf.Global, conf.Devices, log); err != nil {
+			log.Warnf("Meraki cloud SNMP serial enrichment failed, continuing without it: %v", err)
+		}
+	}
+
 	for _, device := range conf.Devices {
 		if device.Provider == "" {
 			// Default provider to something we can work with.
