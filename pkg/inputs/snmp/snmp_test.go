@@ -33,8 +33,8 @@ func TestMatchesPrefix(t *testing.T) {
 func TestSetTagsMatch(t *testing.T) {
 	assert := assert.New(t)
 
-	tests := map[string]kt.SnmpConfig{
-		"one": kt.SnmpConfig{
+	tests := map[string]*kt.SnmpConfig{
+		"one": &kt.SnmpConfig{
 			Global: &kt.SnmpGlobalConfig{
 				UserTags: map[string]string{
 					"tag": "global",
@@ -91,7 +91,7 @@ func TestSetTagsMatch(t *testing.T) {
 				},
 			},
 		},
-		"two": kt.SnmpConfig{ // No provider, just gobal and device.
+		"two": &kt.SnmpConfig{ // No provider, just gobal and device.
 			Global: &kt.SnmpGlobalConfig{
 				UserTags: map[string]string{
 					"tag": "global",
@@ -121,7 +121,7 @@ func TestSetTagsMatch(t *testing.T) {
 				},
 			},
 		},
-		"three": kt.SnmpConfig{ // No provider, just gobal and device.
+		"three": &kt.SnmpConfig{ // No provider, just gobal and device.
 			Global: &kt.SnmpGlobalConfig{},
 			Devices: map[string]*kt.SnmpDeviceConfig{
 				"device": &kt.SnmpDeviceConfig{
@@ -148,7 +148,7 @@ func TestSetTagsMatch(t *testing.T) {
 
 	for test, ms := range tests {
 		for p, m := range ms.Global.ProviderMap {
-			m.Init(p, &ms) // Set up any provider based user and match tags here.
+			m.Init(p, ms) // Set up any provider based user and match tags here.
 		}
 		for k, v := range ms.Global.UserTags {
 			for _, device := range ms.Devices {

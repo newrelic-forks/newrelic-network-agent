@@ -25,22 +25,14 @@ FROM alpine:latest AS snmp
 ARG NR_SNMP_PROFILE_REPO
 RUN apk add -U git
 
-# Opt-in auth: when a `github_token` BuildKit secret is provided (a GitHub token with read
-# access to the repo), transparently authenticate GitHub HTTPS clones. This is a complete
-# no-op when the secret is absent, so the override/clone logic below is unchanged from
-# upstream. The token lives only in this throwaway stage (only /snmp/profiles is copied on).
-RUN --mount=type=secret,id=github_token \
-    if [ -s /run/secrets/github_token ]; then \
-        git config --global url."https://x-access-token:$(cat /run/secrets/github_token)@github.com/".insteadOf "https://github.com/"; \
-    fi
-
-# If there is a branch of snmp-profiles to use, switch over here now.
+# Both the upstream default and newrelic-forks/snmp-profiles are public repos, so this
+# clones anonymously -- no token/auth needed.
 RUN if [ -z "${NR_SNMP_PROFILE_REPO}" ]; then \
-    git clone https://github.com/kentik/snmp-profiles /snmp; \
-else \
-    echo "picking repo ${NR_SNMP_PROFILE_REPO} for snmp profiles"; \
-    git clone ${NR_SNMP_PROFILE_REPO} /snmp; \
-fi
+        git clone https://github.com/newrelic-forks/snmp-profiles /snmp; \
+    else \
+        echo "picking repo ${NR_SNMP_PROFILE_REPO} for snmp profiles"; \
+        git clone ${NR_SNMP_PROFILE_REPO} /snmp; \
+    fi
 
 # main image
 FROM alpine:3.23.3
