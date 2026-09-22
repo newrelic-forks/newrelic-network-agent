@@ -2,14 +2,24 @@ package snmp
 
 import (
 	"context"
+	"errors"
 	"net"
-	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/google/gopacket/macs"
 	"github.com/mostlygeek/arp"
 )
+
+// maxConcurrentProbes bounds scanCIDR's goroutine fan-out. Deliberately not tied to
+// conf.Disco.Threads -- that knob already means something else (how many CIDRs from
+// conf.Disco.Cidrs are scanned in parallel, via disco.go's own ctl channel), and is
+// typically small (default 4). Reusing it here would make every single-CIDR scan
+// absurdly slow. This bound is purely about not launching one goroutine (plus a
+// reverse DNS lookup and a TCP dial each) per address in one CIDR at once -- a
+// configured /16 would otherwise be 65536 goroutines with no cap at all.
+const maxConcurrentProbes = 256
 
 // netScanResult describes what was learned about one IP during a network scan.
 type netScanResult struct {
@@ -26,7 +36,7 @@ func (r netScanResult) IsHostUp() bool {
 
 // scanCIDR probes every host in cidr: an ARP-table MAC lookup, a MAC-prefix
 // vendor lookup, a reverse DNS lookup, and a TCP dial to port 1 to gauge
-// liveness/latency. One goroutine per IP.
+// liveness/latency. Up to maxConcurrentProbes goroutines in flight at once.
 func scanCIDR(ctx context.Context, cidr string, timeout time.Duration) ([]netScanResult, error) {
 	ip, ipnet, err := net.ParseCIDR(cidr)
 	if err != nil {
@@ -37,13 +47,14 @@ func scanCIDR(ctx context.Context, cidr string, timeout time.Duration) ([]netSca
 	var wg sync.WaitGroup
 	var mux sync.Mutex
 	results := []netScanResult{}
+	sem := make(chan struct{}, maxConcurrentProbes)
 
 	for ; ipnet.Contains(ip); incrementIP(ip) {
 		select {
 		case <-ctx.Done():
 			wg.Wait()
 			return results, ctx.Err()
-		default:
+		case sem <- struct{}{}:
 		}
 
 		target := make(net.IP, len(ip))
@@ -52,6 +63,7 @@ func scanCIDR(ctx context.Context, cidr string, timeout time.Duration) ([]netSca
 		wg.Add(1)
 		go func(target net.IP) {
 			defer wg.Done()
+			defer func() { <-sem }()
 			r := probeHost(target, timeout)
 			mux.Lock()
 			results = append(results, r)
@@ -83,13 +95,23 @@ func probeHost(ip net.IP, timeout time.Duration) netScanResult {
 
 	start := time.Now()
 	conn, err := net.DialTimeout("tcp", net.JoinHostPort(ip.String(), "1"), timeout)
-	if err != nil {
-		if !strings.Contains(err.Error(), "timeout") {
-			r.Latency = time.Since(start)
-		}
-	} else {
+	switch {
+	case err == nil:
+		// Connected outright -- definitely up.
 		r.Latency = time.Since(start)
 		conn.Close()
+	case errors.Is(err, syscall.ECONNREFUSED):
+		// Actively refused: the host sent back a RST, so it's up even though
+		// nothing is listening on this deliberately-unlikely-to-be-open port.
+		r.Latency = time.Since(start)
+	default:
+		// Anything else -- a timeout (no response at all), "network is
+		// unreachable"/"no route to host" (no response from *this* host
+		// specifically), or a local resource error like "too many open files"
+		// during a large scan -- is not evidence the host is up. The previous
+		// !strings.Contains(err.Error(), "timeout") check got this backwards:
+		// it treated every one of these as a live host, so resource exhaustion
+		// alone could make nearly an entire CIDR appear to respond.
 	}
 
 	return r
