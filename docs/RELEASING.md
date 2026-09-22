@@ -1,118 +1,79 @@
 # Releasing
 
-How to cut a pre-release and promote it to a full release, driving
-`.github/workflows/publish-release.yml` from the CLI instead of the GitHub release UI.
+How a version goes from a `VERSION` bump to a released Docker Hub image, and the one manual
+step in the middle of that.
 
-## Why not just use the GitHub UI
+## The model
 
-`publish-release.yml` has two build paths:
+`VERSION` (repo root) is the single source of truth for what gets released — not a fallback
+default. It only ever holds a bare `MAJOR.MINOR.PATCH` (never `-rc1`, `-alpha`, etc.), and
+the commit that bumps it is the *exact* commit that gets tagged and released. There's no
+separate release-candidate tag: the same tag and the same GitHub release object exist from
+the moment `VERSION` is bumped through to the final promoted release. "Pre-release" vs.
+"release" is purely GitHub's own checkbox on that one object, not a different tag.
 
-- Publishing a **pre-release** (tag has a SemVer `-suffix`, e.g. `v0.1.0-rc1`) builds the
-  image from source and pushes `newrelic/network-agent:<version>` and
-  `newrelic/network-agent:sha-<commit>` to Docker Hub.
-- Publishing (or promoting an existing pre-release to) a **full release** (bare tag, e.g.
-  `v0.1.0`) never rebuilds — it retags the `sha-<commit>` image already pushed by that same
-  commit's pre-release as `<version>` and `latest`, via `docker buildx imagetools create`.
-  This is deliberate: what ships as the real release is byte-identical to what the
-  pre-release build tested. If no matching pre-release image exists for that commit, the
-  `promote` job fails on purpose.
+That's deliberately simpler than keeping a `-rc1` suffix around: it means there's never a
+"which commit does the full release tag point at" question (see `git log` history before
+this model — that question is exactly what an earlier version of this doc, and this
+Justfile's now-removed `release-rc`/`release-promote from_tag` recipes, existed to answer by
+pinning commits explicitly). The cost is that a failed pre-release burns a version number —
+if `0.0.5`'s pre-release fails testing, the fix goes out as `0.0.6`, not a re-spun `0.0.5`.
+That's fine; version numbers are free.
 
-That last part is where the GitHub UI gets risky: creating a release by typing a tag name
-defaults its target to whatever the branch's HEAD happens to be *at that moment*. If you
-create the pre-release, then later create the full release the same way, and someone pushed
-to the branch in between, the two tags land on different commits — and `promote` fails
-because the full release's commit has no matching `sha-<commit>` image.
+## The pipeline
 
-`just release-rc` / `just release-promote` (in the `Justfile`) exist to make the commit
-explicit and to catch the workflow's own failure conditions locally, before a release is
-even created.
+1. **Bump `VERSION`** in a PR to a bare, strictly-increasing `MAJOR.MINOR.PATCH` (e.g.
+   `0.0.4` → `0.0.5`). `version-format-check.yml` enforces the format, the no-prerelease-
+   suffix rule, and the increment on every PR that touches it — get it wrong and the PR's
+   checks fail before anyone reviews it.
+2. **Merge it.** That push to `main` triggers `cut-prerelease.yml`, which re-validates
+   everything itself (it doesn't trust the PR-time gate — see its own comments for why),
+   then tags that commit `v0.0.5` and opens a GitHub **pre-release** for it. This build runs
+   behind the `docker-hub-prerelease` environment, so it pauses for a required reviewer's
+   approval before anything actually gets pushed to Docker Hub.
+3. **`publish-release.yml` picks up the new pre-release** (it triggers on `release: published`)
+   and pushes `newrelic/network-agent:0.0.5` and `newrelic/network-agent:sha-<commit>`.
+   Both tags are immutable from this point on.
+4. **Test it.** Pull `0.0.5` (or the `sha-<commit>` tag), run canary/manual testing, whatever
+   this release needs.
+   - If it fails: fix the problem, bump `VERSION` again (`0.0.6`), and go back to step 1.
+     Never reuse or move the `v0.0.5` tag.
+   - If it passes: promote it.
+5. **Promote:** `just release-promote 0.0.5`, or equivalently, edit the `v0.0.5` release on
+   GitHub and uncheck "This is a pre-release." Either way, this flips the *same* release
+   object's pre-release flag off, which fires GitHub's `released` event.
+   `publish-release.yml`'s `promote` job picks that up, and — behind the
+   `docker-hub-release` environment's own required-reviewer approval — retags the
+   already-pushed `sha-<commit>` image as `0.0.5` and `latest`. **No rebuild.** What ships as
+   the real release is byte-for-byte what was tested in step 4.
 
-## Prerequisites
+Two independent human gates in that pipeline: PR review gates *cutting* a candidate (step
+1-2), a required reviewer on `docker-hub-release` gates *promoting* it (step 5) — separate
+from whoever approved the pre-release build itself in step 2.
 
-- `gh` authenticated (`gh auth login`) — available in `nix develop`'s devShell, or install
-  separately: https://cli.github.com
-- `nix` on `PATH`, for the shared SemVer check in `nix/semver.nix`
-  (`nix run .#check-semver`) — the exact same rule `publish-release.yml` itself enforces.
-- The commit you're cutting a release from must already be pushed to `origin` — `gh release
-  create --target` can only tag a commit GitHub already has.
+## `just release-promote <version>`
 
-## Cutting a pre-release
+Wraps step 5. Before touching anything, it checks:
 
-```
-just release-rc 0.1.0-rc1
-```
+- A GitHub release for `v<version>` exists and is currently marked pre-release (refuses to
+  "promote" something that's already a full release, or doesn't exist yet).
+- (Best-effort, non-fatal) `publish-release.yml` actually completed successfully for that
+  tag — if this can't be confirmed you get a warning, not a hard stop, since the `promote`
+  job's own Docker Hub check is the real, unskippable gate.
 
-This publishes a GitHub pre-release tagged `v0.1.0-rc1` at the current `HEAD`, which
-triggers `publish-release.yml`'s `publish` job. Pass a second argument to target a
-different commit/branch/tag instead of `HEAD`:
+Then it runs `gh release edit v<version> --prerelease=false`. That's it — there's no
+`release-rc` recipe, and no `from_tag` argument here, because there's only ever one release
+object per version to edit, never a second tag to resolve or pin.
 
-```
-just release-rc 0.1.0-rc1 some-branch
-```
+Needs `gh` authenticated (`gh auth login` — available in `nix develop`'s devShell).
 
-Before creating anything, the recipe checks that:
+## Why there's no `release-rc` recipe
 
-- `0.1.0-rc1` actually has a prerelease suffix (a bare version is rejected — that's
-  `release-promote`'s job, not this one's).
-- It's valid SemVer (via `nix run .#check-semver`).
-- `v0.1.0-rc1` doesn't already exist as a tag (locally or on `origin`) or as a GitHub
-  release.
-
-Once `publish-release.yml` finishes, Docker Hub has `newrelic/network-agent:0.1.0-rc1` and
-`newrelic/network-agent:sha-<commit>`. Test that image. If something's wrong, fix it, commit,
-and cut `0.1.0-rc2` at the new commit — never move a tag.
-
-## Promoting a tested pre-release to a full release
-
-Once `0.1.0-rc1` (or whichever RC) is verified good:
-
-```
-just release-promote 0.1.0 0.1.0-rc1
-```
-
-This publishes a full GitHub release tagged `v0.1.0`, targeted at the **exact same commit**
-as `v0.1.0-rc1` — resolved from the existing tag, not re-typed — which triggers
-`publish-release.yml`'s `promote` job. No image is rebuilt; the existing
-`newrelic/network-agent:sha-<commit>` is retagged as `0.1.0` and `latest`.
-
-Before creating anything, the recipe checks that:
-
-- `0.1.0` has no prerelease suffix and is valid SemVer.
-- `v0.1.0` doesn't already exist (locally, on `origin`, or as a GitHub release) — you can't
-  promote onto an already-released version.
-- `0.1.0-rc1` exists as a tag and as a **published GitHub pre-release** specifically (not
-  just a bare git tag someone pushed by hand).
-- (Best-effort, non-fatal) `publish-release.yml` actually completed successfully for
-  `0.1.0-rc1` — if this can't be confirmed, you get a warning, not a hard stop, since
-  `promote`'s own Docker Hub check is the real, unskippable gate.
-
-If any of the hard checks fail, fix the underlying issue (cut a new RC, pick the right
-`from_tag`, etc.) rather than working around the recipe.
-
-## What if I need to re-run a pre-release build?
-
-Re-running/re-publishing the *same* pre-release (same tag) is expected to work — it rebuilds
-and re-pushes, which is fine for retrying something flaky. `release-rc`'s "tag must not
-already exist" check only stops you from reusing an RC tag for a *different* commit; if you
-genuinely need to retry the exact same tag, do that through the GitHub UI's "re-run" on the
-existing release/workflow run rather than through this recipe.
-
-## About the `VERSION` file
-
-`VERSION` (repo root) is a fallback default, not the source of truth for what actually gets
-released:
-
-- **Nix's `packages.*.network-agent`** (`nix/network-agent.nix`) reads it as a pinned,
-  Nix-evaluation-pure version string, specifically so the derivation's cache isn't
-  invalidated on every single commit the way stamping in `self.rev` would be. It will lag
-  behind the latest tag between bumps — that's expected, the same way a Nix package's
-  version generally lags upstream between packaging updates.
-- **Local `make` builds** default to it (`Makefile`'s `NETWORK_AGENT_VERSION ?= ...`).
-- **`workflow_dispatch`** runs of `publish-release.yml` fall back to it when no version
-  input is given.
-- **Real releases ignore it entirely** — `publish-release.yml`'s `release`-event path always
-  uses the git tag name, never this file.
-
-It's checked for valid SemVer format by `version-format-check.yml`, but nothing currently
-checks that it matches the latest actual release — don't rely on it to answer "what's the
-current released version," use the repo's GitHub releases/tags for that.
+Cutting a pre-release is `cut-prerelease.yml`'s job now, triggered by the `VERSION` bump
+itself — there's deliberately no CLI or UI path that creates a tag/release without a
+corresponding `VERSION` bump landing on `main` first. Introducing one would let the
+checked-in `VERSION` (which Nix's `packages.*.network-agent`, the `Makefile`'s default, and
+`publish-release.yml`'s `workflow_dispatch` fallback all read) drift from whatever's actually
+been tagged. If you need an ad-hoc build+push outside this pipeline entirely (not a real
+release), that's what `publish-release.yml`'s `workflow_dispatch` input is for — it never
+touches `VERSION`, never tags anything, and never promotes.
