@@ -11,8 +11,8 @@ name: Cut pre-release from VERSION
 # problem, fix it, bump VERSION again, and let this run again -- never reuse or move a tag.
 #
 # Promotion (dropping the pre-release flag once testing signs off) is a deliberate, separate,
-# manual step gated by the docker-hub-release environment -- see docs/RELEASING.md. Never
-# automated here, and this workflow has no ability to touch Docker Hub at all.
+# manual step -- see docs/RELEASING.md. Never automated here, and this workflow has no
+# ability to touch Docker Hub at all.
 #
 # version-format-check.yml already validates format/no-suffix/increment on the PR that
 # merges this, but that's a review-time gate on a branch protection main could technically
