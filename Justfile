@@ -95,23 +95,16 @@ third-party-notices-check:
 
 # --- Release helpers ---------------------------------------------------------
 #
-# Cutting a pre-release is fully automated: cut-prerelease.yml tags and publishes a
-# GitHub pre-release the moment a VERSION-bumping commit merges to main, at that exact
-# commit -- see docs/RELEASING.md. There's no `just release-rc`, deliberately: the checked-in
-# VERSION file is the one source of truth for what's tagged, so a manual, VERSION-file-free
-# way to cut a release would let the two drift.
-#
-# Promoting a tested pre-release to a full release is the one deliberately manual step left
-# -- this just wraps that in one command instead of the GitHub UI, plus the same pre-flight
-# checks publish-release.yml's own `promote` job would otherwise fail on. Needs `gh`
-# authenticated (`gh auth login`).
+# Cutting a pre-release is cut-prerelease.yml's job, triggered by a VERSION-bumping commit
+# landing on main -- see docs/RELEASING.md for the full pipeline. This recipe covers the one
+# manual step: promoting a tested pre-release to a full release. Needs `gh` authenticated
+# (`gh auth login`).
 
 # Promote a tested pre-release to a full release: flips GitHub's "This is a pre-release"
-# checkbox off on the *existing* v<version> release -- never creates a new tag or release,
-# since under this repo's model there's only ever one release object per version. That edit
-# triggers publish-release.yml's `promote` job (behind the docker-hub-release environment)
-# to retag the pre-release's already-pushed newrelic/network-agent:sha-<commit> image as
-# <version> and `latest` -- no rebuild, so what ships is byte-identical to what was tested.
+# checkbox off on the v<version> release, which triggers publish-release.yml's `promote`
+# job (behind the docker-hub-release environment) to retag the pre-release's already-pushed
+# newrelic/network-agent:sha-<commit> image as <version> and `latest` -- no rebuild, so what
+# ships is byte-identical to what was tested.
 release-promote version:
     #!/usr/bin/env bash
     set -euo pipefail
