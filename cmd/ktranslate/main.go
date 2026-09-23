@@ -106,10 +106,17 @@ func main() {
 	var (
 		configFilePath = flag.String("config", "", "path to ktranslate config")
 		generateConfig = flag.Bool("generate-config", false, "generate ktranslate config and exit")
+		showVersion    = flag.Bool("version", false, "print version information and exit")
 	)
 
 	// this is needed in order to catch the config options
 	flag.Parse()
+
+	// print version and exit -- checked before anything else needs a valid config
+	if *showVersion {
+		fmt.Println(version.Version)
+		os.Exit(0)
+	}
 
 	// dump default config to stdout and exit
 	if *generateConfig {
@@ -173,7 +180,7 @@ func main() {
 		bs.Fail(fmt.Sprintf("Cannot start ktranslate: %v", err))
 	}
 
-	lc.Infof("Running -- Version %s; Build %s", version.Version.Version, version.Version.Date)
+	lc.Infof("Running -- %s", version.Version)
 	lc.Infof("CLI: %v", os.Args)
 	bs.Run(kc)
 }
