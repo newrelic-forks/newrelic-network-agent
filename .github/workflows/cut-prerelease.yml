@@ -83,10 +83,31 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          if git ls-remote --exit-code origin "refs/tags/$TAG" > /dev/null 2>&1; then
-            echo "::error::$TAG already exists on origin -- VERSION was bumped to a version that's already tagged."
-            exit 1
+
+          # git ls-remote --exit-code exits 0 (found), 2 (talked to origin fine, found
+          # nothing), or anything else (couldn't actually reach origin at all -- network,
+          # auth, DNS, ...). Distinguishing those matters: collapsing "couldn't tell" into
+          # "doesn't exist" would let this proceed to tag on a transient failure instead of
+          # failing closed.
+          if git ls-remote --exit-code origin "refs/tags/$TAG" > /dev/null; then
+            rc=0
+          else
+            rc=$?
           fi
+
+          case "$rc" in
+            0)
+              echo "::error::$TAG already exists on origin -- VERSION was bumped to a version that's already tagged."
+              exit 1
+              ;;
+            2)
+              ;; # confirmed: no such tag on origin -- expected, continue
+            *)
+              echo "::error::Couldn't check whether $TAG already exists on origin (git ls-remote exited $rc) -- failing closed rather than risk creating a duplicate tag."
+              exit 1
+              ;;
+          esac
+
           if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
             echo "::error::A GitHub release already exists for $TAG."
             exit 1
