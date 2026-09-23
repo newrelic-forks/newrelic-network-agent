@@ -105,7 +105,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          if ! nix run nixpkgs#just -- check-semver "$VERSION"; then
+          if ! nix develop --command just check-semver "$VERSION"; then
             echo "::error::'$VERSION' is not a valid SemVer version (MAJOR.MINOR.PATCH, optionally -prerelease)."
             exit 1
           fi

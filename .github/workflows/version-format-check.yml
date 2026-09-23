@@ -2,8 +2,13 @@ name: Version format check
 
 # Validates that the checked-in VERSION file is a valid SemVer string, via `just
 # check-version` in the Justfile -- the actual rule lives there (and is runnable
-# identically with `nix run nixpkgs#just -- check-version` locally), this workflow is just
-# the CI trigger around it. Same pattern as vendor-hash-check.yml.
+# identically with `nix develop --command just check-version` locally), this workflow is
+# just the CI trigger around it. Same pattern as vendor-hash-check.yml.
+#
+# Always goes through `nix develop` (never a bare `nix run nixpkgs#just`/`nix run
+# nixpkgs#semver-tool`): the latter resolves against whatever nixpkgs the *global* flake
+# registry currently points at, not this repo's own pinned nixpkgs input, silently
+# defeating flake.lock's version pin.
 #
 # cut-prerelease.yml and push-adhoc-image.yml's checks validate the same way, via `just
 # check-semver`/`check-adhoc-tag` -- all of these defer to semver-tool
@@ -47,7 +52,7 @@ jobs:
           upstream-cache-filter: "true"
 
       - name: Validate VERSION is SemVer
-        run: nix run nixpkgs#just -- check-version
+        run: nix develop --command just check-version
 
       - name: Validate VERSION is a bare, incremented release version
         if: github.event_name != 'workflow_dispatch'
@@ -87,4 +92,4 @@ jobs:
             exit 0
           fi
 
-          nix run nixpkgs#just -- check-version-increment "$OLD" "$NEW"
+          nix develop --command just check-version-increment "$OLD" "$NEW"

@@ -88,9 +88,11 @@ never touches `VERSION`, never creates a tag/release, and never promotes.
 Format validation and version comparison are Justfile recipes, not Nix outputs -- `nix` (via
 `flake.nix`) is for packages, the devShell, and checks complex enough to need Nix's own
 machinery (the NixOS VM tests), not for thin shell wrappers around `semver-tool`
-(fsaintjacques/semver-tool). Everything below calls `nix run nixpkgs#semver-tool` itself, so
-it works identically whether run bare, from CI (`nix run nixpkgs#just -- <recipe>`), or from
-inside `nix develop`.
+(fsaintjacques/semver-tool). They assume `semver-tool` is already on `PATH` rather than
+calling `nix run nixpkgs#semver-tool` themselves, which would resolve against the global
+flake registry's nixpkgs instead of this repo's own pinned one -- so every caller, human or
+CI, runs them through the devShell (`nix develop` interactively, or `nix develop --command
+just <recipe>` from CI), never a bare `nix run nixpkgs#just -- <recipe>`.
 
 - `just check-semver <string>` — is `<string>` valid SemVer? Rejects `+build-metadata` too:
   this repo doesn't use it anywhere.

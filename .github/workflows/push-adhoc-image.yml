@@ -42,7 +42,7 @@ jobs:
       - name: Refuse a release-shaped tag
         env:
           TAG: ${{ inputs.tag }}
-        run: nix run nixpkgs#just -- check-adhoc-tag "$TAG"
+        run: nix develop --command just check-adhoc-tag "$TAG"
 
       - name: Set up QEMU        # enables cross-building (e.g. arm64 on an amd64 runner)
         uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3

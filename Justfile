@@ -99,11 +99,13 @@ third-party-notices-check:
 # (fsaintjacques/semver-tool) plus this repo's own release policy (no +build metadata in
 # VERSION, no bare-vs-prerelease suffix rules, ...) -- not packages, not a devShell, and
 # not complex enough to need Nix's own build/VM machinery the way the checks in flake.nix
-# do. Each calls `nix run nixpkgs#semver-tool` itself rather than assuming semver-tool is
-# already on PATH, so they work identically run bare, from CI (`nix run nixpkgs#just --
-# <recipe>`, see cut-prerelease.yml/version-format-check.yml/push-adhoc-image.yml), or
-# from inside `nix develop` (where semver-tool is also on the devShell PATH directly, for
-# interactive `semver compare`/`validate` use).
+# do. They assume semver-tool is already on PATH rather than shelling out to `nix run
+# nixpkgs#semver-tool` themselves -- that would resolve against whatever nixpkgs the
+# *global* flake registry currently points at, not this repo's own flake.lock-pinned
+# nixpkgs, silently bypassing the pin. So every caller, human or CI, is expected to run
+# these via the devShell (`nix develop` -- interactively, or `nix develop --command just
+# <recipe>` from CI; see cut-prerelease.yml/version-format-check.yml/push-adhoc-image.yml),
+# never a bare `nix run nixpkgs#just -- <recipe>`.
 
 # Validates that `s` is SemVer (MAJOR.MINOR.PATCH, optionally -prerelease) -- and,
 # specifically, rejects +build-metadata even though semver-tool itself accepts it: this
@@ -118,7 +120,7 @@ check-semver s:
         exit 1
         ;;
     esac
-    result="$(nix run nixpkgs#semver-tool -- validate "{{s}}")"
+    result="$(semver validate "{{s}}")"
     if [ "$result" != "valid" ]; then
       echo "error: '{{s}}' is not a valid SemVer version (expected MAJOR.MINOR.PATCH, optionally -prerelease): $result" >&2
       exit 1
@@ -132,7 +134,7 @@ check-semver s:
 check-version-increment old new:
     #!/usr/bin/env bash
     set -euo pipefail
-    result="$(nix run nixpkgs#semver-tool -- compare "{{new}}" "{{old}}")"
+    result="$(semver compare "{{new}}" "{{old}}")"
     if [ "$result" != "1" ]; then
       echo "error: '{{new}}' is not a strict increase over '{{old}}' (semver compare: $result)" >&2
       exit 1
@@ -141,13 +143,8 @@ check-version-increment old new:
 
 # Validates the checked-in VERSION file itself -- what version-format-check.yml's "Validate
 # VERSION is SemVer" step and cut-prerelease.yml's own re-validation both actually run.
-#
-# Calls check-semver via {{just_executable()}} rather than a bare `just` -- CI invokes
-# this one via `nix run nixpkgs#just -- check-version` specifically to avoid entering the
-# full devShell for a one-line check, which means `just` itself isn't necessarily on PATH
-# for this recipe's own shell to find a second time.
 check-version:
-    {{just_executable()}} check-semver "$(tr -d '[:space:]' < VERSION)"
+    just check-semver "$(tr -d '[:space:]' < VERSION)"
 
 # Rejects `tag` if it's valid SemVer or is literally "latest" -- both are reserved for the
 # real release pipeline (VERSION bump -> cut-prerelease.yml -> publish-release.yml), never
@@ -163,7 +160,7 @@ check-adhoc-tag tag:
         exit 1
         ;;
     esac
-    if {{just_executable()}} check-semver "{{tag}}" >/dev/null 2>&1; then
+    if just check-semver "{{tag}}" >/dev/null 2>&1; then
       echo "error: '{{tag}}' is valid SemVer, which is reserved for the release pipeline (VERSION bump -> cut-prerelease.yml) -- an ad-hoc tag must not be confusable with a real release. Pick something clearly not a version number." >&2
       exit 1
     fi
