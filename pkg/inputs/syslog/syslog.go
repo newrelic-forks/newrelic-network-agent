@@ -9,15 +9,15 @@ import (
 	"time"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
 	syslog "github.com/kentik/the-library-formally-known-as-go-syslog"
 	sfmt "github.com/kentik/the-library-formally-known-as-go-syslog/format"
+	"github.com/newrelic-forks/newrelic-network-agent"
 
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/util/resolv"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/resolv"
 )
 
 var (
@@ -36,7 +36,7 @@ func init() {
 	flag.IntVar(&threads, "syslog.threads", 1, "Number of threads to use to process messages.")
 }
 
-type KentikSyslog struct {
+type NewRelicSyslog struct {
 	logger.ContextL
 	server   *syslog.Server
 	handler  *syslog.ChannelHandler
@@ -46,7 +46,7 @@ type KentikSyslog struct {
 	apic     *api.KentikApi
 	devices  map[string]*kt.Device
 	resolver *resolv.Resolver
-	config   *ktranslate.SyslogInputConfig
+	config   *networkagent.SyslogInputConfig
 }
 
 type SyslogMetric struct {
@@ -62,8 +62,8 @@ const (
 	ErrorCheckDuration   = 1 * time.Minute
 )
 
-func NewSyslogSource(ctx context.Context, log logger.Underlying, logchan chan string, registry go_metrics.Registry, apic *api.KentikApi, resolver *resolv.Resolver, cfg *ktranslate.SyslogInputConfig) (*KentikSyslog, error) {
-	ks := KentikSyslog{
+func NewSyslogSource(ctx context.Context, log logger.Underlying, logchan chan string, registry go_metrics.Registry, apic *api.KentikApi, resolver *resolv.Resolver, cfg *networkagent.SyslogInputConfig) (*NewRelicSyslog, error) {
+	ks := NewRelicSyslog{
 		ContextL: logger.NewContextLFromUnderlying(logger.SContext{S: "Syslog"}, log),
 		logchan:  logchan,
 		metrics: SyslogMetric{
@@ -135,9 +135,9 @@ func NewSyslogSource(ctx context.Context, log logger.Underlying, logchan chan st
 	return &ks, nil
 }
 
-func (ks *KentikSyslog) Close() {}
+func (ks *NewRelicSyslog) Close() {}
 
-func (ks *KentikSyslog) HttpInfo() map[string]float64 {
+func (ks *NewRelicSyslog) HttpInfo() map[string]float64 {
 	msgs := map[string]float64{
 		"messages": ks.metrics.Messages.Rate1(),
 		"errors":   ks.metrics.Errors.Rate1(),
@@ -146,7 +146,7 @@ func (ks *KentikSyslog) HttpInfo() map[string]float64 {
 	return msgs
 }
 
-func (ks *KentikSyslog) process(ctx context.Context, id int, channel syslog.LogPartsChannel) {
+func (ks *NewRelicSyslog) process(ctx context.Context, id int, channel syslog.LogPartsChannel) {
 	deviceTicker := time.NewTicker(DeviceUpdateDuration)
 	defer deviceTicker.Stop()
 	checkTicker := time.NewTicker(1 * time.Second)
@@ -194,7 +194,7 @@ func (ks *KentikSyslog) process(ctx context.Context, id int, channel syslog.LogP
 	}
 }
 
-func (ks *KentikSyslog) run(ctx context.Context, host string) {
+func (ks *NewRelicSyslog) run(ctx context.Context, host string) {
 	ks.Infof("Server ready on %s", host)
 
 	for i := 1; i <= ks.config.Threads; i++ {
@@ -205,7 +205,7 @@ func (ks *KentikSyslog) run(ctx context.Context, host string) {
 	ks.server.Wait()
 }
 
-func (ks *KentikSyslog) formatMessage(ctx context.Context, msg sfmt.LogParts) ([]byte, error) {
+func (ks *NewRelicSyslog) formatMessage(ctx context.Context, msg sfmt.LogParts) ([]byte, error) {
 	if client, ok := msg["client"].(string); ok { // Look up device_name here.
 		pts := strings.Split(client, ":")
 		if dev, ok := ks.devices[pts[0]]; ok {

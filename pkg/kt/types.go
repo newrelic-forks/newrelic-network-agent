@@ -32,11 +32,30 @@ const (
 	KENTIK_EVENT_KTRANS_METRIC   = "KTranslateMetric"
 
 	KentikAPITimeout = "KENTIK_API_TIMEOUT"
-	IndexVar         = "Index"
-	StringPrefix     = "ks_"
-	PrivateIP        = "Private IP"
-	DropMetric       = "DropMetric"
-	AdminStatus      = "if_AdminStatus"
+
+	// Deprecated: use the NetworkAgent* env var below instead. Kept working (as a
+	// fallback via LookupEnv*Deprecated) so existing deployments don't break on upgrade.
+	KentikSampleRate          = "KENTIK_SAMPLE_RATE"
+	KentikVPC                 = "KENTIK_VPC"
+	KentikMode                = "KENTIK_MODE"
+	KentikHTTPUsername        = "KENTIK_HTTP_USERNAME"
+	KentikHTTPPassword        = "KENTIK_HTTP_PASSWORD"
+	KentikFastPingDurationSec = "KENTIK_FAST_PING_DURATION_SEC"
+	KentikFastPingTickSec     = "KENTIK_FAST_PING_TICK_SEC"
+
+	NetworkAgentSampleRate          = "NETWORK_AGENT_SAMPLE_RATE"
+	NetworkAgentVPC                 = "NETWORK_AGENT_VPC"
+	NetworkAgentMode                = "NETWORK_AGENT_MODE"
+	NetworkAgentHTTPUsername        = "NETWORK_AGENT_HTTP_USERNAME"
+	NetworkAgentHTTPPassword        = "NETWORK_AGENT_HTTP_PASSWORD"
+	NetworkAgentFastPingDurationSec = "NETWORK_AGENT_FAST_PING_DURATION_SEC"
+	NetworkAgentFastPingTickSec     = "NETWORK_AGENT_FAST_PING_TICK_SEC"
+
+	IndexVar     = "Index"
+	StringPrefix = "ks_"
+	PrivateIP    = "Private IP"
+	DropMetric   = "DropMetric"
+	AdminStatus  = "if_AdminStatus"
 )
 
 type OutputType string

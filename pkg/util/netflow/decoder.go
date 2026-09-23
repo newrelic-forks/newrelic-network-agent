@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/kentik/ktranslate/pkg/util/netflow/ipfix"
-	"github.com/kentik/ktranslate/pkg/util/netflow/netflow1"
-	"github.com/kentik/ktranslate/pkg/util/netflow/netflow5"
-	"github.com/kentik/ktranslate/pkg/util/netflow/netflow6"
-	"github.com/kentik/ktranslate/pkg/util/netflow/netflow7"
-	"github.com/kentik/ktranslate/pkg/util/netflow/netflow9"
-	"github.com/kentik/ktranslate/pkg/util/netflow/session"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/ipfix"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/netflow1"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/netflow5"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/netflow6"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/netflow7"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/netflow9"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/util/netflow/session"
 )
 
 // Decoder for NetFlow messages.

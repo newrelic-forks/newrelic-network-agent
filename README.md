@@ -1,8 +1,8 @@
-# KTranslate - Kentik data to the world
+# New Relic Network Agent
 
 Listen for a feed of data to or from Kentik and pass on in a common form. Supports rollups and filtering as well.
 
-See the [Wiki](https://github.com/kentik/ktranslate/wiki) for more details. Come visit the [Discord](https://discord.gg/XGDNRj528C) if you have any questions, need any assistance, or want to talk about the development of ktranslate.
+See the [Wiki](https://github.com/kentik/ktranslate/wiki) for more details. Come visit the [Discord](https://discord.gg/XGDNRj528C) if you have any questions, need any assistance, or want to talk about the development of network-agent.
 
 # Build:
 
@@ -13,14 +13,14 @@ make && make test
 To build and use a Docker image, you must specify `MAXMIND_LICENSE_KEY` and `YOUR_ACCOUNT_ID` as build args:
 
 ```bash
-docker build --build-arg YOUR_ACCOUNT_ID=xxxxx --build-arg MAXMIND_LICENSE_KEY=xxxxx -t ktranslate:v2 .
+docker build --build-arg YOUR_ACCOUNT_ID=xxxxx --build-arg MAXMIND_LICENSE_KEY=xxxxx -t newrelic/network-agent:latest .
 ```
 
 To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
 
 # Flags:
 
-```Usage of ./bin/ktranslate:
+```Usage of ./bin/network-agent:
   -api_device_file string
     	File to sideload devices without hitting API
   -api_devices string
@@ -42,7 +42,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
   -compression string
     	compression algo to use (none|gzip|snappy|deflate|null) (default "none")
   -config string
-    	path to ktranslate config
+    	path to network-agent config
   -config_provider string
     	Implementation of which provider controls the config process. Can be one of (new_relic,local)
   -dns string
@@ -70,7 +70,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
   -gcp.sub string
     	Google Sub to listen for flows on
   -generate-config
-    	generate ktranslate config and exit
+    	generate network-agent config and exit
   -geo string
     	Geo mapping file
   -geo_city_map string
@@ -90,7 +90,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
   -http_timeout_sec int
     	Timeout each request after this long. (default 30)
   -http_url string
-    	URL to post to (default "http://localhost:8086/write?db=kentik")
+    	URL to post to (default "http://localhost:8086/write?db=network-agent")
   -iam_role string
     	IAM Role to use for processing flow
   -influxdb_measurement_prefix string
@@ -202,7 +202,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
   -s3_flush_sec int
     	Create a new output file every this many seconds (default 60)
   -s3_prefix string
-    	AWS S3 Object prefix (default "/kentik")
+    	AWS S3 Object prefix (default "/network-agent")
   -s3_region string
     	S3 Bucket region where S3 bucket is created (default "us-east-1")
   -s3_signing_region string
@@ -270,7 +270,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
   -tag_map_type string
     	type of mapping to use for tag values. file|null
   -tee_flow string
-    	If set, tee flow to another ktranslate instance here.
+    	If set, tee flow to another network-agent instance here.
   -tee_logs
     	Tee log messages to sink
   -threads int
@@ -284,7 +284,7 @@ To get your own MaxMind key, visit [MaxMind](https://www.maxmind.com).
 
 # Further documentation
 
-The flag list above is a snapshot. `ktranslate -h` on a current binary is authoritative for names.
+The flag list above is a snapshot. `network-agent -h` on a current binary is authoritative for names.
 
 Newer operator guides live on the [wiki](https://github.com/kentik/ktranslate/wiki):
 
@@ -296,7 +296,7 @@ Newer operator guides live on the [wiki](https://github.com/kentik/ktranslate/wi
 # pprof
 
 To expose profiling endpoints, use the `-metalisten` flag. This can be used with tools such as
-`go tool pprof` to capture and view the data. For example, if `ktranslate` was started with
+`go tool pprof` to capture and view the data. For example, if `network-agent` was started with
 `-metalisten :6060`:
 
 ```

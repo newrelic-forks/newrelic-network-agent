@@ -8,12 +8,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/formats/util"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/rollup"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats/util"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/rollup"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -78,12 +78,12 @@ type PromFormat struct {
 	lastMetadata map[string]*kt.LastMetadata
 	vecTags      tagVec
 	seen         map[string]int
-	config       *ktranslate.PrometheusFormatConfig
+	config       *networkagent.PrometheusFormatConfig
 
 	mux sync.RWMutex
 }
 
-func NewFormat(log logger.Underlying, compression kt.Compression, cfg *ktranslate.PrometheusFormatConfig) (*PromFormat, error) {
+func NewFormat(log logger.Underlying, compression kt.Compression, cfg *networkagent.PrometheusFormatConfig) (*PromFormat, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("prometheus format cannot be nil")
 	}

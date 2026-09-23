@@ -7,18 +7,19 @@ import (
 	"math/rand"
 	"net"
 	"net/netip"
-	"os"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/inputs/snmp/ping/kaping"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/inputs/snmp/ping/kaping"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	probing "github.com/prometheus-community/pro-bing"
 	"gonum.org/v1/gonum/stat"
 )
 
 const (
-	KENTIK_PING_PRIV = "KENTIK_PING_PRIV"
+	KENTIK_PING_PRIV        = "KENTIK_PING_PRIV" // Deprecated: use NETWORK_AGENT_PING_PRIV.
+	NETWORK_AGENT_PING_PRIV = "NETWORK_AGENT_PING_PRIV"
 )
 
 type Pinger struct {
@@ -47,7 +48,7 @@ func NewPinger(log logger.ContextL, target string, pingSec int, timeout time.Dur
 	}
 
 	cfg := kaping.DefaultConfig()
-	if os.Getenv(KENTIK_PING_PRIV) != "false" {
+	if kt.LookupEnvStringDeprecated(NETWORK_AGENT_PING_PRIV, KENTIK_PING_PRIV, "") != "false" {
 		log.Infof("Running ping service in privileged mode. Ping Interval: %v", p.interval)
 		cfg.RawSocket = true
 	} else {

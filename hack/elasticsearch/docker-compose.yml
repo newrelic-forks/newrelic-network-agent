@@ -20,7 +20,7 @@ services:
     entrypoint: ["/bin/sh"]
     command:
       - "-c"
-      - "wait-for-it.sh -h elasticsearch -p 9200 -- curl -XPUT http://elasticsearch:9200/kentik"
+      - "wait-for-it.sh -h elasticsearch -p 9200 -- curl -XPUT http://elasticsearch:9200/network-agent"
     depends_on:
       - elasticsearch
 
@@ -40,17 +40,17 @@ services:
     depends_on:
       - elasticsearch
 
-  ktranslate:
-    image: kentik/ktranslate:latest
+  network-agent:
+    image: newrelic/network-agent:latest
     entrypoint:
       - sh
       - -euc
       - |
-        cat <<EOF > /tmp/ktranslate.yaml
+        cat <<EOF > /tmp/network-agent.yaml
         listenaddr: "127.0.0.1:8081"
-        udrsfile: "/etc/ktranslate/udr.csv"
-        geofile: "/etc/ktranslate/GeoLite2-Country.mmdb"
-        asnfile: "/etc/ktranslate/GeoLite2-ASN.mmdb"
+        udrsfile: "/etc/network-agent/udr.csv"
+        geofile: "/etc/network-agent/GeoLite2-Country.mmdb"
+        asnfile: "/etc/network-agent/GeoLite2-ASN.mmdb"
         processingthreads: 1
         inputthreads: 1
         maxthreads: 1
@@ -73,7 +73,7 @@ services:
           version: "netflow5"
 
         httpsink:
-          target: "http://elasticsearch:9200/kentik/_bulk"
+          target: "http://elasticsearch:9200/network-agent/_bulk"
           headers: ["Content-Type:application/json"]
           insecureskipverify: false
           timeoutinseconds: 30
@@ -88,7 +88,7 @@ services:
           ollywritekey: ""
 
         api:
-          devicefile: "/etc/ktranslate/devices.json"
+          devicefile: "/etc/network-agent/devices.json"
 
         flowinput:
           enable: true
@@ -101,7 +101,7 @@ services:
           prometheuslistenaddr: ""
           mappingfile: ""
         EOF
-        ktranslate --config /tmp/ktranslate.yaml
+        network-agent --config /tmp/network-agent.yaml
     restart: always
     ports:
       - 8081:8081
@@ -115,8 +115,8 @@ services:
     restart: always
     command:
       - -t
-      - ktranslate
+      - network-agent
       - -p
       - "9995"
     depends_on:
-      - ktranslate
+      - network-agent

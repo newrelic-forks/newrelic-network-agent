@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/go-openapi/runtime"
 	httptransport "github.com/go-openapi/runtime/client"
@@ -54,7 +54,8 @@ type networkDesc struct {
 
 const (
 	ControllerKey            = "meraki_controller_name"
-	MerakiApiKey             = "KENTIK_MERAKI_API_KEY"
+	MerakiApiKey             = "KENTIK_MERAKI_API_KEY" // Deprecated: use NetworkAgentMerakiApiKey.
+	NetworkAgentMerakiApiKey = "NETWORK_AGENT_MERAKI_API_KEY"
 	DeviceCacheDuration      = time.Duration(24) * time.Hour
 	UplinkBWCacheDuration    = time.Duration(24) * time.Hour
 	MAX_TIMEOUT_RETRY        = 10 // Don't retry a call more than this many times.
@@ -80,7 +81,7 @@ func NewMerakiClient(jchfChan chan []*kt.JCHF, gconf *kt.SnmpGlobalConfig, conf 
 		gconf:    gconf,
 		metrics:  metrics,
 		orgs:     []orgDesc{},
-		auth:     httptransport.APIKeyAuth("X-Cisco-Meraki-API-Key", "header", kt.LookupEnvString(MerakiApiKey, conf.Ext.MerakiConfig.ApiKey)),
+		auth:     httptransport.APIKeyAuth("X-Cisco-Meraki-API-Key", "header", kt.LookupEnvStringDeprecated(NetworkAgentMerakiApiKey, MerakiApiKey, conf.Ext.MerakiConfig.ApiKey)),
 		timeout:  30 * time.Second,
 		cache:    newClientCache(log),
 		maxRetry: conf.Ext.MerakiConfig.MaxAPIRetry,

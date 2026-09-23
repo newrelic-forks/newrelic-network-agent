@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 // simulatedBatchCost stands in for handleInput's real per-batch work (enrichment,
 // filtering, rollups, serialization -- kkc.go:511-553). Constructing a real
-// *KTranslate fixture to call handleInput directly would require wiring up its
+// *NetworkAgent fixture to call handleInput directly would require wiring up its
 // metrics registry, format encoder, and several other fields not relevant to what
 // this benchmark measures; instead this models the producer/consumer *shape* of
 // kc.inputChan (kkc.go:777-786) using the real CHAN_SLACK constant, with a fake

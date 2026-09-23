@@ -1,7 +1,7 @@
 package features
 
 import (
-	"github.com/kentik/ktranslate/pkg/eggs/properties"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/properties"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

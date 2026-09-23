@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	lt "github.com/kentik/ktranslate/pkg/eggs/logger/testing"
-	"github.com/kentik/ktranslate/pkg/filter"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	lt "github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger/testing"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/filter"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -17,44 +17,44 @@ import (
 func TestRollup(t *testing.T) {
 	l := lt.NewTestContextL(logger.NilContext, t).GetLogger().GetUnderlyingLogger()
 	assert := assert.New(t)
-	rolls := []ktranslate.RollupConfig{
-		ktranslate.RollupConfig{
+	rolls := []networkagent.RollupConfig{
+		networkagent.RollupConfig{
 			JoinKey:       "^",
 			TopK:          2,
 			Formats:       []string{"sum,sum_bytes_in,in_bytes,foo"},
 			KeepUndefined: false,
 		},
-		ktranslate.RollupConfig{
+		networkagent.RollupConfig{
 			JoinKey:       "^",
 			TopK:          1,
 			Formats:       []string{"sum,sum_bytes_in,in_bytes,foo,bar"},
 			KeepUndefined: false,
 		},
-		ktranslate.RollupConfig{
+		networkagent.RollupConfig{
 			JoinKey:       "^",
 			TopK:          1,
 			Formats:       []string{"sum,sum_bytes_in,in_bytes,custom_str.foo,bar"},
 			KeepUndefined: false,
 		},
-		ktranslate.RollupConfig{
+		networkagent.RollupConfig{
 			JoinKey:       "^",
 			TopK:          1,
 			Formats:       []string{"sum,sum_bytes_in,in_bytes,ccc,custom_str.foo,bar"},
 			KeepUndefined: false,
 		},
-		ktranslate.RollupConfig{
+		networkagent.RollupConfig{
 			JoinKey:       "^",
 			TopK:          1,
 			Formats:       []string{"sum,sum_bytes_in,in_bytes,aaa$$---$$bbb,ccc"},
 			KeepUndefined: true,
 		},
-		ktranslate.RollupConfig{
+		networkagent.RollupConfig{
 			JoinKey:       "^",
 			TopK:          1,
 			Formats:       []string{"sum,sum_bytes_in,in_bytes,ccc,custom_str.aaa$$---$$custom_str.bbb"},
 			KeepUndefined: true,
 		},
-		ktranslate.RollupConfig{
+		networkagent.RollupConfig{
 			JoinKey:       "^",
 			TopK:          2,
 			Formats:       []string{"sum,sum_bytes_in;sum_bytes_out,in_bytes;out_bytes,foo,bar"},
@@ -259,8 +259,8 @@ func TestRollup(t *testing.T) {
 func TestRollupFilter(t *testing.T) {
 	l := lt.NewTestContextL(logger.NilContext, t).GetLogger().GetUnderlyingLogger()
 	assert := assert.New(t)
-	rolls := []ktranslate.RollupConfig{
-		ktranslate.RollupConfig{
+	rolls := []networkagent.RollupConfig{
+		networkagent.RollupConfig{
 			JoinKey:       "^",
 			TopK:          1,
 			Formats:       []string{"s_sum,name_one,in_bytes,foo"},
@@ -361,7 +361,7 @@ func BenchmarkRollups(b *testing.B) {
 	l := lt.NewBenchContextL(logger.NilContext, b).GetLogger().GetUnderlyingLogger()
 	assert := assert.New(b)
 	// filters are type,dimension,operator,value
-	roll := ktranslate.RollupConfig{
+	roll := networkagent.RollupConfig{
 		JoinKey:       "^",
 		TopK:          2,
 		Formats:       []string{"sum,sum_bytes_in,in_bytes,custom_str.foo,bar"},

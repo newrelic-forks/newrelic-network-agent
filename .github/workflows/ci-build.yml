@@ -108,4 +108,4 @@ jobs:
       # or misplaced file fails CI loudly instead of only surfacing at release time.
       - name: Verify third-party notices are present in the image
         run: |
-          docker run --rm --entrypoint cat network-agent:ci /usr/share/doc/ktranslate/THIRD_PARTY_NOTICES.md | head -5
+          docker run --rm --entrypoint cat network-agent:ci /usr/share/doc/network-agent/THIRD_PARTY_NOTICES.md | head -5

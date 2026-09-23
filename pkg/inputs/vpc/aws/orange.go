@@ -7,11 +7,11 @@ import (
 	"time"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
+	"github.com/newrelic-forks/newrelic-network-agent"
 
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -51,7 +51,7 @@ type AwsVpc struct {
 	topo          *AWSTopology
 	regions       []string
 	lambdaHandler func([]*kt.JCHF, func(error))
-	config        *ktranslate.AWSVPCInputConfig
+	config        *networkagent.AWSVPCInputConfig
 }
 
 type OrangeMetric struct {
@@ -63,7 +63,7 @@ type OrangeMetric struct {
 	DispatchRecsCount go_metrics.Counter
 }
 
-func NewVpc(ctx context.Context, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF, apic *api.KentikApi, lambdaHandler func([]*kt.JCHF, func(error)), cfg *ktranslate.AWSVPCInputConfig) (*AwsVpc, error) {
+func NewVpc(ctx context.Context, log logger.Underlying, registry go_metrics.Registry, jchfChan chan []*kt.JCHF, apic *api.KentikApi, lambdaHandler func([]*kt.JCHF, func(error)), cfg *networkagent.AWSVPCInputConfig) (*AwsVpc, error) {
 	vpc := &AwsVpc{
 		ContextL: logger.NewContextLFromUnderlying(logger.SContext{S: "awsVpc"}, log),
 		recs:     make(chan *FlowSet, 1000),

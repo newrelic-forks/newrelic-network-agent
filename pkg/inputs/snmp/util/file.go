@@ -185,14 +185,14 @@ func writeToGit(ctx context.Context, url *url.URL, payload []byte, perms fs.File
 
 	name := os.Getenv(KT_GIT_COMMIT_NAME)
 	if name == "" {
-		name = "Ktranslate internal"
+		name = "network-agent internal"
 	}
 	email := os.Getenv(KT_GIT_COMMIT_EMAIL)
 	if email == "" {
-		email = "ktranslate@kentik.com"
+		email = "network-agent@newrelic.com"
 	}
 
-	_, err = w.Commit("ktranslate adding new version of config file", &git.CommitOptions{
+	_, err = w.Commit("network-agent adding new version of config file", &git.CommitOptions{
 		Author: &object.Signature{
 			Name:  name,
 			Email: email,

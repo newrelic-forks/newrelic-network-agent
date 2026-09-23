@@ -9,9 +9,9 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 const (
@@ -38,14 +38,14 @@ type CacheRollup struct {
 	logger.ContextL
 	rollupBase
 	cache       map[string]*CacheEntry
-	config      *ktranslate.RollupConfig
+	config      *networkagent.RollupConfig
 	isUnique    bool
 	mux         sync.RWMutex
 	exportKvs   chan chan []Rollup
 	memoryUsage int64 // Approximate memory usage in bytes
 }
 
-func newCacheRollup(log logger.Underlying, rd RollupDef, cfg *ktranslate.RollupConfig, isUnique bool) (*CacheRollup, error) {
+func newCacheRollup(log logger.Underlying, rd RollupDef, cfg *networkagent.RollupConfig, isUnique bool) (*CacheRollup, error) {
 	r := &CacheRollup{
 		ContextL:    logger.NewContextLFromUnderlying(logger.SContext{S: "cacheRollup"}, log),
 		cache:       make(map[string]*CacheEntry),

@@ -38,16 +38,16 @@ Nix is being introduced for:
    lint tools) so anyone picking up this repo gets the same tool versions without
    hand-installing things. The build has no cgo dependency, so there's no system library
    (e.g. `libpcap`) to provision.
-3. **`packages.*.network-agent`** (`nix/network-agent.nix`) — a real ktranslate binary buildable via
-   `nix build`, since the binary is fully static and distributable on its own. Its
-   `buildPhase` literally shells out to `make all` rather than
+3. **`packages.*.network-agent`** (`nix/network-agent.nix`) — a real network-agent binary
+   buildable via `nix build`, since the binary is fully static and distributable on its own.
+   Its `buildPhase` literally shells out to `make all` rather than
    reimplementing the build, so Make remains the single source of truth for *how* to build;
    Nix's job here is limited to vendoring Go module deps reproducibly (`vendorHash`, fetched
    with network access, same as any `buildGoModule` package) and dispatching the build to a
    matching-architecture builder when the evaluating host doesn't have one (see §2.2 on why
    that matters differently for *building* this binary vs. *running* the VM test that uses
    it). Tier B's `collector` VM reuses this same package for its own binary rather than
-   building a private copy — one definition of "how to build ktranslate via Nix," not two
+   building a private copy — one definition of "how to build network-agent via Nix," not two
    that could drift apart.
 
 Nix is explicitly **not** being adopted for the *release* pipeline. The existing `Makefile` +
@@ -79,7 +79,7 @@ No Nix, no new infra — pure Go, same toolchain as the rest of the repo.
 | CIDR serialization | `A6` (`disco.go:141`) | Same fake prober | `BenchmarkCIDRSerialization` (`disco_bench_test.go`): serial (current) vs. parallel across 4 CIDRs | Done |
 | Restart storm / device (re)init | `A23`-`A27` (`snmp.go:176,205,226,231,310,316`) | **No fake needed** — calls the real `snmp_util.InitSNMP` (confirmed network-free: `gosnmp.Connect()` only opens a local UDP socket) and the real, no-op `apic.EnsureDevice`; does *not* call the real `launchSnmp`, which would leak background goroutines each waiting out a real multi-second SNMP timeout | `BenchmarkDeviceInitLoop` (`snmp_bench_test.go`): devices/sec at fleet sizes 100/1,000/5,000 | Done |
 | Regex/profile matching | `A36` (`mibs/profile.go:302-337`, lines 305/322) | None — use real loaded profiles | `BenchmarkFindProfile_MatchesList`, `BenchmarkFindProfile_FleetParse` (`mibs/profile_bench_test.go`) | Done |
-| Consumer/backpressure | `A38`, `A40`-`A45` (`kkc.go:226,229,777-786,556-576,511-553`) | Fake per-batch cost in place of real `handleInput` work (constructing a real `*KTranslate` fixture wasn't worth it just for this) | `BenchmarkConsumerThroughput` (`kkc_bench_test.go`): `consumers=1` (shipped default, `A46`) vs. 4/16, at producer counts 100/1,000/5,000 | Done |
+| Consumer/backpressure | `A38`, `A40`-`A45` (`kkc.go:226,229,777-786,556-576,511-553`) | Fake per-batch cost in place of real `handleInput` work (constructing a real `*NetworkAgent` fixture wasn't worth it just for this) | `BenchmarkConsumerThroughput` (`kkc_bench_test.go`): `consumers=1` (shipped default, `A46`) vs. 4/16, at producer counts 100/1,000/5,000 | Done |
 
 All four files exist now:
 
@@ -158,7 +158,7 @@ Implemented in `nix/tests/snmp-discovery-bench.nix`, wired into `flake.nix`'s `c
 output. Confirmed working end-to-end, real numbers below — not a sketch.
 
 **Topology:**
-- One `collector` node: runs the real ktranslate binary (§1, `nix/network-agent.nix`) against
+- One `collector` node: runs the real network-agent binary (§1, `nix/network-agent.nix`) against
   the farm's address range, using a real `snmp.yml`
   discovery config that mirrors the shipped `deployment/docker/snmp-base-nr.yaml` example
   (same `threads`, `timeout_ms`, `retries`, and — deliberately — `check_all_ips: true`, so
@@ -309,7 +309,7 @@ convention rather than gate every push:
 ```
 flake.nix                                   # devShell + network-agent package + Tier B checks
 flake.lock
-nix/network-agent.nix                       # builds the real ktranslate binary (§1) -- reused by Tier B
+nix/network-agent.nix                       # builds the real network-agent binary (§1) -- reused by Tier B
 nix/tests/minimal-ping.nix                  # fast sanity check for the execution model (§2.2)
 nix/tests/snmp-discovery-bench.nix          # the runNixOSTest definition (§2.2)
 pkg/inputs/snmp/disco_bench_test.go         # Tier A
@@ -355,7 +355,7 @@ IPs, since literally running that many VMs isn't practical in CI.
 
 Resolved during implementation:
 
-- Getting the ktranslate binary into the `collector` VM: `environment.systemPackages =
+- Getting the network-agent binary into the `collector` VM: `environment.systemPackages =
   [ collectorBin ]` with `collectorBin` from `packages.*.network-agent` (`nix/network-agent.nix`)
   — a normal Nix store path closure-referenced into the VM, no manual mount/copy step
   needed.

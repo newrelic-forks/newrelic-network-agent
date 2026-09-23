@@ -10,14 +10,14 @@ import (
 	"syscall"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/api"
-	"github.com/kentik/ktranslate/pkg/config"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/api"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/config"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
-func wrapSnmpPolling(ctx context.Context, snmpFile string, jchfChan chan []*kt.JCHF, metrics *kt.SnmpMetricSet, registry go_metrics.Registry, apic *api.KentikApi, log logger.ContextL, restartCount int, cfg *ktranslate.SNMPInputConfig, confMgr config.ConfigManager, logchan chan string) {
+func wrapSnmpPolling(ctx context.Context, snmpFile string, jchfChan chan []*kt.JCHF, metrics *kt.SnmpMetricSet, registry go_metrics.Registry, apic *api.KentikApi, log logger.ContextL, restartCount int, cfg *networkagent.SNMPInputConfig, confMgr config.ConfigManager, logchan chan string) {
 	c := make(chan os.Signal, 1)
 	ctxSnmp, cancel := context.WithCancel(ctx)
 	err := runSnmpPolling(ctxSnmp, snmpFile, jchfChan, metrics, registry, apic, log, restartCount, cfg, logchan, c)

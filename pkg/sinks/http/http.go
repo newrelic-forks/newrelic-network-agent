@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	nurl "net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -17,10 +16,10 @@ import (
 	go_metrics "github.com/kentik/go-metrics"
 	"github.com/pkg/errors"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/formats"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 var json = jsoniter.ConfigFastest
@@ -38,7 +37,7 @@ const (
 )
 
 func init() {
-	flag.StringVar(&targetURL, "http_url", "http://localhost:8086/write?db=kentik", "URL to post to")
+	flag.StringVar(&targetURL, "http_url", "http://localhost:8086/write?db=network-agent", "URL to post to")
 	flag.StringVar(&targetLogURL, "http_log_url", "http://localhost:8088/services/collector/event", "URL to post logs to")
 	flag.BoolVar(&insecureSkipVerify, "http_insecure", false, "Allow insecure urls.")
 	flag.IntVar(&timeoutSec, "http_timeout_sec", 30, "Timeout each request after this long.")
@@ -57,7 +56,7 @@ type HttpSink struct {
 	headers         map[string]string
 	targetUrls      []string
 	sendMaxDuration time.Duration
-	config          *ktranslate.HTTPSinkConfig
+	config          *networkagent.HTTPSinkConfig
 	logTee          chan string
 	username        string
 	passwd          string
@@ -80,7 +79,7 @@ func (h *HeaderFlag) Set(value string) error {
 	return nil
 }
 
-func NewSink(log logger.Underlying, registry go_metrics.Registry, cfg *ktranslate.HTTPSinkConfig, logTee chan string) (*HttpSink, error) {
+func NewSink(log logger.Underlying, registry go_metrics.Registry, cfg *networkagent.HTTPSinkConfig, logTee chan string) (*HttpSink, error) {
 	nr := HttpSink{
 		ContextL: logger.NewContextLFromUnderlying(logger.SContext{S: "httpSink"}, log),
 		registry: registry,
@@ -118,8 +117,8 @@ func NewSink(log logger.Underlying, registry go_metrics.Registry, cfg *ktranslat
 		nr.Infof(`Adding HTTP header "%s: %s"`, k, v)
 	}
 
-	username := os.Getenv("KENTIK_HTTP_USERNAME")
-	passwd := os.Getenv("KENTIK_HTTP_PASSWORD")
+	username := kt.LookupEnvStringDeprecated(kt.NetworkAgentHTTPUsername, kt.KentikHTTPUsername, "")
+	passwd := kt.LookupEnvStringDeprecated(kt.NetworkAgentHTTPPassword, kt.KentikHTTPPassword, "")
 	if username != "" && passwd != "" {
 		nr.username = username
 		nr.passwd = passwd

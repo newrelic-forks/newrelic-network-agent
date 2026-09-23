@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/formats"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/formats"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 var (
@@ -29,7 +29,7 @@ type NetSink struct {
 	conns    []net.Conn
 	registry go_metrics.Registry
 	metrics  *NetMetric
-	config   *ktranslate.NetSinkConfig
+	config   *networkagent.NetSinkConfig
 }
 
 type NetMetric struct {
@@ -37,7 +37,7 @@ type NetMetric struct {
 	DeliveryWin go_metrics.Meter
 }
 
-func NewSink(log logger.Underlying, registry go_metrics.Registry, cfg *ktranslate.NetSinkConfig) (*NetSink, error) {
+func NewSink(log logger.Underlying, registry go_metrics.Registry, cfg *networkagent.NetSinkConfig) (*NetSink, error) {
 	return &NetSink{
 		registry: registry,
 		ContextL: logger.NewContextLFromUnderlying(logger.SContext{S: "netSink"}, log),

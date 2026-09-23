@@ -4,17 +4,17 @@ import (
 	"context"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 )
 
 type NRConfig struct {
 	logger.ContextL
-	currentConfig *ktranslate.Config
+	currentConfig *networkagent.Config
 }
 
-func NewConfig(log logger.Underlying, cfg *ktranslate.Config) (*NRConfig, error) {
+func NewConfig(log logger.Underlying, cfg *networkagent.Config) (*NRConfig, error) {
 	nr := NRConfig{
 		ContextL:      logger.NewContextLFromUnderlying(logger.SContext{S: "nrConfig"}, log),
 		currentConfig: cfg,
@@ -23,7 +23,7 @@ func NewConfig(log logger.Underlying, cfg *ktranslate.Config) (*NRConfig, error)
 	return &nr, nil
 }
 
-func (nr *NRConfig) Run(ctx context.Context, cb func(*ktranslate.Config) error) {
+func (nr *NRConfig) Run(ctx context.Context, cb func(*networkagent.Config) error) {
 	checkTicker := time.NewTicker(time.Second * time.Duration(nr.currentConfig.CfgManager.PollTimeSec))
 	defer checkTicker.Stop()
 
@@ -59,6 +59,6 @@ func (nr *NRConfig) Close() {
 
 }
 
-func (nr *NRConfig) getConfig() (*ktranslate.Config, bool, error) {
+func (nr *NRConfig) getConfig() (*networkagent.Config, bool, error) {
 	return nil, false, nil
 }

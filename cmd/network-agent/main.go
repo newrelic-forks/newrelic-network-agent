@@ -9,17 +9,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/cat"
-	"github.com/kentik/ktranslate/pkg/filter"
-	"github.com/kentik/ktranslate/pkg/kt"
-	"github.com/kentik/ktranslate/pkg/version"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/cat"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/filter"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/version"
 
 	"github.com/imdario/mergo"
 	go_metrics "github.com/kentik/go-metrics"
-	"github.com/kentik/ktranslate/pkg/eggs/baseserver"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	"github.com/kentik/ktranslate/pkg/eggs/properties"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/baseserver"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/properties"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -80,9 +80,9 @@ func init() {
 	flag.StringVar(&sinks, "sinks", "stdout", "List of sinks to send data to. Options: (stdout|new_relic|new_relic_multi|otel|http|net)")
 	flag.IntVar(&maxFlows, "max_flows_per_message", 10000, "Max number of flows to put in each emitted message")
 	flag.IntVar(&dumpRollups, "rollup_interval", 0, "Export timer for rollups in seconds")
-	flag.StringVar(&teeFlow, "tee_flow", "", "If set, tee flow to another ktranslate instance here.")
+	flag.StringVar(&teeFlow, "tee_flow", "", "If set, tee flow to another network-agent instance here.")
 	flag.BoolVar(&rollupAndAlpha, "rollup_and_alpha", false, "Send both rollups and alpha inputs to sinks")
-	flag.IntVar(&sample, "sample_rate", kt.LookupEnvInt("KENTIK_SAMPLE_RATE", 1), "Sampling rate to use. 1 -> 1:1 sampling, 2 -> 1:2 sampling and so on.")
+	flag.IntVar(&sample, "sample_rate", kt.LookupEnvIntDeprecated(kt.NetworkAgentSampleRate, kt.KentikSampleRate, 1), "Sampling rate to use. 1 -> 1:1 sampling, 2 -> 1:2 sampling and so on.")
 	flag.IntVar(&sampleMin, "max_before_sample", 1, "Only sample when a set of inputs is at least this many")
 	flag.StringVar(&apiDevices, "api_devices", "", "json file containing dumy devices to use for the stub Kentik API")
 	flag.StringVar(&snmpFile, "snmp", "", "yaml file containing snmp config to use")
@@ -93,7 +93,7 @@ func init() {
 	flag.StringVar(&sslCertFile, "ssl_cert_file", "", "SSL Cert file to use for serving HTTPS traffic")
 	flag.StringVar(&sslKeyFile, "ssl_key_file", "", "SSL Key file to use for serving HTTPS traffic")
 	flag.StringVar(&tagMapType, "tag_map_type", "", "type of mapping to use for tag values. file|null")
-	flag.StringVar(&vpcSource, "vpc", kt.LookupEnvString("KENTIK_VPC", ""), "Run VPC Flow Ingest")
+	flag.StringVar(&vpcSource, "vpc", kt.LookupEnvStringDeprecated(kt.NetworkAgentVPC, kt.KentikVPC, ""), "Run VPC Flow Ingest")
 	flag.StringVar(&flowSource, "nf.source", "", "Run NetFlow Ingest Directly. Valid values here are netflow5|netflow9|ipfix|sflow|nbar|asa|pan|auto")
 	flag.BoolVar(&teeLog, "tee_logs", false, "Tee log messages to sink")
 	flag.StringVar(&appMap, "application_map", "", "File containing custom application mappings")
@@ -104,8 +104,8 @@ func init() {
 
 func main() {
 	var (
-		configFilePath = flag.String("config", "", "path to ktranslate config")
-		generateConfig = flag.Bool("generate-config", false, "generate ktranslate config and exit")
+		configFilePath = flag.String("config", "", "path to network-agent config")
+		generateConfig = flag.Bool("generate-config", false, "generate network-agent config and exit")
 		showVersion    = flag.Bool("version", false, "print version information and exit")
 	)
 
@@ -120,13 +120,13 @@ func main() {
 
 	// dump default config to stdout and exit
 	if *generateConfig {
-		if err := yaml.NewEncoder(os.Stdout).Encode(ktranslate.DefaultConfig()); err != nil {
+		if err := yaml.NewEncoder(os.Stdout).Encode(networkagent.DefaultConfig()); err != nil {
 			panic(err)
 		}
 		os.Exit(0)
 	}
 
-	cfg := ktranslate.DefaultConfig()
+	cfg := networkagent.DefaultConfig()
 
 	// apply initial flags
 	if err := applyFlags(cfg); err != nil {
@@ -135,7 +135,7 @@ func main() {
 
 	// if config specified, merge config
 	if v := *configFilePath; v != "" {
-		ktCfg, err := ktranslate.LoadConfig(context.Background(), v)
+		ktCfg, err := networkagent.LoadConfig(context.Background(), v)
 		if err != nil {
 			panic(err)
 		}
@@ -149,7 +149,7 @@ func main() {
 		cfg.Server.CfgPath = v
 	}
 
-	if err := applyMode(cfg, kt.LookupEnvString("KENTIK_MODE", flag.Arg(0))); err != nil {
+	if err := applyMode(cfg, kt.LookupEnvStringDeprecated(kt.NetworkAgentMode, kt.KentikMode, flag.Arg(0))); err != nil {
 		panic(err)
 	}
 
@@ -163,7 +163,7 @@ func main() {
 		bs.SetLogTee(logTee)
 	}
 
-	prefix := fmt.Sprintf("KTranslate")
+	prefix := fmt.Sprintf("NetworkAgent")
 	lc := logger.NewContextLFromUnderlying(logger.SContext{S: prefix}, bs.Logger)
 
 	if cfg.ListenAddr == "" {
@@ -175,9 +175,9 @@ func main() {
 		cat.RollupsSendDuration = time.Duration(dumpRollups) * time.Second
 	}
 
-	kc, err := cat.NewKTranslate(cfg, lc, go_metrics.DefaultRegistry, version.Version.Version, cfg.Sinks, bs.ServiceName, logTee, metricsChan, bs.Shutdown)
+	kc, err := cat.NewNetworkAgent(cfg, lc, go_metrics.DefaultRegistry, version.Version.Version, cfg.Sinks, bs.ServiceName, logTee, metricsChan, bs.Shutdown)
 	if err != nil {
-		bs.Fail(fmt.Sprintf("Cannot start ktranslate: %v", err))
+		bs.Fail(fmt.Sprintf("Cannot start network-agent: %v", err))
 	}
 
 	lc.Infof("Running -- %s", version.Version)
@@ -186,7 +186,7 @@ func main() {
 }
 
 // apply config based on mode group
-func applyMode(cfg *ktranslate.Config, mode string) error {
+func applyMode(cfg *networkagent.Config, mode string) error {
 	setNr := func() { // Specific settings for NR
 		cfg.Format = "new_relic"
 		cfg.SampleMin = 100
@@ -249,7 +249,7 @@ func applyMode(cfg *ktranslate.Config, mode string) error {
 }
 
 // TODO: this should be removed when flags are removed in favor of config
-func applyFlags(cfg *ktranslate.Config) error {
+func applyFlags(cfg *networkagent.Config) error {
 	errCh := make(chan error, 1)
 	doneCh := make(chan bool, 1)
 	go func() {
@@ -367,7 +367,7 @@ func applyFlags(cfg *ktranslate.Config) error {
 				}
 				cfg.EnableSNMPDiscovery = v
 			case "kentik_email":
-				cfg.KentikCreds = []ktranslate.KentikCred{ktranslate.KentikCred{APIEmail: val, APIToken: os.Getenv(ktranslate.KentikAPITokenEnvVar)}}
+				cfg.KentikCreds = []networkagent.KentikCred{networkagent.KentikCred{APIEmail: val, APIToken: os.Getenv(networkagent.KentikAPITokenEnvVar)}}
 			case "api_root":
 				cfg.APIBaseURL = val
 				cfg.GRPCBaseURL = strings.Replace(val, "api.kentik", "grpc.api.kentik", 1)

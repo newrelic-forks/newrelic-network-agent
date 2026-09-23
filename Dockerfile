@@ -1,4 +1,4 @@
-# build ktranslate
+# build network-agent
 FROM golang:1.25-alpine AS build
 RUN apk add -U make bash libcap
 ENV CGO_ENABLED=0
@@ -37,34 +37,34 @@ RUN if [ -z "${NR_SNMP_PROFILE_REPO}" ]; then \
 # main image
 FROM alpine:3.23.3
 RUN apk add -U --no-cache ca-certificates
-RUN addgroup -g 1000 ktranslate && \
-	adduser -D -u 1000 -G ktranslate -H -h /etc/ktranslate ktranslate
+RUN addgroup -g 1000 network-agent && \
+	adduser -D -u 1000 -G network-agent -H -h /etc/network-agent network-agent
 #RUN set -eux; \
-#	groupadd --gid 1000 ktranslate; \
-#	useradd --home-dir /etc/ktranslate --gid ktranslate --no-create-home --uid 1000 ktranslate
+#	groupadd --gid 1000 network-agent; \
+#	useradd --home-dir /etc/network-agent --gid network-agent --no-create-home --uid 1000 network-agent
 
 # Some people want to specify an alternative config dir. This lets them override with --build-arg CONFIG-DIR=my-new-dir
 ARG CONFIG_DIR=config
-COPY --chown=ktranslate:ktranslate ${CONFIG_DIR}/ /etc/ktranslate/
+COPY --chown=network-agent:network-agent ${CONFIG_DIR}/ /etc/network-agent/
 
 # maxmind db
-COPY --from=maxmind /GeoLite2-Country.mmdb /etc/ktranslate/
-COPY --from=maxmind /GeoLite2-ASN.mmdb /etc/ktranslate/
+COPY --from=maxmind /GeoLite2-Country.mmdb /etc/network-agent/
+COPY --from=maxmind /GeoLite2-ASN.mmdb /etc/network-agent/
 # snmp
-COPY --from=snmp /snmp/profiles /etc/ktranslate/profiles
+COPY --from=snmp /snmp/profiles /etc/network-agent/profiles
 
 # add backwards compatibility symlinks for folks using an snmp.yml from the older image (and "ls" to verify the symlinks are correct and working)
-RUN ls -lah /etc/ktranslate ; ln -sv /etc/ktranslate /etc/profiles ; ls -lah /etc/profiles/
-RUN ln -sv /etc/ktranslate/mibs.db /etc/mib.db ; ls -lah /etc/mib.db/
+RUN ls -lah /etc/network-agent ; ln -sv /etc/network-agent /etc/profiles ; ls -lah /etc/profiles/
+RUN ln -sv /etc/network-agent/mibs.db /etc/mib.db ; ls -lah /etc/mib.db/
 
-COPY --from=build /src/bin/ktranslate /usr/local/bin/ktranslate
+COPY --from=build /src/bin/network-agent /usr/local/bin/network-agent
 COPY --from=build /usr/sbin/setcap /usr/sbin/setcap
 COPY --from=build /usr/lib/libcap.so.2 /usr/lib/libcap.so.2
-RUN setcap cap_net_raw=+ep /usr/local/bin/ktranslate
+RUN setcap cap_net_raw=+ep /usr/local/bin/network-agent
 
-COPY --from=build /src/THIRD_PARTY_NOTICES.md /usr/share/doc/ktranslate/THIRD_PARTY_NOTICES.md
+COPY --from=build /src/THIRD_PARTY_NOTICES.md /usr/share/doc/network-agent/THIRD_PARTY_NOTICES.md
 
 EXPOSE 8082
 
-USER ktranslate
-ENTRYPOINT ["ktranslate", "-listen", "off", "-mapping", "/etc/ktranslate/config.json", "-geo", "/etc/ktranslate/GeoLite2-Country.mmdb", "-udrs", "/etc/ktranslate/udr.csv", "-api_devices", "/etc/ktranslate/devices.json", "-asn", "/etc/ktranslate/GeoLite2-ASN.mmdb", "-log_level", "info", "-geo_region_map", "/etc/ktranslate/ch_region_mapping.csv.gz", "-geo_city_map", "/etc/ktranslate/ch_city_mapping.csv.gz"]
+USER network-agent
+ENTRYPOINT ["network-agent", "-listen", "off", "-mapping", "/etc/network-agent/config.json", "-geo", "/etc/network-agent/GeoLite2-Country.mmdb", "-udrs", "/etc/network-agent/udr.csv", "-api_devices", "/etc/network-agent/devices.json", "-asn", "/etc/network-agent/GeoLite2-ASN.mmdb", "-log_level", "info", "-geo_region_map", "/etc/network-agent/ch_region_mapping.csv.gz", "-geo_city_map", "/etc/network-agent/ch_city_mapping.csv.gz"]

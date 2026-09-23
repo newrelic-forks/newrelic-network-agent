@@ -4,10 +4,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/kentik/ktranslate"
-	"github.com/kentik/ktranslate/pkg/eggs/logger"
-	lt "github.com/kentik/ktranslate/pkg/eggs/logger/testing"
-	"github.com/kentik/ktranslate/pkg/kt"
+	"github.com/newrelic-forks/newrelic-network-agent"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger"
+	lt "github.com/newrelic-forks/newrelic-network-agent/pkg/eggs/logger/testing"
+	"github.com/newrelic-forks/newrelic-network-agent/pkg/kt"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -16,7 +16,7 @@ func TestUnify(t *testing.T) {
 	assert := assert.New(t)
 	l := lt.NewTestContextL(logger.NilContext, t).GetLogger().GetUnderlyingLogger()
 
-	s, err := NewStitcher(l, &ktranslate.StitchConfig{Enable: true, BufLen: 30}, nil)
+	s, err := NewStitcher(l, &networkagent.StitchConfig{Enable: true, BufLen: 30}, nil)
 	assert.NoError(err)
 
 	for _, dst := range kt.InputTestingUnify {

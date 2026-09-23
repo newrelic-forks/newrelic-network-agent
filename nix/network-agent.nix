@@ -16,16 +16,16 @@ let
 in
 
 pkgs.buildGoModule {
-  pname = "ktranslate";
+  pname = "network-agent";
   src = goSrc;
   inherit version;
 
   vendorHash = "sha256-ZQUnUlWTspAZMO90kEJ6+xukw3gX10+IwTegaCUtEo0=";
-  subPackages = [ "cmd/ktranslate" ];
+  subPackages = [ "cmd/network-agent" ];
   env.CGO_ENABLED = "0";
   ldflags = [
-    "-X=github.com/kentik/ktranslate/pkg/version.versionStr=${version}"
-    "-X=github.com/kentik/ktranslate/pkg/version.buildStr=${buildRev}"
+    "-X=github.com/newrelic-forks/newrelic-network-agent/pkg/version.versionStr=${version}"
+    "-X=github.com/newrelic-forks/newrelic-network-agent/pkg/version.buildStr=${buildRev}"
   ];
 
   doCheck = false; # only needs to run, not pass go test
