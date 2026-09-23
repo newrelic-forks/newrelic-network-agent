@@ -30,6 +30,12 @@ name: Publish Release
 # checked-in VERSION file the same way, so there's exactly one real implementation of "is
 # this valid SemVer", runnable identically in CI or locally (`just check-semver 0.0.1`).
 #
+# The `version` job also rejects a release whose tag doesn't match the checked-in VERSION
+# file at that exact commit -- see its "Verify tag matches checked-in VERSION" step. Nothing
+# stops someone with write access from creating a release with an arbitrary tag on an
+# arbitrary commit directly on GitHub, bypassing the reviewed VERSION-bump PR that
+# cut-prerelease.yml normally requires; this is what actually catches that.
+#
 # ci-build.yml (stack/01) builds the same Dockerfile but only ever exports a local tarball --
 # this is the one workflow in the repo that actually pushes real, numbered images anywhere.
 # There is deliberately no workflow_dispatch trigger here: the only way to get a real
@@ -92,6 +98,24 @@ jobs:
             echo "rc_tag=$VERSION-rc"
             echo "is_prerelease=$IS_PRERELEASE"
           } >> "$GITHUB_OUTPUT"
+
+      # tag_name is chosen by whoever created the release, not derived from anything this
+      # repo controls -- there's no tag protection stopping someone with write access from
+      # creating a release with an arbitrary, unused version number on an arbitrary commit,
+      # skipping the reviewed VERSION-bump PR entirely. This is the actual gate against
+      # that: refuse to build/push unless the checked-out commit's own checked-in VERSION
+      # file agrees with the tag. A real release, cut by cut-prerelease.yml, always has
+      # this hold, since it tags the exact commit that bumped VERSION to that value.
+      - name: Verify tag matches checked-in VERSION
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          CHECKED_IN="$(tr -d '[:space:]' < VERSION)"
+          if [ "$CHECKED_IN" != "$VERSION" ]; then
+            echo "::error::Release tag 'v$VERSION' doesn't match the checked-in VERSION file ('$CHECKED_IN') at this commit. A real release is always cut by cut-prerelease.yml from the exact commit that bumped VERSION to that value -- refusing to build/push."
+            exit 1
+          fi
 
       - name: Install Nix
         uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31

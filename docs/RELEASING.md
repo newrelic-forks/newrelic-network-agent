@@ -83,6 +83,26 @@ a `tag` input, and `just check-adhoc-tag` rejects it before anything builds if i
 SemVer or literally `latest` -- an ad-hoc tag must not be confusable with a real release. It
 never touches `VERSION`, never creates a tag/release, and never promotes.
 
+## Tampering safeguards
+
+Two independent things stop someone with write access from pushing a real image outside the
+pipeline above, without going through a reviewed VERSION-bump PR:
+
+- **Tag protection.** A repository ruleset on `v*.*.*` restricts updates, deletions, and
+  force pushes on release tags to nobody at all -- not even admins. Once a version's tag is
+  cut, it's immutable; a failed pre-release burns the version rather than moving or
+  recreating its tag. Creation is deliberately *not* restricted yet: `cut-prerelease.yml`
+  authenticates as the `github-actions[bot]` system account, which GitHub's ruleset bypass
+  list has no way to grant an exception to (it isn't a GitHub App, user, or repo role) --
+  doing so today would just break the automation. Revisit this if/when a dedicated bypass
+  identity (a GitHub App, or a bot account's PAT) is set up for it.
+- **Tag/VERSION cross-check.** Since tag creation isn't restricted, `publish-release.yml`'s
+  `version` job instead verifies that the release's tag matches the checked-in `VERSION` file
+  at the exact commit the release points to, and refuses to build/push otherwise. A real
+  release (cut by `cut-prerelease.yml`) always has this hold, since it tags the exact commit
+  that bumped `VERSION` to that value -- an out-of-band release with an arbitrary tag on an
+  arbitrary commit won't.
+
 ## SemVer checks
 
 Format validation and version comparison are Justfile recipes, not Nix outputs -- `nix` (via
