@@ -10,13 +10,20 @@ func TestVersionInfoString(t *testing.T) {
 	}{
 		{
 			name: "no build identifier",
-			v:    VersionInfo{Version: "0.0.1", Date: "2026-09-23"},
-			want: "version 0.0.1 built on 2026-09-23",
+			v:    VersionInfo{Version: "0.0.1"},
+			want: "version 0.0.1",
 		},
 		{
 			name: "with build identifier",
+			v:    VersionInfo{Version: "0.0.1", Build: "42c0e64"},
+			want: "version 0.0.1 (build 42c0e64)",
+		},
+		{
+			// Date is deliberately never part of the output -- set here to guard
+			// against it creeping back in by accident, not because it should matter.
+			name: "date is set but never shown",
 			v:    VersionInfo{Version: "0.0.1", Date: "2026-09-23", Build: "42c0e64"},
-			want: "version 0.0.1 built on 2026-09-23 (build 42c0e64)",
+			want: "version 0.0.1 (build 42c0e64)",
 		},
 	}
 
