@@ -19,11 +19,20 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, nixpkgs }:
+  outputs =
+    { self, nixpkgs }:
     let
-      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
-      linuxSystems = [ "x86_64-linux" "aarch64-linux" ]; # NixOS VM tests only make sense on Linux
+      linuxSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ]; # NixOS VM tests only make sense on Linux
       forLinuxSystems = nixpkgs.lib.genAttrs linuxSystems;
 
       # Env var name the devShell exports below -- `make check-version-env-var`
@@ -34,7 +43,8 @@
       version = nixpkgs.lib.strings.trim (builtins.readFile ./VERSION);
     in
     {
-      devShells = forAllSystems (system:
+      devShells = forAllSystems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
@@ -52,27 +62,25 @@
             # needed -- Docker inherits it from the environment) works too.
             "${versionEnvVar}" = version;
           };
-        });
+        }
+      );
 
-      packages = forLinuxSystems (system:
+      packages = forLinuxSystems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          networkAgent = import ./nix/network-agent.nix { inherit pkgs; };
         in
-        {
-          network-agent = networkAgent;
+        rec {
+          default = network-agent;
+          network-agent = import ./nix/network-agent.nix {
+            inherit pkgs;
+            buildRev = self.shortRev or self.dirtyShortRev;
+          };
+        }
+      );
 
-          # Same package, plus a Build identifier set to this commit (self.rev/
-          # dirtyShortRev -- pure, no --impure needed). Unlike network-agent itself,
-          # rebuilding this on every commit is correct: that's the point of a CI variant.
-          network-agent-ci = networkAgent.overrideAttrs (old: {
-            ldflags = old.ldflags ++ [
-              "-X=github.com/kentik/ktranslate/pkg/version.buildStr=ci-${self.shortRev or self.dirtyShortRev}"
-            ];
-          });
-        });
-
-      checks = forAllSystems (system:
+      checks = forAllSystems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
           # The test's guest VMs always run Linux, regardless of whether the host
@@ -91,9 +99,10 @@
           # against the exact same regex, via apps.<system>.check-semver below --
           # nix/semver.nix is the one place this rule is defined.
           version-is-semver =
-            if semver.isValid version
-            then pkgs.runCommand "version-is-semver" { } "touch $out"
-            else throw "VERSION file contains '${version}', which is not a valid SemVer core version (expected MAJOR.MINOR.PATCH, optionally -prerelease)";
+            if semver.isValid version then
+              pkgs.runCommand "version-is-semver" { } "touch $out"
+            else
+              throw "VERSION file contains '${version}', which is not a valid SemVer core version (expected MAJOR.MINOR.PATCH, optionally -prerelease)";
 
           # Sanity check confirming this system can run a NixOS VM test at all before
           # trusting the real, more complex one below -- see nix/tests/minimal-ping.nix.
@@ -140,9 +149,11 @@
             collectorBin = self.packages.${linuxSystem}.network-agent;
             deviceCount = 8;
           };
-        });
+        }
+      );
 
-      apps = forAllSystems (system:
+      apps = forAllSystems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
           semver = import ./nix/semver.nix { };
@@ -155,21 +166,24 @@
           # both from CI and locally before ever pushing a tag or triggering a dispatch.
           check-semver = {
             type = "app";
-            program = "${pkgs.writeShellApplication {
-              name = "check-semver";
-              text = ''
-                if [ "$#" -ne 1 ]; then
-                  echo "usage: check-semver VERSION_STRING" >&2
-                  exit 2
-                fi
-                if ! [[ "$1" =~ ^${semver.pattern}$ ]]; then
-                  echo "'$1' is not a valid SemVer version (expected MAJOR.MINOR.PATCH, optionally -prerelease)" >&2
-                  exit 1
-                fi
-                echo "'$1' is valid SemVer"
-              '';
-            }}/bin/check-semver";
+            program = "${
+              pkgs.writeShellApplication {
+                name = "check-semver";
+                text = ''
+                  if [ "$#" -ne 1 ]; then
+                    echo "usage: check-semver VERSION_STRING" >&2
+                    exit 2
+                  fi
+                  if ! [[ "$1" =~ ^${semver.pattern}$ ]]; then
+                    echo "'$1' is not a valid SemVer version (expected MAJOR.MINOR.PATCH, optionally -prerelease)" >&2
+                    exit 1
+                  fi
+                  echo "'$1' is valid SemVer"
+                '';
+              }
+            }/bin/check-semver";
           };
-        });
+        }
+      );
     };
 }
