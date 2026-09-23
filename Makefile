@@ -8,9 +8,11 @@ MODULE := github.com/kentik/ktranslate
 NETWORK_AGENT_VERSION ?= $(shell cat VERSION 2>/dev/null || git describe --tags --always --dirty 2>/dev/null || echo dev)
 
 # NETWORK_AGENT_DATE: this commit's own timestamp, not wall-clock -- building the same
-# commit twice stamps the same date both times (matches nix/network-agent.nix's use of
-# self.lastModifiedDate). Falls back to wall-clock only when there's no git history to
-# ask at all (e.g. an extracted source tarball with no .git).
+# commit twice stamps the same date both times. nix/network-agent.nix doesn't set an
+# equivalent dateStr at all (stays at Go's "unknown" default) -- self.lastModifiedDate
+# would be the pure, no-impure-needed equivalent there, but it's not wired up. Falls back
+# to wall-clock only when there's no git history to ask at all (e.g. an extracted source
+# tarball with no .git).
 NETWORK_AGENT_DATE ?= $(shell git log -1 --format=%cI 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)
 
 # NETWORK_AGENT_BUILD: optional, empty by default. CI sets this to identify which run
