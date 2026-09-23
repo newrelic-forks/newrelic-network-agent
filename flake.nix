@@ -57,19 +57,17 @@
       packages = forLinuxSystems (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          networkAgent = import ./nix/network-agent.nix { inherit pkgs; };
         in
         {
-          network-agent = networkAgent;
-
-          # Same package, plus a Build identifier set to this commit (self.rev/
-          # dirtyShortRev -- pure, no --impure needed). Unlike network-agent itself,
-          # rebuilding this on every commit is correct: that's the point of a CI variant.
-          network-agent-ci = networkAgent.overrideAttrs (old: {
-            ldflags = old.ldflags ++ [
-              "-X=github.com/kentik/ktranslate/pkg/version.buildStr=ci-${self.shortRev or self.dirtyShortRev}"
-            ];
-          });
+          # buildRev (self.rev/dirtyShortRev -- pure, no --impure needed) is what used to
+          # be a separate network-agent-ci package's whole reason to exist, with a
+          # "ci-" prefix; retired once the only remaining difference from network-agent
+          # itself was that prefix -- not enough to justify a second package output. See
+          # nix/network-agent.nix for what this actually does to the build.
+          network-agent = import ./nix/network-agent.nix {
+            inherit pkgs;
+            buildRev = self.shortRev or self.dirtyShortRev;
+          };
         });
 
       checks = forAllSystems (system:
