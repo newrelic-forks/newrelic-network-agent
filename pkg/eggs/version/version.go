@@ -11,5 +11,9 @@ type VersionInfo struct {
 }
 
 func (v VersionInfo) String() string {
-	return fmt.Sprintf("version %s built on %s", v.Version, v.Date)
+	s := fmt.Sprintf("version %s built on %s", v.Version, v.Date)
+	if v.Build != "" {
+		s += fmt.Sprintf(" (build %s)", v.Build)
+	}
+	return s
 }
