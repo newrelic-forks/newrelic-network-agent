@@ -58,6 +58,42 @@ func TestStaticBuildRunsAndPrintsUsage(t *testing.T) {
 	}
 }
 
+// TestStaticBuildPrintsVersion exercises -version's early-exit path in
+// main() (checked before any config is built or applyFlags runs). Would have
+// caught the -version flag's addition breaking applyFlags immediately, on
+// every PR, rather than waiting on the path-filtered Tier B benchmark job.
+func TestStaticBuildPrintsVersion(t *testing.T) {
+	bin := buildStaticBinary(t)
+
+	cmd := exec.Command(bin, "-version")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("%s -version failed: %v\noutput:\n%s", bin, err, out)
+	}
+
+	got := string(out)
+	if !strings.Contains(got, "version") {
+		t.Errorf("expected version output, got:\n%s", got)
+	}
+}
+
+// TestStaticBuildGeneratesConfig exercises -generate-config's early-exit
+// path in main(), also checked before applyFlags runs.
+func TestStaticBuildGeneratesConfig(t *testing.T) {
+	bin := buildStaticBinary(t)
+
+	cmd := exec.Command(bin, "-generate-config")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("%s -generate-config failed: %v\noutput:\n%s", bin, err, out)
+	}
+
+	got := string(out)
+	if !strings.Contains(got, "127.0.0.1:8081") {
+		t.Errorf("expected the default config's listen address in the generated YAML, got:\n%s", got)
+	}
+}
+
 // TestApplyFlagsHandlesEveryRegisteredFlag is a regression test for a panic
 // hit in production: applyFlags's flag.VisitAll loop errors on any flag name
 // it has no case for, skipping only flags whose *current* value stringifies
