@@ -20,6 +20,13 @@ name: Version format check
 # cut-prerelease.yml tags and pre-releases, so catching a bad bump here, at PR review time,
 # is cheaper than catching it after that workflow has already acted on it.
 #
+# The paths filter below also watches Justfile: that's where check-version/check-semver/
+# check-version-increment actually live now, so a change there can change what "valid" means
+# just as much as a change to VERSION itself can. (It used to watch flake.nix/flake.lock
+# instead, from when the SemVer check was a Nix check living in flake.nix -- stale since that
+# moved to the Justfile. Add scripts/*.sh here too once that logic finishes moving into
+# standalone scripts.)
+#
 # For the same reason, a PR that touches VERSION must touch *only* VERSION: since the
 # bumping commit is exactly what gets tagged and released, letting other changes ride along
 # would mean a release is never just "the previous release plus a version bump" -- it'd
@@ -32,8 +39,7 @@ on:
     branches: [ main ]
     paths: &version-paths
       - 'VERSION'
-      - 'flake.nix'
-      - 'flake.lock'
+      - 'Justfile'
   pull_request:
     paths: *version-paths
 
@@ -63,7 +69,7 @@ jobs:
           FILES="$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" --paginate -q '.[].filename')"
 
           if ! grep -qxF 'VERSION' <<< "$FILES"; then
-            echo "This PR doesn't touch VERSION (triggered by flake.nix/flake.lock instead) -- nothing to isolate."
+            echo "This PR doesn't touch VERSION (triggered by Justfile instead) -- nothing to isolate."
             exit 0
           fi
 
@@ -107,7 +113,7 @@ jobs:
             # github.event.pull_request.base.sha: that field can be stale relative to
             # main's real state when this run was triggered by something other than a
             # fresh sync of this exact PR against the current base -- e.g. this
-            # workflow's own paths filter matching flake.nix on a push that landed well
+            # workflow's own paths filter matching Justfile on a push that landed well
             # after main last advanced. Comparing against a stale base previously
             # produced a false "VERSION decreased" failure.
             git fetch --depth 1 origin "$GITHUB_BASE_REF"
