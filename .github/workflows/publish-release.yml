@@ -1,43 +1,55 @@
 name: Publish Release
 
-# Pushes a versioned, multi-arch image to Docker Hub (newrelic/network-agent). Three paths in:
-#   - Publishing a pre-release (GitHub's "This is a pre-release" checkbox, e.g. v0.1.0-rc1):
-#     builds from source and pushes that exact version tag plus a content-addressed
-#     sha-<commit> tag. Never touches `latest`.
-#   - Publishing (or promoting to, by unchecking "pre-release" on an existing one) a full
-#     release: never rebuilds. Retags the sha-<commit> image already pushed by a prior
-#     pre-release build of this same commit as the version tag plus `latest`, via `docker
-#     buildx imagetools create` -- so what ships is byte-identical to what was tested as a
-#     release candidate. If no matching pre-release build exists, this fails on purpose: a
-#     full release must be preceded by a tested pre-release of the same commit.
-#   - workflow_dispatch: supply a version explicitly, or omit it to fall back to the
-#     checked-in VERSION file for an ad-hoc build+push. Always takes the build path (never
-#     promotes), and never touches `latest`. This path never *adds* the `latest` tag itself
-#     -- but typing `latest` as the version input produces that exact tag anyway, so the
-#     SemVer check below (which rejects `latest`) is what actually stops an accidental
-#     clobber. disable_semver_validation is the deliberate, visible escape hatch for the
-#     rare case that's genuinely wanted.
+# Pushes a versioned, multi-arch image to Docker Hub (newrelic/network-agent). Two paths in,
+# both driven only by real GitHub releases -- see push-adhoc-image.yml for the separate,
+# deliberately non-release workflow_dispatch escape hatch:
+#   - Publishing a pre-release (GitHub's "This is a pre-release" checkbox on a bare tag like
+#     v0.1.0 -- cut automatically by cut-prerelease.yml when VERSION is bumped): builds from
+#     source and pushes newrelic/network-agent:<version>-rc. The -rc suffix exists only on
+#     this Docker Hub tag, never on the git tag/GitHub release itself (which stays bare) --
+#     it's what lets the promote job below retag a specific, already-tested build without
+#     ever having published the bare <version> tag before it was actually promoted.
+#   - Promoting (by unchecking "pre-release" on that same release, e.g. via `just
+#     release-promote`) to a full release: never rebuilds. Retags the already-pushed
+#     <version>-rc image as <version> and `latest`, via `docker buildx imagetools create` --
+#     so what ships is byte-identical to what was tested as a release candidate. If no
+#     matching <version>-rc image exists, this fails on purpose: a full release must be
+#     preceded by a tested pre-release of the same version.
 #
-# Version format is enforced via nix/semver.nix's regex -- checks.<system>.version-is-semver
-# (see version-format-check.yml) protects the checked-in VERSION file the same way, so
-# there's exactly one place this rule is defined, runnable identically in CI or locally
-# (`nix run .#check-semver -- 0.0.1`).
+# Both `published` and `released` are needed in the trigger below, and they cover different
+# transitions -- GitHub does NOT re-fire `published` when an already-published pre-release is
+# later edited to no longer be one (the promote flow above). That edit fires `released` (and
+# `edited`) instead. `published` alone would mean the `promote` job never runs for that flow.
+# `released` also happens to fire *alongside* `published` for a release that's published
+# directly as non-prerelease -- a path this workflow doesn't support (`promote` requires a
+# pre-existing pre-release of the same version and fails otherwise) -- so the concurrency
+# group below just collapses that harmless double-fire into one run rather than two failures.
+#
+# Version format is enforced via `just check-semver` (a thin wrapper around semver-tool,
+# not a homegrown regex) -- version-format-check.yml's `just check-version` protects the
+# checked-in VERSION file the same way, so there's exactly one real implementation of "is
+# this valid SemVer", runnable identically in CI or locally (`just check-semver 0.0.1`).
+#
+# The `version` job also rejects a release whose tag doesn't match the checked-in VERSION
+# file at that exact commit -- see its "Verify tag matches checked-in VERSION" step. Nothing
+# stops someone with write access from creating a release with an arbitrary tag on an
+# arbitrary commit directly on GitHub, bypassing the reviewed VERSION-bump PR that
+# cut-prerelease.yml normally requires; this is what actually catches that.
 #
 # ci-build.yml (stack/01) builds the same Dockerfile but only ever exports a local tarball --
-# this is the one workflow in the repo that actually pushes anywhere.
+# this is the one workflow in the repo that actually pushes real, numbered images anywhere.
+# There is deliberately no workflow_dispatch trigger here: the only way to get a real
+# <version>/<version>-rc/latest tag pushed is through the VERSION-driven pipeline. An ad-hoc
+# build+push (for testing something outside a real release) is push-adhoc-image.yml's job --
+# a structurally separate workflow that can only ever push a tag that's neither valid SemVer
+# nor `latest`.
+concurrency:
+  group: publish-release-${{ github.event.release.tag_name || github.run_id }}
+  cancel-in-progress: true
 
 on:
   release:
-    types: [published]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to build and push (e.g. 0.0.1). Defaults to the VERSION file if omitted.'
-        required: false
-      disable_semver_validation:
-        description: 'Disable SemVer validation for this manual push, allowing e.g. "latest" as the version. Off by default -- only check this for a deliberate override.'
-        type: boolean
-        default: false
+    types: [published, released]
 
 permissions:
   contents: read
@@ -47,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
-      sha_tag: ${{ steps.version.outputs.sha_tag }}
+      rc_tag: ${{ steps.version.outputs.rc_tag }}
       is_prerelease: ${{ steps.version.outputs.is_prerelease }}
     steps:
       - name: Checkout
@@ -56,55 +68,54 @@ jobs:
       - name: Determine version
         id: version
         env:
-          # Untrusted, attacker-shapeable strings (a release's tag_name is chosen by
-          # whoever creates the release; workflow_dispatch's version input by whoever
-          # triggers it) go through env: rather than being interpolated directly into
-          # this run: script via ${{ }} -- GitHub expands ${{ }} textually before bash
-          # ever parses the script, so a tag/input containing shell metacharacters
-          # (git ref names allow $, `, ", ;, unlike GitHub Actions expression syntax)
-          # would otherwise execute as part of the script itself. github.event_name,
-          # github.sha and the event_name/prerelease comparison below are all
-          # GitHub-controlled, fixed-shape values (an enum tag and a real boolean),
-          # never attacker-supplied free text, so those stay as plain ${{ }} expansions.
+          # A release's tag_name is chosen by whoever creates the release -- untrusted,
+          # attacker-shapeable text -- so it goes through env: rather than being
+          # interpolated directly into this run: script via ${{ }}. GitHub expands ${{ }}
+          # textually before bash ever parses the script, so a tag containing shell
+          # metacharacters (git ref names allow $, `, ", ;, unlike GitHub Actions
+          # expression syntax) would otherwise execute as part of the script itself.
+          # github.event.release.prerelease below is a GitHub-controlled real boolean,
+          # never attacker-supplied free text, so that one stays a plain ${{ }} expansion.
           RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
-          DISPATCH_VERSION_INPUT: ${{ inputs.version }}
         run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            VERSION="$RELEASE_TAG_NAME"
-          else
-            VERSION="$DISPATCH_VERSION_INPUT"
-          fi
-          VERSION="${VERSION#v}"
-          if [ -z "$VERSION" ]; then
-            VERSION="$(cat VERSION)"
-          fi
+          VERSION="${RELEASE_TAG_NAME#v}"
 
-          # "latest" is reserved for the promote job -- it must never be pushed as a
-          # regular version tag by the publish job (workflow_dispatch could otherwise
-          # type it in directly as the version input).
+          # "latest" is reserved for the promote job's own latest tag -- refuse it as a
+          # release version outright. Protects against someone creating a real GitHub
+          # release/tag literally named "latest" directly on GitHub, bypassing
+          # cut-prerelease.yml (which never produces one).
           case "$(printf '%s' "$VERSION" | tr '[:upper:]' '[:lower:]')" in
             latest)
-              echo "::error::'latest' is not a valid version -- it's reserved for the promote job on a full release."
+              echo "::error::'latest' is not a valid version -- it's reserved for the promote job."
               exit 1
               ;;
           esac
 
-          IS_PRERELEASE="${{ github.event_name == 'release' && github.event.release.prerelease }}"
-          if [ "$IS_PRERELEASE" = "true" ]; then
-            case "$VERSION" in
-              *-*) ;;
-              *)
-                echo "::error::Pre-release '$VERSION' has no SemVer prerelease suffix (e.g. '$VERSION-rc1') -- a bare version would collide with the eventual full release's tag."
-                exit 1
-                ;;
-            esac
-          fi
+          IS_PRERELEASE="${{ github.event.release.prerelease }}"
 
           {
             echo "version=$VERSION"
-            echo "sha_tag=sha-${{ github.sha }}"
+            echo "rc_tag=$VERSION-rc"
             echo "is_prerelease=$IS_PRERELEASE"
           } >> "$GITHUB_OUTPUT"
+
+      # tag_name is chosen by whoever created the release, not derived from anything this
+      # repo controls -- there's no tag protection stopping someone with write access from
+      # creating a release with an arbitrary, unused version number on an arbitrary commit,
+      # skipping the reviewed VERSION-bump PR entirely. This is the actual gate against
+      # that: refuse to build/push unless the checked-out commit's own checked-in VERSION
+      # file agrees with the tag. A real release, cut by cut-prerelease.yml, always has
+      # this hold, since it tags the exact commit that bumped VERSION to that value.
+      - name: Verify tag matches checked-in VERSION
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          CHECKED_IN="$(tr -d '[:space:]' < VERSION)"
+          if [ "$CHECKED_IN" != "$VERSION" ]; then
+            echo "::error::Release tag 'v$VERSION' doesn't match the checked-in VERSION file ('$CHECKED_IN') at this commit. A real release is always cut by cut-prerelease.yml from the exact commit that bumped VERSION to that value -- refusing to build/push."
+            exit 1
+          fi
 
       - name: Install Nix
         uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
@@ -114,29 +125,24 @@ jobs:
         with:
           upstream-cache-filter: "true"
 
-      # Releases are always validated -- if you want a non-SemVer release tag, this isn't
-      # the path for that. workflow_dispatch can opt out via disable_semver_validation,
-      # deliberately.
       - name: Validate version is SemVer
-        if: github.event_name == 'release' || inputs.disable_semver_validation != true
         env:
           VERSION: ${{ steps.version.outputs.version }}
-          RETRY_HINT: ${{ github.event_name == 'workflow_dispatch' && ' Re-run with "Disable SemVer validation" checked to override deliberately.' || '' }}
         run: |
-          if ! nix run .#check-semver -- "$VERSION"; then
-            echo "::error::'$VERSION' is not a valid SemVer version (MAJOR.MINOR.PATCH, optionally -prerelease).$RETRY_HINT"
+          if ! nix develop --command just check-semver "$VERSION"; then
+            echo "::error::'$VERSION' is not a valid SemVer version (MAJOR.MINOR.PATCH, optionally -prerelease)."
             exit 1
           fi
 
-  # Builds from source: workflow_dispatch (always) and a published pre-release. A full
-  # release never lands here -- see the `promote` job.
+  # Builds from source: only a published pre-release. A full release never lands here --
+  # see the `promote` job.
   publish:
     needs: version
-    if: github.event_name == 'workflow_dispatch' || needs.version.outputs.is_prerelease == 'true'
+    if: needs.version.outputs.is_prerelease == 'true'
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.version.outputs.version }}
-      SHA_TAG: ${{ needs.version.outputs.sha_tag }}
+      RC_TAG: ${{ needs.version.outputs.rc_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -152,20 +158,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASS }}
-
-      # An ad-hoc workflow_dispatch build must never clobber a version tag that's
-      # already on Docker Hub -- published versions are immutable. A pre-release
-      # rebuild (github.event_name == 'release') is deliberately NOT checked here:
-      # re-publishing/re-running the same pre-release to retry a flaky build is
-      # expected to succeed, not get blocked by its own prior (possibly partial)
-      # attempt.
-      - name: Refuse to overwrite an existing version tag (workflow_dispatch only)
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          if docker buildx imagetools inspect "newrelic/network-agent:$VERSION" > /dev/null 2>&1; then
-            echo "::error::newrelic/network-agent:$VERSION already exists on Docker Hub. Published version tags are immutable -- use a different version input (or bump VERSION) for an ad-hoc build."
-            exit 1
-          fi
 
       # See ci-build.yml for why this downloads MaxMind's databases itself (via
       # actions/cache) instead of inside the Docker build: a BuildKit `--mount=type=cache`
@@ -209,29 +201,29 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: newrelic/network-agent:${{ env.VERSION }},newrelic/network-agent:${{ env.SHA_TAG }}
+          tags: newrelic/network-agent:${{ env.RC_TAG }}
           build-args: |
             NETWORK_AGENT_VERSION=${{ env.VERSION }}
-            NETWORK_AGENT_BUILD=${{ github.event_name == 'release' && github.event.release.tag_name || format('manual-{0}', github.run_id) }}
+            NETWORK_AGENT_BUILD=${{ github.event.release.tag_name }}
             NR_SNMP_PROFILE_REPO=https://github.com/newrelic-forks/snmp-profiles
 
       - name: Summary
         run: |
           {
             echo "## Published to Docker Hub"
-            echo "Tags: \`newrelic/network-agent:$VERSION\`, \`newrelic/network-agent:$SHA_TAG\`"
+            echo "Tag: \`newrelic/network-agent:$RC_TAG\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # Promotes a full release without rebuilding: retags the sha-<commit> image already
-  # pushed by this same commit's pre-release build. Fails if none exists -- a full release
-  # must be preceded by a tested pre-release of the same commit, on purpose.
+  # Promotes a full release without rebuilding: retags the <version>-rc image already pushed
+  # by this same version's pre-release build. Fails if none exists -- a full release must be
+  # preceded by a tested pre-release of the same version, on purpose.
   promote:
     needs: version
-    if: github.event_name == 'release' && needs.version.outputs.is_prerelease == 'false'
+    if: needs.version.outputs.is_prerelease == 'false'
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.version.outputs.version }}
-      SHA_TAG: ${{ needs.version.outputs.sha_tag }}
+      RC_TAG: ${{ needs.version.outputs.rc_tag }}
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
@@ -244,18 +236,18 @@ jobs:
 
       - name: Retag pre-release image as the full release
         run: |
-          if ! docker buildx imagetools inspect "newrelic/network-agent:$SHA_TAG" > /dev/null 2>&1; then
-            echo "::error::No pre-release image found at newrelic/network-agent:$SHA_TAG for this commit. Publish a pre-release for this commit first and let it build -- a full release is never built directly."
+          if ! docker buildx imagetools inspect "newrelic/network-agent:$RC_TAG" > /dev/null 2>&1; then
+            echo "::error::No pre-release image found at newrelic/network-agent:$RC_TAG. Publish a pre-release for this version first and let it build -- a full release is never built directly."
             exit 1
           fi
           docker buildx imagetools create \
             --tag "newrelic/network-agent:$VERSION" \
             --tag newrelic/network-agent:latest \
-            "newrelic/network-agent:$SHA_TAG"
+            "newrelic/network-agent:$RC_TAG"
 
       - name: Summary
         run: |
           {
             echo "## Promoted to Docker Hub"
-            echo "Retagged \`newrelic/network-agent:$SHA_TAG\` as \`newrelic/network-agent:$VERSION\` and \`newrelic/network-agent:latest\` (no rebuild)."
+            echo "Retagged \`newrelic/network-agent:$RC_TAG\` as \`newrelic/network-agent:$VERSION\` and \`newrelic/network-agent:latest\` (no rebuild)."
           } >> "$GITHUB_STEP_SUMMARY"

@@ -1,13 +1,24 @@
 name: Version format check
 
-# Validates that the checked-in VERSION file is a valid SemVer string, via
-# checks.<system>.version-is-semver in flake.nix -- the actual rule lives there (and is
-# runnable identically with `nix build .#checks.x86_64-linux.version-is-semver` locally),
-# this workflow is just the CI trigger around it. Same pattern as vendor-hash-check.yml.
+# Validates that the checked-in VERSION file is a valid SemVer string, via `just
+# check-version` in the Justfile -- the actual rule lives there (and is runnable
+# identically with `nix develop --command just check-version` locally), this workflow is
+# just the CI trigger around it. Same pattern as vendor-hash-check.yml.
 #
-# publish-release.yml's workflow_dispatch path validates its own version input the same
-# way, via `nix run .#check-semver` -- see nix/semver.nix for the one shared regex both
-# of these consume.
+# Always goes through `nix develop` (never a bare `nix run nixpkgs#just`/`nix run
+# nixpkgs#semver-tool`): the latter resolves against whatever nixpkgs the *global* flake
+# registry currently points at, not this repo's own pinned nixpkgs input, silently
+# defeating flake.lock's version pin.
+#
+# cut-prerelease.yml and push-adhoc-image.yml's checks validate the same way, via `just
+# check-semver`/`check-adhoc-tag` -- all of these defer to semver-tool
+# (fsaintjacques/semver-tool) rather than a homegrown regex.
+#
+# Also enforces this repo's release model on VERSION specifically (stricter than "is this
+# a valid SemVer string"): no prerelease suffix, and it must strictly increase over
+# whatever it's replacing. The commit that bumps VERSION is the exact commit
+# cut-prerelease.yml tags and pre-releases, so catching a bad bump here, at PR review time,
+# is cheaper than catching it after that workflow has already acted on it.
 
 on:
   workflow_dispatch:
@@ -15,7 +26,6 @@ on:
     branches: [ main ]
     paths: &version-paths
       - 'VERSION'
-      - 'nix/semver.nix'
       - 'flake.nix'
       - 'flake.lock'
   pull_request:
@@ -30,6 +40,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0 # need history to diff VERSION against its pre-change state below
 
       - name: Install Nix
         uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
@@ -40,4 +52,44 @@ jobs:
           upstream-cache-filter: "true"
 
       - name: Validate VERSION is SemVer
-        run: nix build .#checks.x86_64-linux.version-is-semver -L
+        run: nix develop --command just check-version
+
+      - name: Validate VERSION is a bare, incremented release version
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          NEW="$(tr -d '[:space:]' < VERSION)"
+
+          case "$NEW" in
+            *-*)
+              echo "::error::VERSION ('$NEW') has a prerelease suffix. This repo's release model never checks one in -- the commit that bumps VERSION is itself the commit that gets tagged and pre-released (see cut-prerelease.yml). Bump to a bare MAJOR.MINOR.PATCH instead."
+              exit 1
+              ;;
+          esac
+
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            # Fetches the base branch's actual current tip rather than trusting
+            # github.event.pull_request.base.sha: that field can be stale relative to
+            # main's real state when this run was triggered by something other than a
+            # fresh sync of this exact PR against the current base -- e.g. this
+            # workflow's own paths filter matching flake.nix on a push that landed well
+            # after main last advanced. Comparing against a stale base previously
+            # produced a false "VERSION decreased" failure.
+            git fetch --depth 1 origin "$GITHUB_BASE_REF"
+            OLD="$(git show "origin/$GITHUB_BASE_REF:VERSION" 2>/dev/null | tr -d '[:space:]' || true)"
+          elif [ -n "${PUSH_BEFORE_SHA:-}" ] && git cat-file -e "$PUSH_BEFORE_SHA" 2>/dev/null; then
+            # push: github.event.before is exactly this ref's state immediately before
+            # this push, which is what we want -- no equivalent staleness risk here.
+            OLD="$(git show "$PUSH_BEFORE_SHA:VERSION" 2>/dev/null | tr -d '[:space:]' || true)"
+          else
+            OLD=""
+          fi
+
+          if [ -z "$OLD" ] || [ "$OLD" = "$NEW" ]; then
+            echo "VERSION unchanged (or no usable previous state to compare against) -- skipping the increment check."
+            exit 0
+          fi
+
+          nix develop --command just check-version-increment "$OLD" "$NEW"

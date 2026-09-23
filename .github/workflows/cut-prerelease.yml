@@ -1,0 +1,135 @@
+name: Cut pre-release from VERSION
+
+# Automates the first half of the release pipeline: merging a VERSION bump to main is
+# itself the trigger for cutting a pre-release, so nobody has to click through the GitHub
+# release UI (or run a CLI command) for the normal path. All this workflow does is create a
+# tag + a GitHub pre-release at the exact commit that bumped VERSION -- publish-release.yml's
+# own `release` trigger picks up from there and does the actual build+push.
+#
+# VERSION never carries a -rc/-alpha suffix in this repo's model: the commit that bumps it
+# IS the commit that gets tagged and pre-released. If testing that pre-release turns up a
+# problem, fix it, bump VERSION again, and let this run again -- never reuse or move a tag.
+#
+# Promotion (dropping the pre-release flag once testing signs off) is a deliberate, separate,
+# manual step -- see docs/RELEASING.md. Never automated here, and this workflow has no
+# ability to touch Docker Hub at all.
+#
+# version-format-check.yml already validates format/no-suffix/increment on the PR that
+# merges this, but that's a review-time gate on a branch protection main could technically
+# bypass (a direct push, an admin override) -- this workflow has contents: write, so it
+# re-validates from scratch rather than trusting that gate ran.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - VERSION
+
+permissions:
+  contents: write
+
+jobs:
+  cut:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0 # need history to diff VERSION against its pre-bump state below
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
+
+      - name: Nix build cache
+        uses: Mic92/hestia@f1f4df2801140a36398ed423533c8460618539df # v3.0.1
+        with:
+          upstream-cache-filter: "true"
+
+      - name: Validate VERSION
+        id: version
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+
+          if ! nix develop --command just check-semver "$VERSION"; then
+            echo "::error::VERSION ('$VERSION') is not valid SemVer."
+            exit 1
+          fi
+          case "$VERSION" in
+            *-*)
+              echo "::error::VERSION ('$VERSION') has a prerelease suffix -- this repo's model never checks one in. Bump to a bare MAJOR.MINOR.PATCH instead."
+              exit 1
+              ;;
+          esac
+
+          if [ -n "${BEFORE_SHA:-}" ] && git cat-file -e "$BEFORE_SHA" 2>/dev/null; then
+            OLD="$(git show "$BEFORE_SHA:VERSION" 2>/dev/null | tr -d '[:space:]' || true)"
+            if [ -n "$OLD" ] && [ "$OLD" != "$VERSION" ]; then
+              nix develop --command just check-version-increment "$OLD" "$VERSION"
+            fi
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # Belt-and-suspenders: version-format-check.yml's own increment check should have
+      # already stopped a VERSION bump onto an already-released version before this ever
+      # merged, but this is the workflow that actually creates the tag/release, so it
+      # doesn't take that on faith.
+      - name: Refuse to reuse an existing tag or release
+        env:
+          TAG: v${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          # git ls-remote --exit-code exits 0 (found), 2 (talked to origin fine, found
+          # nothing), or anything else (couldn't actually reach origin at all -- network,
+          # auth, DNS, ...). Distinguishing those matters: collapsing "couldn't tell" into
+          # "doesn't exist" would let this proceed to tag on a transient failure instead of
+          # failing closed.
+          if git ls-remote --exit-code origin "refs/tags/$TAG" > /dev/null; then
+            rc=0
+          else
+            rc=$?
+          fi
+
+          case "$rc" in
+            0)
+              echo "::error::$TAG already exists on origin -- VERSION was bumped to a version that's already tagged."
+              exit 1
+              ;;
+            2)
+              ;; # confirmed: no such tag on origin -- expected, continue
+            *)
+              echo "::error::Couldn't check whether $TAG already exists on origin (git ls-remote exited $rc) -- failing closed rather than risk creating a duplicate tag."
+              exit 1
+              ;;
+          esac
+
+          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+            echo "::error::A GitHub release already exists for $TAG."
+            exit 1
+          fi
+
+      - name: Cut the pre-release
+        env:
+          TAG: v${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$TAG" \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --prerelease \
+            --title "$TAG" \
+            --generate-notes
+
+      - name: Summary
+        env:
+          TAG: v${{ steps.version.outputs.version }}
+        run: |
+          {
+            echo "## Cut pre-release $TAG"
+            echo "publish-release.yml will build and push \`newrelic/network-agent:${{ steps.version.outputs.version }}-rc\` shortly."
+          } >> "$GITHUB_STEP_SUMMARY"
