@@ -810,8 +810,8 @@ func applyFlags(cfg *ktranslate.Config) error {
 				}
 				cfg.Lilo.Enable = v
 			// configs
-			case "config", "generate-config":
-				// ignore
+			case "config", "generate-config", "version":
+				// ignore -- handled by main() before applyFlags is ever called
 			default:
 				// error here to detect flags that are not handled
 				// by the config adapter
