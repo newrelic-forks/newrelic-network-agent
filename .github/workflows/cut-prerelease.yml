@@ -1,23 +1,32 @@
 name: Cut pre-release from VERSION
 
-# Automates the first half of the release pipeline: merging a VERSION bump to main is
-# itself the trigger for cutting a pre-release, so nobody has to click through the GitHub
-# release UI (or run a CLI command) for the normal path. All this workflow does is create a
-# tag + a GitHub pre-release at the exact commit that bumped VERSION -- publish-release.yml's
-# own `release` trigger picks up from there and does the actual build+push.
+# Automates the first half of the release pipeline: merging a VERSION bump to main is itself
+# the trigger for cutting a pre-release AND pushing its image, so nobody has to click through
+# the GitHub release UI (or run a CLI command) for the normal path.
+#
+# Both `cut` and `publish` live in this one workflow/workflow run, not two chained by a
+# `release` event: GitHub does not fire new workflow runs for events created by the
+# repository's own GITHUB_TOKEN (recursion prevention -- see
+# https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow),
+# so a separate publish-release.yml reacting to `release: published` never actually ran when
+# `cut` used GITHUB_TOKEN to create the release (confirmed the hard way against a real
+# v0.0.1 dry run). Making `publish` a second job in *this* workflow (`needs: cut`) sidesteps
+# the problem entirely -- there's no event boundary between them, so no PAT/GitHub App is
+# needed just to create the release. publish-release.yml still exists, slimmed down to just
+# the later, human-triggered `promote` step, which was never affected by this (it runs under
+# a human's own `gh auth login` session, not GITHUB_TOKEN).
 #
 # VERSION never carries a -rc/-alpha suffix in this repo's model: the commit that bumps it
 # IS the commit that gets tagged and pre-released. If testing that pre-release turns up a
 # problem, fix it, bump VERSION again, and let this run again -- never reuse or move a tag.
 #
 # Promotion (dropping the pre-release flag once testing signs off) is a deliberate, separate,
-# manual step -- see docs/RELEASING.md. Never automated here, and this workflow has no
-# ability to touch Docker Hub at all.
+# manual step -- see docs/RELEASING.md and publish-release.yml. Never automated here.
 #
 # version-format-check.yml already validates format/no-suffix/increment on the PR that
 # merges this, but that's a review-time gate on a branch protection main could technically
-# bypass (a direct push, an admin override) -- this workflow has contents: write, so it
-# re-validates from scratch rather than trusting that gate ran.
+# bypass (a direct push, an admin override), so this workflow re-validates from scratch
+# rather than trusting that gate ran.
 
 on:
   push:
@@ -31,6 +40,9 @@ permissions:
 jobs:
   cut:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      rc_tag: ${{ steps.version.outputs.rc_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -71,7 +83,10 @@ jobs:
             fi
           fi
 
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          {
+            echo "version=$VERSION"
+            echo "rc_tag=$VERSION-rc"
+          } >> "$GITHUB_OUTPUT"
 
       # Belt-and-suspenders: version-format-check.yml's own increment check should have
       # already stopped a VERSION bump onto an already-released version before this ever
@@ -125,11 +140,82 @@ jobs:
             --title "$TAG" \
             --generate-notes
 
-      - name: Summary
+  # Builds from source and pushes the pre-release image -- see this file's header comment
+  # for why this is a second job here rather than a separate workflow reacting to the
+  # release event `cut` above creates.
+  publish:
+    needs: cut
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.cut.outputs.version }}
+      RC_TAG: ${{ needs.cut.outputs.rc_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up QEMU        # enables cross-building (e.g. arm64 on an amd64 runner)
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USER }}
+          password: ${{ secrets.DOCKER_HUB_PASS }}
+
+      # See ci-build.yml for why this downloads MaxMind's databases itself (via
+      # actions/cache) instead of inside the Docker build: a BuildKit `--mount=type=cache`
+      # doesn't survive across CI runs, and isn't included in `--cache-from`/`--cache-to`
+      # exports either. warm-maxmind-cache.yml (on main) is what this actually falls back
+      # to on a cache miss, since a release build's own cache scope is otherwise as cold
+      # as any other branch's. restore-keys is a second fallback layer on top of that --
+      # see ci-build.yml for why.
+      - name: Cache key date
+        id: date
+        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache MaxMind databases
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: maxmind-dbs
+          key: maxmind-dbs-${{ steps.date.outputs.date }}
+          restore-keys: |
+            maxmind-dbs-
+
+      - name: Download MaxMind databases
         env:
-          TAG: v${{ steps.version.outputs.version }}
+          MM_ACCOUNT_ID: ${{ secrets.MM_ACCOUNT_ID }}
+          MM_DOWNLOAD_KEY: ${{ secrets.MM_DOWNLOAD_KEY }}
+        run: |
+          set -eu
+          if [ -f maxmind-dbs/GeoLite2-Country.mmdb ] && [ -f maxmind-dbs/GeoLite2-ASN.mmdb ]; then
+            echo "Using cached MaxMind databases (exact match or restore-keys fallback)"
+            exit 0
+          fi
+          if [ -z "$MM_DOWNLOAD_KEY" ]; then echo "maxmind license key secret (MM_DOWNLOAD_KEY) not provided"; exit 1; fi
+          mkdir -p maxmind-dbs
+          curl -sfL -o /tmp/country.tar.gz -u "$MM_ACCOUNT_ID:$MM_DOWNLOAD_KEY" "https://download.maxmind.com/geoip/databases/GeoLite2-Country/download?suffix=tar.gz"
+          tar zxf /tmp/country.tar.gz --strip-components 1 -C maxmind-dbs
+          curl -sfL -o /tmp/asn.tar.gz -u "$MM_ACCOUNT_ID:$MM_DOWNLOAD_KEY" "https://download.maxmind.com/geoip/databases/GeoLite2-ASN/download?suffix=tar.gz"
+          tar zxf /tmp/asn.tar.gz --strip-components 1 -C maxmind-dbs
+
+      - name: Build and push
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: newrelic/network-agent:${{ env.RC_TAG }}
+          build-args: |
+            NETWORK_AGENT_VERSION=${{ env.VERSION }}
+            NETWORK_AGENT_BUILD=v${{ env.VERSION }}
+            NR_SNMP_PROFILE_REPO=https://github.com/newrelic-forks/snmp-profiles
+
+      - name: Summary
         run: |
           {
-            echo "## Cut pre-release $TAG"
-            echo "publish-release.yml will build and push \`newrelic/network-agent:${{ steps.version.outputs.version }}-rc\` shortly."
+            echo "## Cut pre-release v$VERSION and published it to Docker Hub"
+            echo "Tag: \`newrelic/network-agent:$RC_TAG\`"
           } >> "$GITHUB_STEP_SUMMARY"

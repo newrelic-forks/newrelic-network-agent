@@ -1,55 +1,44 @@
 name: Publish Release
 
-# Pushes a versioned, multi-arch image to Docker Hub (newrelic/network-agent). Two paths in,
-# both driven only by real GitHub releases -- see push-adhoc-image.yml for the separate,
-# deliberately non-release workflow_dispatch escape hatch:
-#   - Publishing a pre-release (GitHub's "This is a pre-release" checkbox on a bare tag like
-#     v0.1.0 -- cut automatically by cut-prerelease.yml when VERSION is bumped): builds from
-#     source and pushes newrelic/network-agent:<version>-rc. The -rc suffix exists only on
-#     this Docker Hub tag, never on the git tag/GitHub release itself (which stays bare) --
-#     it's what lets the promote job below retag a specific, already-tested build without
-#     ever having published the bare <version> tag before it was actually promoted.
-#   - Promoting (by unchecking "pre-release" on that same release, e.g. via `just
-#     release-promote`) to a full release: never rebuilds. Retags the already-pushed
-#     <version>-rc image as <version> and `latest`, via `docker buildx imagetools create` --
-#     so what ships is byte-identical to what was tested as a release candidate. If no
-#     matching <version>-rc image exists, this fails on purpose: a full release must be
-#     preceded by a tested pre-release of the same version.
+# Promotes a pre-release to a full release: retags the already-pushed
+# newrelic/network-agent:<version>-rc image as <version> and `latest`, via `docker buildx
+# imagetools create` -- no rebuild, so what ships is byte-identical to what was tested as a
+# release candidate. If no matching <version>-rc image exists, this fails on purpose: a full
+# release must be preceded by a tested pre-release of the same version.
 #
-# Both `published` and `released` are needed in the trigger below, and they cover different
-# transitions -- GitHub does NOT re-fire `published` when an already-published pre-release is
-# later edited to no longer be one (the promote flow above). That edit fires `released` (and
-# `edited`) instead. `published` alone would mean the `promote` job never runs for that flow.
-# `released` also happens to fire *alongside* `published` for a release that's published
-# directly as non-prerelease -- a path this workflow doesn't support (`promote` requires a
-# pre-existing pre-release of the same version and fails otherwise) -- so the concurrency
-# group below just collapses that harmless double-fire into one run rather than two failures.
+# Cutting the pre-release and pushing its image is cut-prerelease.yml's job now, not this
+# workflow's -- see that file's header comment for why (in short: chaining two workflows
+# through a `release` event needs a non-GITHUB_TOKEN credential just to create the release,
+# since GitHub won't fire a new workflow run for an event GITHUB_TOKEN created; folding
+# cut+publish into one workflow avoids needing that credential at all). This workflow only
+# reacts to `released` (never `published`) -- promoting (unchecking "pre-release", e.g. via
+# `just release-promote`) is what fires it, since GitHub does NOT re-fire `published` when an
+# already-published pre-release is edited to no longer be one.
+#
+# `released` can also fire for a release published directly as non-prerelease, bypassing
+# cut-prerelease.yml entirely -- that's not a path this workflow is meant to support, and the
+# checks below reject it: `is_prerelease` gates the `promote` job itself, and "Verify tag
+# matches checked-in VERSION" refuses to act on a tag that doesn't match the checked-in
+# VERSION file at the commit it points to. A real release, cut by cut-prerelease.yml, always
+# has this hold, since it tags the exact commit that bumped VERSION to that value.
 #
 # Version format is enforced via `just check-semver` (a thin wrapper around semver-tool,
 # not a homegrown regex) -- version-format-check.yml's `just check-version` protects the
 # checked-in VERSION file the same way, so there's exactly one real implementation of "is
 # this valid SemVer", runnable identically in CI or locally (`just check-semver 0.0.1`).
 #
-# The `version` job also rejects a release whose tag doesn't match the checked-in VERSION
-# file at that exact commit -- see its "Verify tag matches checked-in VERSION" step. Nothing
-# stops someone with write access from creating a release with an arbitrary tag on an
-# arbitrary commit directly on GitHub, bypassing the reviewed VERSION-bump PR that
-# cut-prerelease.yml normally requires; this is what actually catches that.
-#
-# ci-build.yml (stack/01) builds the same Dockerfile but only ever exports a local tarball --
-# this is the one workflow in the repo that actually pushes real, numbered images anywhere.
-# There is deliberately no workflow_dispatch trigger here: the only way to get a real
-# <version>/<version>-rc/latest tag pushed is through the VERSION-driven pipeline. An ad-hoc
-# build+push (for testing something outside a real release) is push-adhoc-image.yml's job --
-# a structurally separate workflow that can only ever push a tag that's neither valid SemVer
-# nor `latest`.
+# There is deliberately no workflow_dispatch trigger here or on cut-prerelease.yml: the only
+# way to get a real <version>/<version>-rc/latest tag pushed is through the VERSION-driven
+# pipeline. An ad-hoc build+push (for testing something outside a real release) is
+# push-adhoc-image.yml's job -- a structurally separate workflow that can only ever push a
+# tag that's neither valid SemVer nor `latest`.
 concurrency:
   group: publish-release-${{ github.event.release.tag_name || github.run_id }}
   cancel-in-progress: true
 
 on:
   release:
-    types: [published, released]
+    types: [released]
 
 permissions:
   contents: read
@@ -103,9 +92,9 @@ jobs:
       # repo controls -- there's no tag protection stopping someone with write access from
       # creating a release with an arbitrary, unused version number on an arbitrary commit,
       # skipping the reviewed VERSION-bump PR entirely. This is the actual gate against
-      # that: refuse to build/push unless the checked-out commit's own checked-in VERSION
-      # file agrees with the tag. A real release, cut by cut-prerelease.yml, always has
-      # this hold, since it tags the exact commit that bumped VERSION to that value.
+      # that: refuse to act unless the checked-out commit's own checked-in VERSION file
+      # agrees with the tag. A real release, cut by cut-prerelease.yml, always has this
+      # hold, since it tags the exact commit that bumped VERSION to that value.
       - name: Verify tag matches checked-in VERSION
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -113,7 +102,7 @@ jobs:
           set -euo pipefail
           CHECKED_IN="$(tr -d '[:space:]' < VERSION)"
           if [ "$CHECKED_IN" != "$VERSION" ]; then
-            echo "::error::Release tag 'v$VERSION' doesn't match the checked-in VERSION file ('$CHECKED_IN') at this commit. A real release is always cut by cut-prerelease.yml from the exact commit that bumped VERSION to that value -- refusing to build/push."
+            echo "::error::Release tag 'v$VERSION' doesn't match the checked-in VERSION file ('$CHECKED_IN') at this commit. A real release is always cut by cut-prerelease.yml from the exact commit that bumped VERSION to that value -- refusing to act."
             exit 1
           fi
 
@@ -134,89 +123,9 @@ jobs:
             exit 1
           fi
 
-  # Builds from source: only a published pre-release. A full release never lands here --
-  # see the `promote` job.
-  publish:
-    needs: version
-    if: needs.version.outputs.is_prerelease == 'true'
-    runs-on: ubuntu-latest
-    env:
-      VERSION: ${{ needs.version.outputs.version }}
-      RC_TAG: ${{ needs.version.outputs.rc_tag }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-
-      - name: Set up QEMU        # enables cross-building (e.g. arm64 on an amd64 runner)
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v4
-        with:
-          username: ${{ secrets.DOCKER_HUB_USER }}
-          password: ${{ secrets.DOCKER_HUB_PASS }}
-
-      # See ci-build.yml for why this downloads MaxMind's databases itself (via
-      # actions/cache) instead of inside the Docker build: a BuildKit `--mount=type=cache`
-      # doesn't survive across CI runs, and isn't included in `--cache-from`/`--cache-to`
-      # exports either. warm-maxmind-cache.yml (on main) is what this actually falls back
-      # to on a cache miss, since a release build's own cache scope is otherwise as cold
-      # as any other branch's. restore-keys is a second fallback layer on top of that --
-      # see ci-build.yml for why.
-      - name: Cache key date
-        id: date
-        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache MaxMind databases
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: maxmind-dbs
-          key: maxmind-dbs-${{ steps.date.outputs.date }}
-          restore-keys: |
-            maxmind-dbs-
-
-      - name: Download MaxMind databases
-        env:
-          MM_ACCOUNT_ID: ${{ secrets.MM_ACCOUNT_ID }}
-          MM_DOWNLOAD_KEY: ${{ secrets.MM_DOWNLOAD_KEY }}
-        run: |
-          set -eu
-          if [ -f maxmind-dbs/GeoLite2-Country.mmdb ] && [ -f maxmind-dbs/GeoLite2-ASN.mmdb ]; then
-            echo "Using cached MaxMind databases (exact match or restore-keys fallback)"
-            exit 0
-          fi
-          if [ -z "$MM_DOWNLOAD_KEY" ]; then echo "maxmind license key secret (MM_DOWNLOAD_KEY) not provided"; exit 1; fi
-          mkdir -p maxmind-dbs
-          curl -sfL -o /tmp/country.tar.gz -u "$MM_ACCOUNT_ID:$MM_DOWNLOAD_KEY" "https://download.maxmind.com/geoip/databases/GeoLite2-Country/download?suffix=tar.gz"
-          tar zxf /tmp/country.tar.gz --strip-components 1 -C maxmind-dbs
-          curl -sfL -o /tmp/asn.tar.gz -u "$MM_ACCOUNT_ID:$MM_DOWNLOAD_KEY" "https://download.maxmind.com/geoip/databases/GeoLite2-ASN/download?suffix=tar.gz"
-          tar zxf /tmp/asn.tar.gz --strip-components 1 -C maxmind-dbs
-
-      - name: Build and push
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: newrelic/network-agent:${{ env.RC_TAG }}
-          build-args: |
-            NETWORK_AGENT_VERSION=${{ env.VERSION }}
-            NETWORK_AGENT_BUILD=${{ github.event.release.tag_name }}
-            NR_SNMP_PROFILE_REPO=https://github.com/newrelic-forks/snmp-profiles
-
-      - name: Summary
-        run: |
-          {
-            echo "## Published to Docker Hub"
-            echo "Tag: \`newrelic/network-agent:$RC_TAG\`"
-          } >> "$GITHUB_STEP_SUMMARY"
-
   # Promotes a full release without rebuilding: retags the <version>-rc image already pushed
-  # by this same version's pre-release build. Fails if none exists -- a full release must be
-  # preceded by a tested pre-release of the same version, on purpose.
+  # by cut-prerelease.yml's `publish` job for this same version. Fails if none exists -- a
+  # full release must be preceded by a tested pre-release of the same version, on purpose.
   promote:
     needs: version
     if: needs.version.outputs.is_prerelease == 'false'

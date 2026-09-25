@@ -24,8 +24,8 @@ goes out as `0.0.6`, never a re-spun `0.0.5`.
 ```mermaid
 flowchart TD
     A["Bump VERSION in a PR (bare MAJOR.MINOR.PATCH, strictly increasing)"]
-    B["Merge to main: cut-prerelease.yml tags the commit and opens a GitHub pre-release"]
-    C["publish-release.yml (publish job): pushes network-agent:VERSION-rc"]
+    B["Merge to main: cut-prerelease.yml (cut job) tags the commit and opens a GitHub pre-release"]
+    C["cut-prerelease.yml (publish job): pushes network-agent:VERSION-rc"]
     D{"Test the pre-release"}
     E["just release-promote: flips the release's pre-release flag off"]
     F["publish-release.yml (promote job): retags VERSION-rc as VERSION and latest, no rebuild"]
@@ -45,10 +45,17 @@ flowchart TD
    suffix rule, and the increment on every PR that touches it -- and that the PR touches
    `VERSION` *only*. The bumping commit is the exact commit that gets tagged and released,
    so it can't also carry unrelated code, reviewed only as "a version bump."
-2. **Merge it.** That push to `main` triggers `cut-prerelease.yml`, which re-validates
-   VERSION and tags that commit `v0.0.5`, opening a GitHub **pre-release** for it.
-3. **`publish-release.yml` picks up the new pre-release** (it triggers on `release: published`)
-   and pushes `newrelic/network-agent:0.0.5-rc`. That tag is immutable from this point on.
+2. **Merge it.** That push to `main` triggers `cut-prerelease.yml`'s `cut` job, which
+   re-validates VERSION and tags that commit `v0.0.5`, opening a GitHub **pre-release** for
+   it.
+3. **`cut-prerelease.yml`'s `publish` job** (`needs: cut`, same workflow run) immediately
+   builds and pushes `newrelic/network-agent:0.0.5-rc`. That tag is immutable from this
+   point on. This is deliberately one workflow with two jobs, not two workflows chained
+   through a `release` event: GitHub doesn't fire a new workflow run for an event created by
+   the repository's own `GITHUB_TOKEN` (recursion prevention), and creating the release is
+   exactly such an event -- a separate workflow reacting to `release: published` would need
+   its own non-`GITHUB_TOKEN` credential just to exist. Keeping `cut` and `publish` in one
+   workflow sidesteps that entirely.
 4. **Test it.** Pull `0.0.5-rc`, run canary/manual testing, whatever this release needs.
    - If it fails: fix the problem, bump `VERSION` again (`0.0.6`), and go back to step 1.
      Never reuse or move the `v0.0.5` tag.
@@ -58,10 +65,11 @@ flowchart TD
    pre-release flag off, which fires GitHub's `released` event.
    `publish-release.yml`'s `promote` job picks that up and retags the already-pushed
    `0.0.5-rc` image as `0.0.5` and `latest`. No rebuild: what ships as the release is
-   byte-for-byte what was tested in step 4.
+   byte-for-byte what was tested in step 4. This step never had the `GITHUB_TOKEN` problem,
+   since it runs under a human's own `gh auth login` session.
 
-PR review gates cutting a candidate (steps 1-2); the deliberate act of running
-`release-promote` gates promoting it (step 5).
+PR review gates cutting a candidate and building its image (steps 1-3); the deliberate act
+of running `release-promote` gates promoting it (step 5).
 
 ## `just release-promote <version>`
 
@@ -78,12 +86,13 @@ Needs `gh` authenticated (`gh auth login` — available in `nix develop`'s devSh
 
 ## Ad-hoc builds
 
-`publish-release.yml` has no `workflow_dispatch` trigger at all -- the only way to get a real
-`<version>-rc`/`<version>`/`latest` tag pushed is through the pipeline above. A separate
-workflow, `push-adhoc-image.yml`, covers a one-off build+push outside a real release: give it
-a `tag` input, and `just check-adhoc-tag` rejects it before anything builds if it's valid
-SemVer or literally `latest` -- an ad-hoc tag must not be confusable with a real release. It
-never touches `VERSION`, never creates a tag/release, and never promotes.
+Neither `cut-prerelease.yml` nor `publish-release.yml` has a `workflow_dispatch` trigger --
+the only way to get a real `<version>-rc`/`<version>`/`latest` tag pushed is through the
+pipeline above. A separate workflow, `push-adhoc-image.yml`, covers a one-off build+push
+outside a real release: give it a `tag` input, and `just check-adhoc-tag` rejects it before
+anything builds if it's valid SemVer or literally `latest` -- an ad-hoc tag must not be
+confusable with a real release. It never touches `VERSION`, never creates a tag/release, and
+never promotes.
 
 ## Tampering safeguards
 
@@ -98,12 +107,14 @@ pipeline above, without going through a reviewed VERSION-bump PR:
   list has no way to grant an exception to (it isn't a GitHub App, user, or repo role) --
   doing so today would just break the automation. Revisit this if/when a dedicated bypass
   identity (a GitHub App, or a bot account's PAT) is set up for it.
-- **Tag/VERSION cross-check.** Since tag creation isn't restricted, `publish-release.yml`'s
-  `version` job instead verifies that the release's tag matches the checked-in `VERSION` file
-  at the exact commit the release points to, and refuses to build/push otherwise. A real
-  release (cut by `cut-prerelease.yml`) always has this hold, since it tags the exact commit
-  that bumped `VERSION` to that value -- an out-of-band release with an arbitrary tag on an
-  arbitrary commit won't.
+- **Tag/VERSION cross-check.** Since tag creation isn't restricted, someone with write
+  access could still create a release directly on GitHub (bypassing `cut-prerelease.yml`
+  entirely) with an arbitrary tag on an arbitrary commit -- and since `publish-release.yml`
+  reacts to `released`, not just an edit of a release *this* pipeline created, that path
+  reaches it. Its `version` job verifies that the release's tag matches the checked-in
+  `VERSION` file at the exact commit the release points to, and refuses to promote/retag
+  otherwise. A real release, cut by `cut-prerelease.yml`, always has this hold, since it
+  tags the exact commit that bumped `VERSION` to that value.
 
 ## SemVer checks
 
