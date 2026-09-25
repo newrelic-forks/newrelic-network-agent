@@ -42,7 +42,9 @@ flowchart TD
 
 1. **Bump `VERSION`** in a PR to a bare, strictly-increasing `MAJOR.MINOR.PATCH` (e.g.
    `0.0.4` → `0.0.5`). `version-format-check.yml` enforces the format, the no-prerelease-
-   suffix rule, and the increment on every PR that touches it.
+   suffix rule, and the increment on every PR that touches it -- and that the PR touches
+   `VERSION` *only*. The bumping commit is the exact commit that gets tagged and released,
+   so it can't also carry unrelated code, reviewed only as "a version bump."
 2. **Merge it.** That push to `main` triggers `cut-prerelease.yml`, which re-validates
    VERSION and tags that commit `v0.0.5`, opening a GitHub **pre-release** for it.
 3. **`publish-release.yml` picks up the new pre-release** (it triggers on `release: published`)

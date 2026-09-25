@@ -19,6 +19,19 @@ name: Version format check
 # whatever it's replacing. The commit that bumps VERSION is the exact commit
 # cut-prerelease.yml tags and pre-releases, so catching a bad bump here, at PR review time,
 # is cheaper than catching it after that workflow has already acted on it.
+#
+# The paths filter below also watches Justfile: that's where check-version/check-semver/
+# check-version-increment actually live now, so a change there can change what "valid" means
+# just as much as a change to VERSION itself can. (It used to watch flake.nix/flake.lock
+# instead, from when the SemVer check was a Nix check living in flake.nix -- stale since that
+# moved to the Justfile. Add scripts/*.sh here too once that logic finishes moving into
+# standalone scripts.)
+#
+# For the same reason, a PR that touches VERSION must touch *only* VERSION: since the
+# bumping commit is exactly what gets tagged and released, letting other changes ride along
+# would mean a release is never just "the previous release plus a version bump" -- it'd
+# quietly include whatever else happened to be in that PR too, reviewed as "a version bump"
+# rather than as the actual code change it is. See "Verify a VERSION bump is isolated" below.
 
 on:
   workflow_dispatch:
@@ -26,13 +39,13 @@ on:
     branches: [ main ]
     paths: &version-paths
       - 'VERSION'
-      - 'flake.nix'
-      - 'flake.lock'
+      - 'Justfile'
   pull_request:
     paths: *version-paths
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   check:
@@ -42,6 +55,32 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0 # need history to diff VERSION against its pre-change state below
+
+      # Asks GitHub directly for the PR's actual file list (computed off the real
+      # merge-base) rather than diffing local refs -- a local diff against the freshly
+      # fetched base tip below would be misleading here if main has advanced with unrelated
+      # commits since this PR branched, since that'd show up as "other files changed" too.
+      - name: Verify a VERSION bump is isolated
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          FILES="$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" --paginate -q '.[].filename')"
+
+          if ! grep -qxF 'VERSION' <<< "$FILES"; then
+            echo "This PR doesn't touch VERSION (triggered by Justfile instead) -- nothing to isolate."
+            exit 0
+          fi
+
+          OTHER="$(grep -vxF 'VERSION' <<< "$FILES" || true)"
+          if [ -n "$OTHER" ]; then
+            echo "::error::This PR bumps VERSION alongside other file changes. The commit that bumps VERSION is the exact commit cut-prerelease.yml tags and releases (see docs/RELEASING.md) -- it must touch VERSION only, so a release is never a bundle of unrelated, less-scrutinized changes. Split the other changes into a separate PR."
+            echo "Other files changed:" >&2
+            echo "$OTHER" | sed 's/^/  /' >&2
+            exit 1
+          fi
+          echo "VERSION bump is isolated -- no other files changed."
 
       - name: Install Nix
         uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
@@ -74,7 +113,7 @@ jobs:
             # github.event.pull_request.base.sha: that field can be stale relative to
             # main's real state when this run was triggered by something other than a
             # fresh sync of this exact PR against the current base -- e.g. this
-            # workflow's own paths filter matching flake.nix on a push that landed well
+            # workflow's own paths filter matching Justfile on a push that landed well
             # after main last advanced. Comparing against a stale base previously
             # produced a false "VERSION decreased" failure.
             git fetch --depth 1 origin "$GITHUB_BASE_REF"
