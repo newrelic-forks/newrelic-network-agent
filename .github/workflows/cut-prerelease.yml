@@ -16,8 +16,19 @@ name: Cut pre-release from VERSION
 #
 # version-format-check.yml already validates format/no-suffix/increment on the PR that
 # merges this, but that's a review-time gate on a branch protection main could technically
-# bypass (a direct push, an admin override) -- this workflow has contents: write, so it
-# re-validates from scratch rather than trusting that gate ran.
+# bypass (a direct push, an admin override), so this workflow re-validates from scratch
+# rather than trusting that gate ran.
+#
+# The actual `gh release create` call below authenticates with secrets.RELEASE_PAT, a
+# fine-grained PAT (Contents: read/write on this repo only) -- deliberately NOT
+# github.token/GITHUB_TOKEN. GitHub does not fire new workflow runs for events created by
+# the default GITHUB_TOKEN (recursion prevention -- see
+# https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow),
+# and `release: published`/`released` is exactly such an event: publish-release.yml would
+# never actually run. Confirmed the hard way -- see the v0.0.1 dry run, where this job
+# succeeded and the release genuinely existed, but publish-release.yml never fired at all.
+# `just release-promote` doesn't have this problem: it runs under a human's own `gh auth
+# login` session, not GITHUB_TOKEN.
 
 on:
   push:
@@ -26,7 +37,7 @@ on:
       - VERSION
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   cut:
@@ -73,6 +84,15 @@ jobs:
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Require RELEASE_PAT
+        env:
+          RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
+        run: |
+          if [ -z "${RELEASE_PAT:-}" ]; then
+            echo "::error::secrets.RELEASE_PAT is not set -- see this workflow's header comment for why the release step can't just use github.token."
+            exit 1
+          fi
+
       # Belt-and-suspenders: version-format-check.yml's own increment check should have
       # already stopped a VERSION bump onto an already-released version before this ever
       # merged, but this is the workflow that actually creates the tag/release, so it
@@ -80,7 +100,7 @@ jobs:
       - name: Refuse to reuse an existing tag or release
         env:
           TAG: v${{ steps.version.outputs.version }}
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
         run: |
           set -euo pipefail
 
@@ -116,7 +136,7 @@ jobs:
       - name: Cut the pre-release
         env:
           TAG: v${{ steps.version.outputs.version }}
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
         run: |
           gh release create "$TAG" \
             --repo "${{ github.repository }}" \
