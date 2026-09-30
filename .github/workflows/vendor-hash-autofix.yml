@@ -7,9 +7,13 @@ name: Vendor hash autofix
 # someone updates it -- this job does that automatically instead of needing a manual
 # fix every time.
 #
-# Follow-up to vendor-hash-check.yml: if that check failed on a pull request from a
-# same-repo branch (true for Dependabot PRs here), recompute vendorHash and push a
-# fixup commit directly to the PR branch.
+# Follow-up to vendor-hash-check.yml: if that check failed, recompute vendorHash and
+# land the fix the way that matches how it failed --
+#   - pull_request (same-repo branch, e.g. a Dependabot PR): push a fixup commit
+#     directly to the PR branch, same as before.
+#   - push/schedule (i.e. main itself, including the nightly drift-detection run):
+#     there's no PR branch to push to, and this repo doesn't push straight to main
+#     for anything else -- so open a PR instead, same as a human would.
 #
 # Runs as workflow_run (not inside the pull_request-triggered check itself) so it
 # executes in the base repo's context with normal contents:write, regardless of who or
@@ -38,16 +42,20 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   autofix:
     if: >
-      github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'failure' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+      (
+        (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.head_repository.full_name == github.repository) ||
+        github.event.workflow_run.event == 'push' ||
+        github.event.workflow_run.event == 'schedule'
+      )
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR branch
+      - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
@@ -95,16 +103,18 @@ jobs:
           # package still builds with it.
           nix build .#packages.x86_64-linux.network-agent -L
 
-      - name: Commit and push if changed
+      - name: Commit and push/PR if changed
         env:
           # head_branch is a branch name chosen by whoever pushed it -- interpolating
           # it directly into this run: script via ${{ }} (rather than $HEAD_BRANCH)
           # would let a maliciously-named branch inject shell commands that run with
-          # this job's contents: write token. The head_repository check in this job's
-          # `if:` limits this to same-repo branches, not arbitrary forks, but that's
-          # about who can trigger this, not about the branch name being safe to
-          # interpolate unquoted.
+          # this job's contents: write token. The pull_request branch of this job's
+          # `if:` limits that case to same-repo branches, not arbitrary forks, but
+          # that's about who can trigger this, not about the branch name being safe
+          # to interpolate unquoted -- so it's kept out of the shell either way.
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          IS_PR: ${{ github.event.workflow_run.event == 'pull_request' }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           if git diff --quiet; then
             echo "vendorHash already correct, nothing to fix"
@@ -114,4 +124,30 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add nix/network-agent.nix
           git commit -m "chore(deps): refresh network-agent vendorHash"
-          git push origin "HEAD:$HEAD_BRANCH"
+
+          if [ "$IS_PR" = "true" ]; then
+            git push origin "HEAD:$HEAD_BRANCH"
+            exit 0
+          fi
+
+          # Failure came from push/schedule on $HEAD_BRANCH itself (main) -- no PR
+          # branch to push to, and this repo doesn't push straight to main for
+          # anything else, so open a PR the same way a human fixing this by hand
+          # would. Skip if an autofix PR from a previous run is already open, so a
+          # drift that persists across several nightly runs doesn't pile up
+          # duplicate PRs -- whoever reviews the existing one covers all of them.
+          existing="$(gh pr list --state open --base "$HEAD_BRANCH" \
+            --search 'in:title "refresh network-agent vendorHash"' \
+            --json number --jq '.[0].number' || true)"
+          if [ -n "$existing" ]; then
+            echo "Autofix PR #$existing is already open against $HEAD_BRANCH, not opening another"
+            exit 0
+          fi
+
+          fix_branch="vendor-hash-autofix/$(git rev-parse --short HEAD)"
+          git push origin "HEAD:refs/heads/$fix_branch"
+          gh pr create \
+            --title "chore(deps): refresh network-agent vendorHash" \
+            --body "vendorHash in \`nix/network-agent.nix\` had drifted out of sync with \`go.sum\` on \`$HEAD_BRANCH\` -- caught by a periodic/scheduled run of Vendor hash check, not a dependency-bump PR. This recomputes it; see the linked run for the mismatch." \
+            --base "$HEAD_BRANCH" \
+            --head "$fix_branch"

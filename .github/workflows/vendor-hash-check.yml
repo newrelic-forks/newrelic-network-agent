@@ -16,10 +16,20 @@ name: Vendor hash check
 # matters more there.
 #
 # vendor-hash-autofix.yml reacts to a failed run of this workflow and pushes a fixup
-# commit when it can.
+# commit (PR branch) or opens a fixup PR (main) when it can.
+#
+# Also runs on a nightly schedule, independent of the path filters below: vendorHash
+# can go stale on main with no go.mod/go.sum/nix change at all (observed in practice --
+# the fixed-output derivation's content isn't guaranteed stable over time even for an
+# unchanged go.sum). The path-filtered push/pull_request triggers can't catch that since
+# nothing touches those paths when it happens; only a check that runs regardless of what
+# changed will. Scheduled a bit before benchmark-tier-b.yml's nightly run (03:17 UTC) so
+# drift is caught by this cheap check first rather than surfacing there.
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '47 2 * * *' # nightly, off-the-hour, ahead of benchmark-tier-b.yml's 03:17 UTC run
   push:
     branches: [ main ]
     paths: &vendor-hash-paths
