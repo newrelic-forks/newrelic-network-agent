@@ -17,30 +17,11 @@ name: Vendor hash check
 #
 # vendor-hash-autofix.yml reacts to a failed run of this workflow and pushes a fixup
 # commit (PR branch) or opens a fixup PR (main) when it can.
-#
-# Also runs on a nightly schedule, independent of the path filters below. This check can
-# give a false pass on a real go.sum change: a fixed-output derivation's store path is
-# addressed by (name, hashAlgo, declared hash) alone, not by its inputs, so if a build of
-# this exact (name, vendorHash) pair from *before* some go.sum change is still sitting in
-# the Nix build cache below, `nix build` substitutes that stale blob instead of actually
-# re-running `go mod vendor` against the new go.sum -- it only reconfirms the cached
-# content's hash equals the declared one, which is trivially true, never "would today's
-# go.sum produce this". That's exactly what happened to vendorHash going into #71: the
-# check passed on the dependency-bump PR that changed go.sum, and again on push to main
-# right after, purely because a pre-bump build was still cached; only days later, once
-# cache-gc.yml's daily GC evicted that entry, did a real build run and reveal the true
-# (and, by then, long-stale) hash -- caught by benchmark-tier-b.yml, not this check, since
-# nothing had re-triggered this job in the meantime. The `--option substituters` override
-# on the build step below closes that: it drops the project's own cache for this one
-# build, so it can never again be satisfied by anything but a genuine `go mod vendor`
-# against the current go.sum. The schedule here is a second, independent line of defense
-# in case that ever regresses -- scheduled a bit before benchmark-tier-b.yml's nightly run
-# (03:17 UTC) so drift is caught by this cheap check first rather than surfacing there.
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '47 2 * * *' # nightly, off-the-hour, ahead of benchmark-tier-b.yml's 03:17 UTC run
+    - cron: '47 2 * * *' # backstop; ahead of benchmark-tier-b.yml's 03:17 UTC run
   push:
     branches: [ main ]
     paths: &vendor-hash-paths
@@ -72,23 +53,14 @@ jobs:
       # cache.nixos.org, since the shared 10GB-per-repo quota is better spent on
       # this repo's own outputs. See cache-gc.yml for the required cleanup job
       # (the quota is shared across every workflow that uses this step).
-      #
-      # Deliberately NOT used as a pull source for the verification build below --
-      # see that step for why.
       - name: Nix build cache
         uses: Mic92/hestia@f1f4df2801140a36398ed423533c8460618539df # v3.0.1
         with:
           upstream-cache-filter: "true"
 
       - name: Build network-agent's go-modules fetch (validates vendorHash)
-        # --option substituters restricted to cache.nixos.org only, dropping the
-        # hestia cache this job just configured: it caches this exact derivation
-        # (this is the only thing that build produces), so leaving it in as a pull
-        # source is exactly what let a stale cached goModules build masquerade as
-        # a still-valid vendorHash for two days (see the comment on `on:` above).
-        # cache.nixos.org never has this repo's own output, so it can't reintroduce
-        # the same problem -- it only speeds up the Go toolchain/build inputs,
-        # which this restriction doesn't touch.
+        # cache.nixos.org only: excludes the hestia cache above, which can hold a stale
+        # substitute for this exact (name, vendorHash) and mask a go.sum change (#71).
         run: |
           nix build .#packages.x86_64-linux.network-agent.goModules -L \
             --option substituters "https://cache.nixos.org"

@@ -7,13 +7,10 @@ name: Vendor hash autofix
 # someone updates it -- this job does that automatically instead of needing a manual
 # fix every time.
 #
-# Follow-up to vendor-hash-check.yml: if that check failed, recompute vendorHash and
-# land the fix the way that matches how it failed --
-#   - pull_request (same-repo branch, e.g. a Dependabot PR): push a fixup commit
-#     directly to the PR branch, same as before.
-#   - push/schedule (i.e. main itself, including the nightly drift-detection run):
-#     there's no PR branch to push to, and this repo doesn't push straight to main
-#     for anything else -- so open a PR instead, same as a human would.
+# Follow-up to vendor-hash-check.yml: if that check failed on a pull request from a
+# same-repo branch (true for Dependabot PRs here), recompute vendorHash and push a
+# fixup commit directly to the PR branch. A push/schedule-triggered failure (main
+# itself) has no PR branch to push to, so opens a PR instead.
 #
 # Runs as workflow_run (not inside the pull_request-triggered check itself) so it
 # executes in the base repo's context with normal contents:write, regardless of who or
@@ -105,13 +102,8 @@ jobs:
 
       - name: Commit and push/PR if changed
         env:
-          # head_branch is a branch name chosen by whoever pushed it -- interpolating
-          # it directly into this run: script via ${{ }} (rather than $HEAD_BRANCH)
-          # would let a maliciously-named branch inject shell commands that run with
-          # this job's contents: write token. The pull_request branch of this job's
-          # `if:` limits that case to same-repo branches, not arbitrary forks, but
-          # that's about who can trigger this, not about the branch name being safe
-          # to interpolate unquoted -- so it's kept out of the shell either way.
+          # HEAD_BRANCH via env, not inline ${{ }} interpolation, since it's an
+          # attacker-influenceable branch name and this job has contents: write.
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           IS_PR: ${{ github.event.workflow_run.event == 'pull_request' }}
           GH_TOKEN: ${{ github.token }}
@@ -130,12 +122,8 @@ jobs:
             exit 0
           fi
 
-          # Failure came from push/schedule on $HEAD_BRANCH itself (main) -- no PR
-          # branch to push to, and this repo doesn't push straight to main for
-          # anything else, so open a PR the same way a human fixing this by hand
-          # would. Skip if an autofix PR from a previous run is already open, so a
-          # drift that persists across several nightly runs doesn't pile up
-          # duplicate PRs -- whoever reviews the existing one covers all of them.
+          # main has no PR branch to push to -- open one instead. Skip if an autofix
+          # PR from a previous run is already open, to avoid piling up duplicates.
           existing="$(gh pr list --state open --base "$HEAD_BRANCH" \
             --search 'in:title "refresh network-agent vendorHash"' \
             --json number --jq '.[0].number' || true)"
@@ -148,6 +136,6 @@ jobs:
           git push origin "HEAD:refs/heads/$fix_branch"
           gh pr create \
             --title "chore(deps): refresh network-agent vendorHash" \
-            --body "vendorHash in \`nix/network-agent.nix\` had drifted out of sync with \`go.sum\` on \`$HEAD_BRANCH\` -- caught by a periodic/scheduled run of Vendor hash check, not a dependency-bump PR. This recomputes it; see the linked run for the mismatch." \
+            --body "vendorHash in \`nix/network-agent.nix\` was out of sync with \`go.sum\` on \`$HEAD_BRANCH\`." \
             --base "$HEAD_BRANCH" \
             --head "$fix_branch"
