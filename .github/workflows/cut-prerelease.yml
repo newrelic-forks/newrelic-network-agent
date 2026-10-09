@@ -144,11 +144,9 @@ jobs:
   # for why this is a second job here rather than a separate workflow reacting to the
   # release event `cut` above creates.
   #
-  # linux/amd64 and linux/arm64 build on their own native runner rather than one runner
-  # building both via QEMU: emulated arm64 compiles the Go binary (and runs the rest of
-  # the Dockerfile) at a fraction of native speed, which used to dominate this job's
-  # wall-clock time now that GitHub has hosted arm64 Linux runners (ubuntu-24.04-arm,
-  # GA'd in 2025) to build on instead. Each per-arch build pushes its image by digest only
+  # linux/amd64 and linux/arm64 each build on their own native runner (no QEMU) -- native
+  # compilation of the Go binary, and of the rest of the Dockerfile, is far faster than
+  # under full-system emulation. Each per-arch build pushes its image by digest only
   # (push-by-digest=true) -- a single-platform digest isn't a usable tag on its own -- and
   # `merge` below assembles both digests into the one multi-platform `RC_TAG` manifest
   # list that everything downstream (promote, pulls) expects, via `docker buildx

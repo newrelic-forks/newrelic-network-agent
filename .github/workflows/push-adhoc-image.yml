@@ -25,9 +25,8 @@ permissions:
   contents: read
 
 jobs:
-  # Gates the whole run on the tag check before anything builds -- separated out so the
-  # per-platform `build` matrix below (and the arm64 runner it dispatches to) never even
-  # starts for a rejected tag.
+  # Its own job so the per-platform `build` matrix below (and the arm64 runner it
+  # dispatches to) never starts for a rejected tag.
   validate:
     runs-on: ubuntu-latest
     steps:
@@ -47,10 +46,10 @@ jobs:
           TAG: ${{ inputs.tag }}
         run: nix develop --command just check-adhoc-tag "$TAG"
 
-  # linux/amd64 and linux/arm64 build on their own native runner rather than one runner
-  # building both via QEMU -- see cut-prerelease.yml's `build` job for why. Each per-arch
-  # build pushes its image by digest only; `merge` below assembles both digests into the
-  # one multi-platform `inputs.tag` manifest list.
+  # linux/amd64 and linux/arm64 each build on their own native runner (no QEMU) -- see
+  # cut-prerelease.yml's `build` job for why. Each per-arch build pushes its image by
+  # digest only; `merge` below assembles both digests into the one multi-platform
+  # `inputs.tag` manifest list.
   build:
     needs: validate
     strategy:

@@ -23,11 +23,11 @@ jobs:
   docker-build:
     # Always a single platform (push/pull_request never set the `platform` input, so this
     # falls back to linux/amd64; workflow_dispatch's `type: choice` restricts it to one of
-    # the two options), so this picks that platform's own native runner instead of
-    # cross-building it with QEMU on an amd64 runner -- see cut-prerelease.yml's `build`
-    # job for why that's worth doing. github.event.inputs is unset (not just empty) for
-    # push/pull_request, so the `==` comparison below is false and this falls through to
-    # ubuntu-latest exactly like the PLATFORM default two steps down.
+    # the two options), so this picks that platform's own native runner -- see
+    # cut-prerelease.yml's `build` job for why native beats QEMU. github.event.inputs is
+    # unset (not just empty) for push/pull_request, so the `==` comparison below is false
+    # and this falls through to ubuntu-latest, matching the PLATFORM default two steps
+    # down.
     runs-on: ${{ github.event.inputs.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     steps:
       - name: Checkout
