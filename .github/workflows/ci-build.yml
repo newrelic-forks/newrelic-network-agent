@@ -1,45 +1,38 @@
 name: CI Build (no push)
 
 # Validation build: confirms the Docker image builds end-to-end (which also compiles
-# the Go binary via `make`) for the given platform. It is NEVER pushed to a registry,
-# and the resulting image never leaves the runner -- for an actual runnable image, use
-# publish-release.yml's workflow_dispatch instead.
+# the Go binary via `make`) for every platform the image ships for. It is NEVER pushed
+# to a registry, and the resulting image never leaves the runner -- for an actual
+# runnable image, use publish-release.yml's workflow_dispatch instead.
 
 on:
   push:
     branches: [ main ]
   pull_request:
   workflow_dispatch:
-    inputs:
-      platform:
-        description: Target platform to validate the build against
-        type: choice
-        options:
-          - linux/amd64
-          - linux/arm64
-        default: linux/amd64
 
 jobs:
   docker-build:
-    runs-on: ubuntu-latest
+    # Both platforms the image actually ships for, each on its own native runner (no
+    # QEMU) -- see cut-prerelease.yml's `build` job for why native beats QEMU. A build
+    # failure specific to one architecture (e.g. a cross-compilation or syscall
+    # difference) only surfaces by actually compiling and building on that architecture,
+    # so this always builds both rather than defaulting to amd64 alone.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runs-on: ubuntu-latest
+          - platform: linux/arm64
+            runs-on: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runs-on }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Set build id and platform
-        env:
-          # github.event.inputs.platform is a `type: choice` input restricted to a
-          # fixed set of options, but interpolating any ${{ }} expression directly
-          # into a run: script is still worth avoiding on principle -- GitHub expands
-          # ${{ }} textually before bash parses the script, so anything that ever
-          # widens this input's type later wouldn't be caught here.
-          PLATFORM_INPUT: ${{ github.event.inputs.platform }}
-        run: |
-          echo "CI_BUILD=ci-$(date +%Y-%m-%d)-${GITHUB_RUN_ID}" >> "$GITHUB_ENV"
-          echo "PLATFORM=${PLATFORM_INPUT:-linux/amd64}" >> "$GITHUB_ENV"
-
-      - name: Set up QEMU        # enables cross-building (e.g. arm64 on an amd64 runner)
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - name: Set build id
+        run: echo "CI_BUILD=ci-$(date +%Y-%m-%d)-${GITHUB_RUN_ID}" >> "$GITHUB_ENV"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
@@ -57,7 +50,10 @@ jobs:
       # if a build lands in the few minutes between the two, or that job has a bad day,
       # this still restores whatever the most recent prior day's cache was rather than
       # ever falling through to MaxMind. Slightly stale GeoLite2 data is a non-issue;
-      # a build that can't get the data at all is not.
+      # a build that can't get the data at all is not. Both matrix legs use the same
+      # cache key -- harmless, since actions/cache tolerates two jobs racing to save
+      # the same key (the loser just skips the save) and each leg downloads its own
+      # copy on a miss regardless.
       - name: Cache key date
         id: date
         run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
@@ -91,12 +87,12 @@ jobs:
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
-          platforms: ${{ env.PLATFORM }}
+          platforms: ${{ matrix.platform }}
           tags: network-agent:ci
           # Loads the built image into the runner's local Docker daemon (same as
           # `docker buildx build --load`) so the verification step below can run it --
           # nothing is exported to a file or pushed anywhere. type=docker is
-          # single-platform, which is why the platform is fixed per run.
+          # single-platform, which is why each matrix leg only ever builds its own.
           outputs: type=docker
           # No NETWORK_AGENT_VERSION here -- Make's own default (the VERSION file) stands,
           # same as any other build. NETWORK_AGENT_BUILD identifies this specific CI run.

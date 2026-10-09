@@ -25,7 +25,9 @@ permissions:
   contents: read
 
 jobs:
-  push:
+  # Its own job so the per-platform `build` matrix below (and the arm64 runner it
+  # dispatches to) never starts for a rejected tag.
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -44,8 +46,24 @@ jobs:
           TAG: ${{ inputs.tag }}
         run: nix develop --command just check-adhoc-tag "$TAG"
 
-      - name: Set up QEMU        # enables cross-building (e.g. arm64 on an amd64 runner)
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+  # linux/amd64 and linux/arm64 each build on their own native runner (no QEMU) -- see
+  # cut-prerelease.yml's `build` job for why. Each per-arch build pushes its image by
+  # digest only; `merge` below assembles both digests into the one multi-platform
+  # `inputs.tag` manifest list.
+  build:
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runs-on: ubuntu-latest
+          - platform: linux/arm64
+            runs-on: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
@@ -57,7 +75,8 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASS }}
 
       # See ci-build.yml/publish-release.yml for why this downloads MaxMind's databases
-      # itself instead of inside the Docker build.
+      # itself instead of inside the Docker build. Each platform downloads/caches its own
+      # copy -- cheap, and keeps the two matrix jobs independent.
       - name: Cache key date
         id: date
         run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
@@ -87,17 +106,73 @@ jobs:
           curl -sfL -o /tmp/asn.tar.gz -u "$MM_ACCOUNT_ID:$MM_DOWNLOAD_KEY" "https://download.maxmind.com/geoip/databases/GeoLite2-ASN/download?suffix=tar.gz"
           tar zxf /tmp/asn.tar.gz --strip-components 1 -C maxmind-dbs
 
-      - name: Build and push
+      # Artifact names can't contain `/`, which `linux/amd64`-style platform strings do --
+      # used below to give each matrix job's digest artifact a distinct, valid name.
+      - name: Set platform pair
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_ENV"
+
+      - name: Build and push by digest
+        id: build
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: newrelic/network-agent:${{ inputs.tag }}
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=newrelic/network-agent,push-by-digest=true,name-canonical=true,push=true
           build-args: |
             NETWORK_AGENT_VERSION=${{ inputs.tag }}
             NETWORK_AGENT_BUILD=manual-${{ github.run_id }}
             NR_SNMP_PROFILE_REPO=https://github.com/newrelic-forks/snmp-profiles
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # Assembles the per-platform digests `build` pushed into the one `inputs.tag` manifest
+  # list -- see `build`'s header comment, and cut-prerelease.yml's `merge` job.
+  merge:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USER }}
+          password: ${{ secrets.DOCKER_HUB_PASS }}
+
+      - name: Create manifest list and push
+        working-directory: /tmp/digests
+        run: |
+          # The whole point here is to split each digest filename (one per platform
+          # `build` uploaded) into its own `imagetools create` argument.
+          # shellcheck disable=SC2046
+          docker buildx imagetools create \
+            --tag "newrelic/network-agent:${{ inputs.tag }}" \
+            $(printf 'newrelic/network-agent@sha256:%s ' *)
+
+      - name: Inspect pushed image
+        run: docker buildx imagetools inspect "newrelic/network-agent:${{ inputs.tag }}"
 
       - name: Summary
         run: |
