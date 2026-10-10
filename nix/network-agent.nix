@@ -20,7 +20,7 @@ pkgs.buildGoModule {
   src = goSrc;
   inherit version;
 
-  vendorHash = "sha256-ZQUnUlWTspAZMO90kEJ6+xukw3gX10+IwTegaCUtEo0=";
+  vendorHash = "sha256-Yx1ZUT8ahqjwNrqWl9OOXejaLY651xoT44hb72kWk1M=";
   subPackages = [ "cmd/network-agent" ];
   env.CGO_ENABLED = "0";
   ldflags = [
