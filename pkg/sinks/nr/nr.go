@@ -466,7 +466,7 @@ func (s *NRSink) sendLogBatch(ctx context.Context, logs []string) {
 
 	if len(ls_healthlogs.Logs) > 0 {
 		ls_healthlogs.Common.Attributes["plugin.type"] = kt.PluginHealth
-		ls_healthlogs.Common.Attributes["logtype"] = "ktranslate-health"
+		ls_healthlogs.Common.Attributes["logtype"] = kt.LogTypeHealth
 
 		s.sendLogBatchToNR(ctx, ls_healthlogs)
 	}
