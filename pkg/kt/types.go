@@ -104,6 +104,7 @@ const (
 
 	PluginSyslog   = "ktranslate-syslog"
 	PluginHealth   = "ktranslate-health"
+	LogTypeHealth  = "nr.ktranslate-health"
 	FloatMS        = "float_ms"
 	InvalidEnum    = "invalid enum"
 	DeviceTagTable = "KT_Device_Tag"
