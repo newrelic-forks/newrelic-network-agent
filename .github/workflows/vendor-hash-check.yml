@@ -16,10 +16,12 @@ name: Vendor hash check
 # matters more there.
 #
 # vendor-hash-autofix.yml reacts to a failed run of this workflow and pushes a fixup
-# commit when it can.
+# commit (PR branch) or opens a fixup PR (main) when it can.
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '47 2 * * *' # backstop; ahead of benchmark-tier-b.yml's 03:17 UTC run
   push:
     branches: [ main ]
     paths: &vendor-hash-paths
@@ -57,4 +59,8 @@ jobs:
           upstream-cache-filter: "true"
 
       - name: Build network-agent's go-modules fetch (validates vendorHash)
-        run: nix build .#packages.x86_64-linux.network-agent.goModules -L
+        # cache.nixos.org only: excludes the hestia cache above, which can hold a stale
+        # substitute for this exact (name, vendorHash) and mask a go.sum change (#71).
+        run: |
+          nix build .#packages.x86_64-linux.network-agent.goModules -L \
+            --option substituters "https://cache.nixos.org"
