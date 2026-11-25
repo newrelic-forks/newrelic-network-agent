@@ -28,3 +28,8 @@ global:
   - IF-MIB
   timeout_ms: 3000
   retries: 0
+  # GETBULK max-repetitions: how many values to request per SNMP v2c/v3 bulk
+  # request. Leave unset for the default of 50. Lower it (for example to 10) for
+  # devices that time out or return truncated bulk walks. Values above 50 are
+  # ignored. A device can override this with its own max_repetitions setting.
+  # max_repetitions: 50

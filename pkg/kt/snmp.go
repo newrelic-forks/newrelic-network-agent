@@ -212,6 +212,7 @@ type SnmpDeviceConfig struct {
 	MatchAttr           map[string]string `yaml:"match_attributes"`
 	MonitorAdminShut    bool              `yaml:"monitor_admin_shut"`
 	NoUseBulkWalkAll    bool              `yaml:"no_use_bulkwalkall"`
+	MaxRepetitions      uint32            `yaml:"max_repetitions,omitempty"` // GETBULK max-repetitions for this device. Overrides the global value; 0 or a value above 50 means use the global value.
 	InstrumentationName string            `yaml:"instrumentationName,omitempty"`
 	RunPing             bool              `yaml:"response_time,omitempty"`
 	Ext                 *ExtensionSet     `yaml:"ext,omitempty"`
@@ -295,6 +296,7 @@ type SnmpGlobalConfig struct {
 	MibsEnabled           []string               `yaml:"mibs_enabled"`
 	TimeoutMS             int                    `yaml:"timeout_ms"`
 	Retries               int                    `yaml:"retries"`
+	MaxRepetitions        uint32                 `yaml:"max_repetitions,omitempty"` // GETBULK max-repetitions for every device. 0 or a value above 50 means use the gosnmp default (50).
 	GlobalV3              *V3SNMPConfig          `yaml:"global_v3"`
 	RunPing               bool                   `yaml:"response_time"`
 	PingSec               int                    `yaml:"ping_interval_sec,omitempty"`
@@ -767,6 +769,9 @@ func (d *SnmpDeviceConfig) UpdateFrom(old *SnmpDeviceConfig, conf *SnmpConfig) {
 	}
 	if old.NoUseBulkWalkAll {
 		d.NoUseBulkWalkAll = old.NoUseBulkWalkAll
+	}
+	if old.MaxRepetitions > 0 {
+		d.MaxRepetitions = old.MaxRepetitions
 	}
 	if old.RunPing {
 		d.RunPing = old.RunPing

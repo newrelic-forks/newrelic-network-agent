@@ -61,11 +61,11 @@ func BenchmarkDeviceInitLoop(b *testing.B) {
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				for _, device := range devices {
-					metadataServer, err := snmp_util.InitSNMP(device, timeout, retries, "", log)
+					metadataServer, err := snmp_util.InitSNMP(device, timeout, retries, 0, "", log)
 					if err != nil {
 						b.Fatalf("InitSNMP (metadata): %v", err)
 					}
-					metricsServer, err := snmp_util.InitSNMP(device, timeout, retries, "", log)
+					metricsServer, err := snmp_util.InitSNMP(device, timeout, retries, 0, "", log)
 					if err != nil {
 						b.Fatalf("InitSNMP (metrics): %v", err)
 					}

@@ -14,6 +14,9 @@ import (
 const (
 	SNMP_PORT       = uint16(161)
 	MAX_CONNECT_TRY = 10
+	// Largest max_repetitions accepted. It matches gosnmp's default, because the setting
+	// exists to make bulk requests smaller for slow devices, not larger.
+	MAX_REPETITIONS = uint32(50)
 )
 
 func ParseV3Config(v3config *kt.V3SNMPConfig) (*gosnmp.UsmSecurityParameters, gosnmp.SnmpV3MsgFlags, string, string, error) {
@@ -94,7 +97,7 @@ func (l logWrapper) Printf(format string, v ...interface{}) {
 	l.printf(format, v...)
 }
 
-func InitSNMP(device *kt.SnmpDeviceConfig, connectTimeout time.Duration, retries int, posit string, log logger.ContextL) (*gosnmp.GoSNMP, error) {
+func InitSNMP(device *kt.SnmpDeviceConfig, connectTimeout time.Duration, retries int, maxRepetitions uint32, posit string, log logger.ContextL) (*gosnmp.GoSNMP, error) {
 
 	if (device.Community == "" && device.V3 == nil) || device.DeviceIP == "" {
 		return nil, fmt.Errorf("community or server IP not set")
@@ -109,6 +112,16 @@ func InitSNMP(device *kt.SnmpDeviceConfig, connectTimeout time.Duration, retries
 		retries = device.Retries
 		log.Infof("Device Level retries of %v", retries)
 	}
+	if device.MaxRepetitions > MAX_REPETITIONS {
+		log.Warnf("Device Level max repetitions of %d is above the maximum of %d, ignoring it.", device.MaxRepetitions, MAX_REPETITIONS)
+	} else if device.MaxRepetitions > 0 {
+		maxRepetitions = device.MaxRepetitions
+		log.Infof("Device Level max repetitions of %v", maxRepetitions)
+	}
+	if maxRepetitions > MAX_REPETITIONS { // Only the global value can still be too large here.
+		log.Warnf("Global max repetitions of %d is above the maximum of %d, using the default.", maxRepetitions, MAX_REPETITIONS)
+		maxRepetitions = 0 // 0 lets gosnmp use its default.
+	}
 
 	port := SNMP_PORT
 	if device.Port != 0 {
@@ -122,6 +135,7 @@ func InitSNMP(device *kt.SnmpDeviceConfig, connectTimeout time.Duration, retries
 		Retries:            retries,
 		Target:             device.DeviceIP,
 		MaxOids:            gosnmp.MaxOids,
+		MaxRepetitions:     maxRepetitions, // 0 lets gosnmp use its default.
 		ExponentialTimeout: true,
 		Context:            context.Background(),
 	}
