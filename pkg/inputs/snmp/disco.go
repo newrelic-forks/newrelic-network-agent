@@ -274,7 +274,7 @@ func doubleCheckHost(ctx context.Context, result netScanResult, timeout time.Dur
 				Checked:          time.Now(),
 				NoUseBulkWalkAll: conf.Disco.NoUseBulkWalkAll,
 			}
-			serv, err := snmp_util.InitSNMP(&device, timeout, conf.Global.Retries, posit, log)
+			serv, err := snmp_util.InitSNMP(&device, timeout, conf.Global.Retries, conf.Global.MaxRepetitions, posit, log)
 			if err != nil {
 				log.Warnf("There was an error when starting SNMP interface component -- %v.", err)
 				return
@@ -307,7 +307,7 @@ func doubleCheckHost(ctx context.Context, result netScanResult, timeout time.Dur
 					Checked:          time.Now(),
 					NoUseBulkWalkAll: conf.Disco.NoUseBulkWalkAll,
 				}
-				serv, err := snmp_util.InitSNMP(&device, timeout, conf.Global.Retries, posit, log)
+				serv, err := snmp_util.InitSNMP(&device, timeout, conf.Global.Retries, conf.Global.MaxRepetitions, posit, log)
 				if err != nil {
 					log.Warnf("There was an error when starting SNMP interface component -- %v.", err)
 					return

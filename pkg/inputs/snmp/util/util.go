@@ -251,7 +251,7 @@ func DoWalk(device string, baseOid string, format string, conf *kt.SnmpConfig, c
 		return fmt.Errorf("The %s device was not found in the SNMP configuration file.", device)
 	}
 
-	server, err := InitSNMP(dconf, connectTimeout, retries, "", log)
+	server, err := InitSNMP(dconf, connectTimeout, retries, conf.Global.MaxRepetitions, "", log)
 	if err != nil {
 		return err
 	}

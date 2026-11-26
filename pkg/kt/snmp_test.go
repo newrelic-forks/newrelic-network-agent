@@ -110,6 +110,43 @@ func TestUpdateFromPreservesPollTimeoutSec(t *testing.T) {
 	assert.Equal(t, 45, d.PollTimeoutSec)
 }
 
+func TestUpdateFromPreservesMaxRepetitions(t *testing.T) {
+	conf := &SnmpConfig{Global: &SnmpGlobalConfig{}}
+
+	// MaxRepetitions carries over from the old (pre-rediscovery) config when set.
+	d := &SnmpDeviceConfig{}
+	old := &SnmpDeviceConfig{MaxRepetitions: 10}
+	d.UpdateFrom(old, conf)
+	assert.Equal(t, uint32(10), d.MaxRepetitions)
+
+	// An unset (zero) old value doesn't clobber whatever the new config already has.
+	d = &SnmpDeviceConfig{MaxRepetitions: 20}
+	old = &SnmpDeviceConfig{}
+	d.UpdateFrom(old, conf)
+	assert.Equal(t, uint32(20), d.MaxRepetitions)
+}
+
+func TestMaxRepetitionsYAML(t *testing.T) {
+	input := []byte(`
+devices:
+  router:
+    device_name: router
+    device_ip: 10.0.0.1
+    max_repetitions: 10
+global:
+  max_repetitions: 25
+`)
+	var conf SnmpConfig
+	assert.NoError(t, yaml.Unmarshal(input, &conf))
+	assert.Equal(t, uint32(10), conf.Devices["router"].MaxRepetitions)
+	assert.Equal(t, uint32(25), conf.Global.MaxRepetitions)
+
+	// Unset values stay out of the file when discovery writes it back.
+	ser, err := yaml.Marshal(&SnmpDeviceConfig{DeviceName: "router"})
+	assert.NoError(t, err)
+	assert.NotContains(t, string(ser), "max_repetitions")
+}
+
 func TestEAPI(t *testing.T) {
 	input := []byte(`
 host: mabel
